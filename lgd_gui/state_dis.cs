@@ -4,9 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -31,6 +28,7 @@ namespace lgd_gui
 		Dictionary<string, CheckBox> checkb_map = new Dictionary<string, CheckBox>();
 		long st_ms= DateTime.Now.Ticks/10000; //曲线起始ms
 		int is_first=1;
+		bool is_plugin = true; //是否有插件？
 		public DispatcherTimer dispatcherTimer = null;
 
 		void state_dis_ini()
@@ -167,7 +165,14 @@ namespace lgd_gui
 			}
 #endregion
 			_so_tx_cb = new Mingw.DllcallBack(so_tx_cb); //构造不被回收的委托
-			Mingw.so_ini(_so_tx_cb);
+			try
+			{
+				Mingw.so_ini(_so_tx_cb);
+			}
+			catch
+			{
+				is_plugin = false;
+			}
 
 			dispatcherTimer = new DispatcherTimer();
 			dispatcherTimer.Tick += new EventHandler(OnTimedEvent);
@@ -176,8 +181,11 @@ namespace lgd_gui
 		}
 		private void OnTimedEvent(object sender, EventArgs e)
 		{
-			string s=Mingw.so_poll_100();
-			rx_line(s);
+			if (is_plugin)
+			{
+				string s = Mingw.so_poll_100();
+				rx_line(s);
+			}
 		}
 		private void chart1_CursorPositionChanged(object sender, System.Windows.Forms.DataVisualization.Charting.CursorEventArgs e)
 		{
@@ -215,7 +223,8 @@ namespace lgd_gui
 		}
 		void send_uart_cmd(string s) //向设备发送文本指令
 		{
-			Mingw.so_cmd(s);
+			if (is_plugin) Mingw.so_cmd(s);
+			else send_uart_data(s);
 		}
 		void send_uart_data(string s) //向设备发送数据
 		{
@@ -265,7 +274,17 @@ namespace lgd_gui
 			}
 			for(int i=0;i<buf.Length;i++)
 			{
-				string s=Mingw.so_rx(buf[i]);
+				string s = "";
+				if (is_plugin) s = Mingw.so_rx(buf[i]); //使用插件
+				else //直接文本的形式
+				{
+					uartbuf.Add(buf[i]);
+					if (buf[i] == 0x0a)
+					{
+						s = Encoding.Default.GetString(uartbuf.ToArray(), 0, uartbuf.Count);
+						uartbuf.Clear();
+					}
+				}
 				if (s != "")
 				{
 					Dispatcher.BeginInvoke((EventHandler)delegate(object sd, EventArgs ea)

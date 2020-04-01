@@ -1,0 +1,13 @@
+*.bak
+*.exe
+*.config
+*.pdb
+*.manifest
+cscope.out
+tags
+JLinkLog.txt
+JLinkSettings.ini
+RTE/
+obj/
+
+*.fb

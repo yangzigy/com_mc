@@ -109,9 +109,10 @@ namespace lgd_gui
 			chart1.ChartAreas[0].Axes[1].Minimum = 20;
 			//chart1.Series[0].Points.Add(0);
 			//chart1.Series[0].Points.Add(0);
-			row_para_dis.Height = new GridLength((sp_measure.Children.Count+4)/5*20);
+			row_para_dis.Height = new GridLength((sp_measure.Children.Count+4)/5*20+20);
+			//sp_measure.Height = row_para_dis.Height.Value;
 #endregion
-#region 指令ui初始化
+			#region 指令ui初始化
 			int i =0,j=0; //i行，j列
 			foreach (var item in config.cmds)
 			{ //本来有一行

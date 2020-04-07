@@ -32,11 +32,11 @@ namespace lgd_gui
 		public int prot_off { get; set; } //协议中的位置
 		public SrcType src_type { get; set; } //源数据的类型
 		public PRO_METHOD pro_method{get;set; } //处理方法
-		public int pro_bit { get; set; } //处理bit的位数
+		public int pro_bit { get; set; } //处理bit的位数(起始)
+		public int end_bit { get; set; } //处理bit的位数（终止,包含）
 		public double pro_k { get; set; } //处理变换kx+b
 		public double pro_b { get; set; } //处理变换kx+b
-		public string pro_0_str { get; set; } //处理0值字符
-		public string pro_1_str { get; set; } //处理1值字符
+		public string[] str_tab { get; set; } //显示字符串表
 		public bool dis_curve { get; set; } //是否显示曲线
 
 		string cur_str; //当前值
@@ -68,12 +68,22 @@ namespace lgd_gui
 					if (pro_method == PRO_METHOD.pro_val) //若是值处理
 					{
 						cur_val = df * pro_k + pro_b;
-						if (Math.Abs(cur_val) < 1e-6) cur_str = pro_0_str;
-						else cur_str = pro_1_str;
+						uint o = (uint)cur_val;
+						if (o < str_tab.Length) cur_str = str_tab[o];
+						else cur_str = "";
 					}
 					else //若是bit处理
 					{
-						cur_str = (di & (1 << pro_bit)) == 0 ? pro_0_str : pro_1_str;
+						int i = pro_bit;
+						uint v = 0;
+						do
+						{
+							v |= (uint)(di & (1 << i));
+							i++;
+						} while (i<=end_bit);
+						v >>= pro_bit;
+						if (v < str_tab.Length) cur_str = str_tab[v];
+						else cur_str = "";
 					}
 				}
 				else
@@ -103,7 +113,15 @@ namespace lgd_gui
 					}
 					else //若是bit处理
 					{
-						cur_val = (di & (1 << pro_bit)) == 0 ? 0 : 1;
+						int i = pro_bit;
+						uint v = 0;
+						do
+						{
+							v |= (uint)(di & (1 << i));
+							i++;
+						} while (i <= end_bit);
+						v >>= pro_bit;
+						cur_val = v;
 					}
 				}
 				update_cb(name); //调用回调函数
@@ -123,8 +141,7 @@ namespace lgd_gui
 			pro_bit = 0;
 			pro_k =1;
 			pro_b=0;
-			pro_0_str="关";
-			pro_1_str="开";
+			str_tab=new string[] { "关","开" };
 			dis_curve = false;
 
 			update_cb=void_fun;

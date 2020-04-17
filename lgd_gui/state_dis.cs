@@ -112,7 +112,7 @@ namespace lgd_gui
 			row_para_dis.Height = new GridLength((sp_measure.Children.Count+4)/5*20+20);
 			//sp_measure.Height = row_para_dis.Height.Value;
 #endregion
-			#region 指令ui初始化
+#region 指令ui初始化
 			int i =0,j=0; //i行，j列
 			foreach (var item in config.cmds)
 			{ //本来有一行
@@ -121,8 +121,8 @@ namespace lgd_gui
 				Button tb = new Button(); //设置按钮
 				tb.Content = item.name;
 				tb.Tag = item.name;
-				int col_add=1;
-				if(item.type==CmdType.bt)
+				int col_add=1; //列的增量
+				if(item.type==CmdType.bt) //若是单个按键
 				{
 					tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate(object sender, RoutedEventArgs e)
 					{
@@ -133,10 +133,11 @@ namespace lgd_gui
 						catch { }
 					});
 				}
-				else if(item.type==CmdType.text)
+				else if(item.type==CmdType.text) //若是按键+文本
 				{
 					if(j==1) //若已经是一半了
 					{
+						para_grid.RowDefinitions.Add(new RowDefinition());
 						i++; j=0;
 					}
 					TextBox tt1 = new TextBox(); //参数显示

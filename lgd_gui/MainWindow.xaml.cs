@@ -56,7 +56,7 @@ namespace lgd_gui
 			List<string> dsrclist = new List<string>(commPort);
 			comPort.ItemsSource = dsrclist;
 			comPort.SelectedIndex = 0;
-			uart.BaudRate = 460800;
+			uart.BaudRate = config.uart_b;
 			uart.DataReceived += new SerialDataReceivedEventHandler(uart_DataReceived);
 		}
 		private void Window_Loaded(object sender, RoutedEventArgs e)

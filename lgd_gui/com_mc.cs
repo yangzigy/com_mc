@@ -38,6 +38,7 @@ namespace lgd_gui
 		public double pro_b { get; set; } //处理变换kx+b
 		public string[] str_tab { get; set; } //显示字符串表
 		public bool dis_curve { get; set; } //是否显示曲线
+		public bool is_dis { get; set; } //是否显示，若是按钮的从属，则可以不显示
 
 		string cur_str; //当前值
 		public double cur_val; //当前值
@@ -143,23 +144,31 @@ namespace lgd_gui
 			pro_b=0;
 			str_tab=new string[] { "关","开" };
 			dis_curve = false;
+			is_dis = true;
 
-			update_cb=void_fun;
+			update_cb =void_fun;
+			update_dis=void_fun;
 		}
 		public delegate void CB(string name);
 		public void void_fun(string name){}
-		public CB update_cb;
+		public CB update_cb; //数据接收回调
+		public CB update_dis; //定时显示回调
 	}
 	/////////////////////////////////////////////////////////////////////////
 	//命令部分
 	public enum CmdType //指令类型
 	{
-		bt,text
+		bt, //按键
+		text, //带文本框的按键
+		sw, //开关
+		rpl_bool //带回复的指令
 	}
 	public class CmdDes //指令描述
 	{
 		public string name { get; set; } //命令显示名称(唯一)
+		public string refdname { get; set; } //关联的数据名称
 		public string cmd { get; set; } //命令名称
+		public string cmdoff { get; set; } //关闭指令
 		public CmdType type { get; set; } //命令名称
 		public string dft { get; set; } //默认值
 		public CmdDes()
@@ -168,6 +177,7 @@ namespace lgd_gui
 			cmd="";
 			type=CmdType.bt;
 			dft="";
+			refdname = "";
 		}
 	}
 	/////////////////////////////////////////////////////////////////////////

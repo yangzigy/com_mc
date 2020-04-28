@@ -55,13 +55,22 @@
 					<Grid.RowDefinitions>
 						<RowDefinition></RowDefinition>
 						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
 					</Grid.RowDefinitions>
 					<ComboBox Grid.Column="0" Margin="5,5" Height="35" Name="comPort" VerticalAlignment="Center" VerticalContentAlignment="Center"></ComboBox>
 					<Button Grid.Column="1" Click="btnConnCom_Click" Content="打开串口"></Button>
 					<CheckBox Grid.Column="0" Grid.Row="1" Name="checkb_rec_data">保存数据</CheckBox>
 					<Button Grid.Column="1" Grid.Row="1" Click="clear_Click">清空数据</Button>
+					<Grid Grid.Column="0" Grid.Row="2">
+						
+						<Label>开</Label>
+						<Label HorizontalAlignment="Right">关</Label>
+						<Button Margin="20,0,0,0" HorizontalContentAlignment="Left">清空数据</Button>
+						<Border CornerRadius="10" Background="Gray" BorderBrush="LightGreen" Width="20" Height="20"
+								BorderThickness="3" HorizontalAlignment="Right" VerticalAlignment="Center"></Border>
+					</Grid>
 				</Grid>
-				<Grid Name="para_grid">
+				<Grid Name="para_grid" Margin="1,1,1,1">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="*"></ColumnDefinition>
 						<ColumnDefinition Width="*"></ColumnDefinition>

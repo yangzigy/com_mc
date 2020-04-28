@@ -74,16 +74,7 @@ namespace lgd_gui
 					}
 					foreach (var item in commc.dset) //刷新每个参数
 					{
-						if (item.Value.update_times > 0)
-						{
-							item.Value.update_times--;
-							checkb_map[item.Value.name].Background = Brushes.LightGreen;
-							checkb_map[item.Value.name].Content = item.Value.name + ":" + item.Value.val;
-						}
-						else
-						{
-							checkb_map[item.Value.name].Background = Brushes.LightCoral;
-						}
+						item.Value.update_dis(item.Value.name);
 					}
 				}, invokeobj);
 			}, this, 0, 100);

@@ -44,6 +44,8 @@ namespace lgd_gui
 			foreach (var item in config.dset)
 			{
 				commc.dset[item.name] = item;
+				item.update_cb = tn => { item.update_times = 10; };//数据更新回调函数
+				item.update_dis = tn => {if (item.update_times > 0) item.update_times--;};
 				if (item.is_dis == false) continue;
 				CheckBox cb = new CheckBox();
 				cb.Content = item.name;
@@ -71,12 +73,12 @@ namespace lgd_gui
 				}
 				checkb_map[item.name] = cb;
 				sp_measure.Children.Add(cb);
-				item.update_cb=(delegate(string tn) //数据更新回调函数
+				item.update_cb+=(delegate(string tn) //数据更新回调函数
 				{
 					try
 					{
 						var it = commc.dset[tn];
-						it.update_times = 10;
+						//it.update_times = 10;
 						if (it.type == DataType.t_val && (bool)cb.IsChecked) //若显示曲线
 						{
 							if (is_first == 1) //首次加入数据点，清除初始化点
@@ -95,12 +97,12 @@ namespace lgd_gui
 					}
 					catch { }
 				});
-				item.update_dis = (delegate (string tn) //数据更新回调函数
+				item.update_dis += (delegate (string tn) //数据更新回调函数
 				{
 					var it = commc.dset[tn];
 					if (it.update_times > 0)
 					{
-						it.update_times--;
+						//it.update_times--;
 						cb.Background = Brushes.LightGreen;
 						cb.Content = it.name + ":" + it.val;
 					}
@@ -420,12 +422,12 @@ namespace lgd_gui
 			{
 				var t = MainWindow.mw.commc.dset[cd.refdname];
 				judge_out(t, cd.dft);
-				t.update_cb = tn => { t.update_times = 10; };//数据更新回调函数
-				t.update_dis = delegate (string tn) //数据更新回调函数
+				//t.update_cb = tn => { t.update_times = 10; };//数据更新回调函数
+				t.update_dis += delegate (string tn) //数据更新回调函数
 				{
 					if (t.update_times > 0)
 					{
-						t.update_times--;
+						//t.update_times--;
 						tb.Background = Brushes.LightYellow;
 						if (Mouse.LeftButton == MouseButtonState.Pressed) return; //鼠标按下就先不刷
 						judge_out(t,t.val);
@@ -504,15 +506,15 @@ namespace lgd_gui
 			{
 				var t = MainWindow.mw.commc.dset[cd.refdname];
 				judge_out(t, cd.dft);
-				t.update_cb = tn => { t.update_times = 10; };//数据更新回调函数
-				t.update_dis = delegate (string tn) //数据更新回调函数
+				//t.update_cb = tn => { t.update_times = 10; };//数据更新回调函数
+				t.update_dis += delegate (string tn) //数据更新回调函数
 				{
 					if (sent_times > 0)
 					{
 						sent_times--; //发送后的计时
 						if (t.update_times > 0) //若有刷新
 						{
-							t.update_times--;
+							//t.update_times--;
 							judge_out(t, t.val); //显示核心和外环
 						}
 						else //若无刷新
@@ -522,7 +524,6 @@ namespace lgd_gui
 					}
 					else //若已经超时
 					{
-						t.update_times = 0;
 						bd.Background = Brushes.Gray;
 					}
 				};

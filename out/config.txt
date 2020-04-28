@@ -51,12 +51,12 @@
 			"cmd":"gsw 1","cmdoff":"gsw 0","type":"sw"},
 		{"name":"电流输出","refdname":"电流输出",
 			"cmd":"isw 1","cmdoff":"isw 0","type":"sw"},
-		{"name":"标0","cmd":"cali 0","type":"bt"},
-		{"name":"标400","cmd":"cali 1","type":"bt"},
-		{"name":"标1200","cmd":"cali 2","type":"bt"},
-		{"name":"标4000","cmd":"cali 3","type":"bt"},
-		{"name":"标20000","cmd":"cali 4","type":"bt"},
-		{"name":"标40000","cmd":"cali 5","type":"bt"},
-		{"name":"cl_rec","cmd":"cl_rec","type":"bt"}
+		{"name":"标0","refdname":"指令结果","cmd":"cali 0","type":"rpl_bool"},
+		{"name":"标400","refdname":"指令结果","cmd":"cali 1","type":"rpl_bool"},
+		{"name":"标1200","refdname":"指令结果","cmd":"cali 2","type":"rpl_bool"},
+		{"name":"标4000","refdname":"指令结果","cmd":"cali 3","type":"rpl_bool"},
+		{"name":"标20000","refdname":"指令结果","cmd":"cali 4","type":"rpl_bool"},
+		{"name":"标400000","refdname":"指令结果","cmd":"cali 5","type":"rpl_bool"},
+		{"name":"cl_rec","refdname":"指令结果","cmd":"cl_rec","type":"rpl_bool"}
 	]
 }

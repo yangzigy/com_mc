@@ -103,11 +103,7 @@ namespace lgd_gui
 		}
 		private void clear_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (var seri in series_map)
-			{
-				seri.Value.Points.Clear();
-			}
-			st_ms = DateTime.Now.Ticks / 10000;
+			clear_data();
 		}
 		#endregion
 	}

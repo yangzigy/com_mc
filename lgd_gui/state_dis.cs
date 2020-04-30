@@ -28,6 +28,8 @@ namespace lgd_gui
 		Dictionary<string, Series> series_map=new Dictionary<string, Series>();
 		Dictionary<string, CheckBox> checkb_map = new Dictionary<string, CheckBox>();
 		long st_ms= DateTime.Now.Ticks/10000; //曲线起始ms
+		long x_tick=0; //x轴数值
+		string x_axis_id=""; //x轴的索引变量名，空则使用时间
 		int is_first=1;
 		bool is_plugin = true; //是否有插件？
 		public DispatcherTimer dispatcherTimer = null;
@@ -86,13 +88,26 @@ namespace lgd_gui
 								clear_Click(null, null);
 								is_first = 0;
 							}
-							long ticks0 = DateTime.Now.Ticks / 10000;
+							double d = double.Parse(it.val);
+							if(x_axis_id != "" && commc.dset.ContainsKey(x_axis_id))
+							{
+								if(tmpserial.Points.Count>0 && 
+									Math.Abs(tmpserial.Points[tmpserial.Points.Count-1].XValue-x_tick)<0.1f) //跟上次一样
+								{
+									tmpserial.Points[tmpserial.Points.Count - 1].YValues[0]= d;
+								}
+								else tmpserial.Points.AddXY(x_tick, d);
+								if (tn == x_axis_id) x_tick++;
+							}
+							else
+							{
+								long ticks0 = DateTime.Now.Ticks / 10000;
+								tmpserial.Points.AddXY(ticks0 - st_ms, d);
+							}
 							if (tmpserial.Points.Count >= config.dis_data_len)
 							{
 								tmpserial.Points.RemoveAt(0);
 							}
-							double d = double.Parse(it.val);
-							tmpserial.Points.AddXY(ticks0 - st_ms, d);
 						}
 					}
 					catch { }
@@ -191,14 +206,20 @@ namespace lgd_gui
 				uart.Write(ys, 0, n);
 			}
 			catch
-			{
-			}
+			{ }
 			return 0;
 		}
 		public void send_uart_cmd(string s) //向设备发送文本指令
-		{
-			if (is_plugin) Mingw.so_cmd(s);
-			else send_uart_data(s);
+		{ //支持多条指令同时发送
+			string[] vs = s.Split("\n".ToCharArray(), StringSplitOptions.None);
+			for(int i=0;i<vs.Length;i++)
+			{
+				//首先看看是不是软件指令
+				if(ctrl_cmd(vs[i])) continue;
+				//发送，或给插件处理
+				if (is_plugin) Mingw.so_cmd(vs[i]);
+				else send_uart_data(vs[i]);
+			}
 		}
 		void send_uart_data(string s) //向设备发送数据
 		{
@@ -244,8 +265,7 @@ namespace lgd_gui
 				uart.Read(buf, 0, n);
 			}
 			catch
-			{
-			}
+			{ }
 			for(int i=0;i<buf.Length;i++)
 			{
 				string s = "";
@@ -269,10 +289,13 @@ namespace lgd_gui
 			}
 			return;
 		}
-		void proc_text(string line) //处理一行字符
+		void proc_text(string line) //处理一行传感字符
 		{
 			line = line.Trim();
 			if (line == "") return ;
+			//首先看看是不是软件指令
+			if(ctrl_cmd(line)) return;
+			//给传感变量刷新
 			commc.update_data(line);
 		}
 		void fit_screen() //曲线范围
@@ -300,6 +323,38 @@ namespace lgd_gui
 			chart1.ChartAreas[0].Axes[1].Minimum = (int)(y_min - 1);
 		}
 #endregion
+		bool ctrl_cmd(string s) //返回是否是控制指令
+		{
+			bool r=false;
+			if(s.Length<=0 || s[0]!='^') return r;
+			string[] vs = s.Split(" ,\t".ToCharArray(), StringSplitOptions.None);
+			if(vs.Length<=0) return r;
+			switch (vs[0])
+			{
+				case "^clear": //清除当前数据
+					clear_data();
+					return true;
+				case "^x_axis": //改变x轴坐标模式
+					s = x_axis_id;
+					if (vs.Length == 1) x_axis_id = "";
+					else x_axis_id = vs[1];
+					if (s != x_axis_id) //若发生了变化
+					{
+						clear_data();
+					}
+					return true;
+			}
+			return r;
+		}
+		public void clear_data() //清除当前曲线数据
+		{
+			foreach (var seri in series_map)
+			{
+				seri.Value.Points.Clear();
+			}
+			st_ms = DateTime.Now.Ticks / 10000;
+			x_tick=0;
+		}
 	}
 
 	#region 指令类

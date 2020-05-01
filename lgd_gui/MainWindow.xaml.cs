@@ -105,6 +105,20 @@ namespace lgd_gui
 		{
 			clear_data();
 		}
+		private void Chart_CursorPositionChanged(object sender, System.Windows.Forms.DataVisualization.Charting.CursorEventArgs e)
+		{
+			chart1.Annotations[0].Visible = true;
+			System.Windows.Forms.DataVisualization.Charting.TextAnnotation ell =
+				(System.Windows.Forms.DataVisualization.Charting.TextAnnotation)(chart1.Annotations[0]);
+			double x = chart1.ChartAreas[0].CursorX.Position;
+			double y = chart1.ChartAreas[0].CursorY.Position;
+			ell.AxisX = chart1.ChartAreas[0].AxisX;
+			ell.AxisY = chart1.ChartAreas[0].AxisY;
+			ell.AnchorX = x;
+			ell.AnchorY = y;
+			ell.Text = string.Format("x:{0},y:{1}", (int)x,y);
+			//chart1.Series[0].LabelToolTip = "asdf";
+		}
 		#endregion
 	}
 }

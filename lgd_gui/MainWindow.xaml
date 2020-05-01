@@ -87,7 +87,10 @@
 				<RowDefinition Height="80" Name="row_para_dis"></RowDefinition>
 			</Grid.RowDefinitions>
 			<WindowsFormsHost Grid.Row="0" Name="mainFGrid" Margin="0,0,0,0">
-				<Chr:Chart Name="myChart">
+				<Chr:Chart Name="myChart" CursorPositionChanged="Chart_CursorPositionChanged">
+					<Chr:Chart.Annotations>
+						<Chr:TextAnnotation/>
+					</Chr:Chart.Annotations>
 					<Chr:Chart.Legends>
 						<Chr:Legend />
 					</Chr:Chart.Legends>

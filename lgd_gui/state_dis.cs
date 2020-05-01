@@ -356,7 +356,6 @@ namespace lgd_gui
 			x_tick=0;
 		}
 	}
-
 	#region 指令类
 	public class CCmd_Button
 	{

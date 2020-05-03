@@ -5,6 +5,7 @@ using System.Text;
 using System.Web.Script.Serialization;
 using System.IO;
 using System.Windows;
+using System.Text.RegularExpressions;
 
 namespace lgd_gui
 {
@@ -26,6 +27,10 @@ namespace lgd_gui
 			{
 				StreamReader sr = new StreamReader(s);
 				string sbuf = sr.ReadToEnd();
+				//先把注释去了
+				Regex r = new Regex("//.*");
+				sbuf=r.Replace(sbuf, "");
+				//反串行化
 				var t = json_ser.Deserialize<Config>(sbuf);
 				sr.Close();
 				return t;

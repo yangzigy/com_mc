@@ -1,12 +1,12 @@
 {
-	"dis_data_len":1000,
+	"dis_data_len":1000, //曲线显示长度
 	"uart_b":460800,
-	"ctrl_cols":3,
-	"svar_ui_h":0,
-	"cmd_ui_w":350,
-	"mv_w":1000,
-	"mv_h":700,
-	"ctrl_cmds":["^x_axis"],
+	"ctrl_cols":3, //命令按钮区域按钮列数
+	"svar_ui_h":0, //传感变量区域的高度
+	"cmd_ui_w":350, //命令按钮区域宽度
+	"mv_w":1000, //主窗体默认宽度
+	"mv_h":690, //主窗体默认高度
+	"ctrl_cmds":["^x_axis"], //软件开启后的显示指令
 	"dset":
 	[
 		{ "name":"浓度","prot_l":9,"prot_off":0, "dis_curve":"true"},
@@ -24,6 +24,8 @@
 		{ "name":"模式","type":"t_str","prot_l":9,"prot_off":8,
 			"src_type":"src_hex","pro_method":"pro_bit","pro_bit":9,"end_bit":10,
 			"str_tab":["温控","参考","正常","调试"]},
+		{ "name":"参考路","type":"t_str","prot_l":9,"prot_off":8,"is_dis":"false",
+			"src_type":"src_hex","pro_method":"pro_bit","pro_bit":14},
 		{ "name":"指示激光","type":"t_str","prot_l":9,"prot_off":8,"is_dis":"false",
 			"src_type":"src_hex","pro_method":"pro_bit","pro_bit":2},
 		{ "name":"蜂鸣","type":"t_str","prot_l":9,"prot_off":8,"is_dis":"false",
@@ -54,19 +56,21 @@
 		{"name":"调试模式","cmd":"mod 3","type":"bt"},
 		{"name":"","type":"label"},
 		{"name":"","type":"label"},
-		{"name":"指示激光","refdname":"指示激光",
-			"cmd":"io 0,1","cmdoff":"io 0,0","type":"sw","c_span":3},
-		{"name":"蜂鸣","refdname":"蜂鸣",
-			"cmd":"io 1,1","cmdoff":"io 1,0","type":"sw","c_span":3},
-		{"name":"温控","refdname":"温控",
-			"cmd":"outc 1","cmdoff":"outc 0","type":"sw","c_span":3},
-		{"name":"高增益","refdname":"高增益",
-			"cmd":"gsw 1","cmdoff":"gsw 0","type":"sw","c_span":3},
-		{"name":"调制输出","refdname":"调制输出",
-			"cmd":"isw 1","cmdoff":"isw 0","type":"sw","c_span":3},
-		{"name":"找峰","cmd":"mod 1","type":"bt"},
+		{"name":"温控","refdname":"温控","dft":"开",
+			"cmd":"outc 1","cmdoff":"outc 0","type":"sw","c_span":2},
+		{"name":"调制输出","refdname":"调制输出","dft":"开",
+			"cmd":"isw 1","cmdoff":"isw 0","type":"sw","c_span":2},
+		{"name":"高增益","refdname":"高增益","dft":"开",
+			"cmd":"gsw 1","cmdoff":"gsw 0","type":"sw","c_span":2},
+		{"name":"指示激光","refdname":"指示激光","dft":"开",
+			"cmd":"io 0,1","cmdoff":"io 0,0","type":"sw","c_span":2},
+		{"name":"蜂鸣","refdname":"蜂鸣","dft":"开",
+			"cmd":"io 1,1","cmdoff":"io 1,0","type":"sw","c_span":2},
+		{"name":"找峰","refdname":"参考路","dft":"开",
+			"cmd":"mod 0","cmdoff":"mod -1","type":"sw","c_span":2},
 		{"name":"","type":"label"},
-		{"name":"","type":"label"},
+		//{"name":"找峰","cmd":"mod 0","type":"bt"},
+		//{"name":"","type":"label","c_span":2},
 		{"name":"标0","refdname":"指令结果","cmd":"cali 0","type":"rpl_bool"},
 		{"name":"标400","refdname":"指令结果","cmd":"cali 1","type":"rpl_bool"},
 		{"name":"标1200","refdname":"指令结果","cmd":"cali 2","type":"rpl_bool"},
@@ -74,6 +78,8 @@
 		{"name":"标20000","refdname":"指令结果","cmd":"cali 4","type":"rpl_bool"},
 		{"name":"标400000","refdname":"指令结果","cmd":"cali 5","type":"rpl_bool"},
 		{"name":"运行模式","cmd":"mod 0","type":"bt"},
-		{"name":"保存","refdname":"指令结果","cmd":"save","type":"rpl_bool"}
+		{"name":"关机","cmd":"shutd 0","type":"bt"},
+		{"name":"重启","cmd":"shutd 1","type":"bt"},
+		{"name":"保存参数","refdname":"指令结果","cmd":"save","type":"rpl_bool"}
 	]
 }

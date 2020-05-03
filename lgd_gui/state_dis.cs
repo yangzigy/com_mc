@@ -412,6 +412,7 @@ namespace lgd_gui
 		{
 			tb.Content = cmddes.name;
 			tb.Tag = cmddes.name;
+			tb.Margin=new Thickness(4,4,4,4);
 			add_ctrl(tb,ref row,ref col);
 			tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
 			{
@@ -446,6 +447,8 @@ namespace lgd_gui
 		public override void ini(ref int row, ref int col)
 		{
 			tt1.Text = cmddes.dft;
+			tt1.VerticalContentAlignment = VerticalAlignment.Center;
+			tt1.Margin = new Thickness(4, 4, 4, 4);
 			cmddes.get_stat= ()=> tt1.Text;
 			add_ctrl(tt1, ref row, ref col);
 		}
@@ -506,7 +509,7 @@ namespace lgd_gui
 			if (MainWindow.mw.commc.dset.ContainsKey(cmddes.refdname)) //若有反馈值
 			{
 				var t = MainWindow.mw.commc.dset[cmddes.refdname];
-				judge_out(t, cmddes.dft);
+				judge_out(cmddes.dft);
 				//t.update_cb = tn => { t.update_times = 10; };//数据更新回调函数
 				t.update_dis += delegate (string tn) //数据更新回调函数
 				{
@@ -515,7 +518,7 @@ namespace lgd_gui
 						//t.update_times--;
 						tb.Background = Brushes.LightYellow;
 						if (Mouse.LeftButton == MouseButtonState.Pressed) return; //鼠标按下就先不刷
-						judge_out(t,t.val);
+						judge_out(t.val);
 					}
 					else tb.Background = br_normal;
 				};
@@ -535,14 +538,16 @@ namespace lgd_gui
 				MainWindow.mw.send_uart_cmd(MainWindow.mw.commc.cmds[(string)tb.Tag].cmdoff);
 			}
 		}
-		public void judge_out(DataDes t,string s) //判断当前输出，设置到显示
+		public void judge_out(string s) //判断当前输出，设置到显示
 		{
-			if (t.val == t.str_tab[0]) sw_action(-8); //若是关
-			else sw_action(8);
+			if (s == cmddes.dft) sw_action(8);
+			else sw_action(-8); //若是关
 		}
 		public void sw_action(int a)
 		{
-			tb.Margin = new Thickness(25-a, 0, 25+a, 0);
+			double k = bd.ActualWidth / 150.0f;
+			if (k < 0.1) k = 1;
+			tb.Margin = new Thickness((25-a)*k, 0, (25+a)*k, 0);
 		}
 		public void add_to_grid(UIElement c, int col)
 		{
@@ -568,6 +573,7 @@ namespace lgd_gui
 			tb.Content = cmddes.name;
 			tb.Tag = cmddes.name;
 			tb.HorizontalContentAlignment = HorizontalAlignment.Left;
+			tb.Margin = new Thickness(4, 4, 4, 4);
 			tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
 			{
 				try
@@ -577,7 +583,6 @@ namespace lgd_gui
 				}
 				catch { }
 			});
-
 			bd.BorderBrush = Brushes.LightGreen;
 			bd.Background = br_normal;
 			bd.CornerRadius = new CornerRadius(10);
@@ -592,7 +597,6 @@ namespace lgd_gui
 			{
 				var t = MainWindow.mw.commc.dset[cmddes.refdname];
 				judge_out(t, cmddes.dft);
-				//t.update_cb = tn => { t.update_times = 10; };//数据更新回调函数
 				t.update_dis += delegate (string tn) //数据更新回调函数
 				{
 					if (sent_times > 0)
@@ -600,17 +604,16 @@ namespace lgd_gui
 						sent_times--; //发送后的计时
 						if (t.update_times > 0) //若有刷新
 						{
-							//t.update_times--;
 							judge_out(t, t.val); //显示核心和外环
 						}
 						else //若无刷新
 						{
-							bd.Background = Brushes.Gray;
+							bd.Background = new SolidColorBrush(Color.FromRgb(0xbb, 0xbb, 0xbb));
 						}
 					}
 					else //若已经超时
 					{
-						bd.Background = Brushes.Gray;
+						bd.Background = new SolidColorBrush(Color.FromRgb(0xbb, 0xbb, 0xbb));
 					}
 				};
 			}

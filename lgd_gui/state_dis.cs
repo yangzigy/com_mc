@@ -389,10 +389,13 @@ namespace lgd_gui
 		public System.Windows.Controls.Grid grid;
 		public Button tb=new Button();
 		public CmdDes cmddes; //缓存命令描述
+		public Thickness bt_margin; //按钮间距
 		public CCmd_Button(CmdDes cd, System.Windows.Controls.Grid g)
 		{
 			cmddes =cd;
 			grid = g;
+			int m=MainWindow.mw.config.bt_margin;
+			bt_margin=new Thickness(m,m,m,m);
 		}
 		public void add_ctrl(UIElement c, ref int row, ref int col)
 		{
@@ -412,7 +415,7 @@ namespace lgd_gui
 		{
 			tb.Content = cmddes.name;
 			tb.Tag = cmddes.name;
-			tb.Margin=new Thickness(4,4,4,4);
+			tb.Margin=bt_margin;
 			add_ctrl(tb,ref row,ref col);
 			tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
 			{
@@ -448,7 +451,7 @@ namespace lgd_gui
 		{
 			tt1.Text = cmddes.dft;
 			tt1.VerticalContentAlignment = VerticalAlignment.Center;
-			tt1.Margin = new Thickness(4, 4, 4, 4);
+			tt1.Margin = bt_margin;
 			cmddes.get_stat= ()=> tt1.Text;
 			add_ctrl(tt1, ref row, ref col);
 		}
@@ -573,7 +576,7 @@ namespace lgd_gui
 			tb.Content = cmddes.name;
 			tb.Tag = cmddes.name;
 			tb.HorizontalContentAlignment = HorizontalAlignment.Left;
-			tb.Margin = new Thickness(4, 4, 4, 4);
+			tb.Margin = bt_margin;
 			tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
 			{
 				try

@@ -5,7 +5,8 @@
 	"svar_ui_h":0, //传感变量区域的高度
 	"cmd_ui_w":350, //命令按钮区域宽度
 	"mv_w":1000, //主窗体默认宽度
-	"mv_h":690, //主窗体默认高度
+	"mv_h":720, //主窗体默认高度
+	"bt_margin":6, //按钮间距
 	"ctrl_cmds":["^x_axis"], //软件开启后的显示指令
 	"dset":
 	[
@@ -41,8 +42,8 @@
 	],
 	"cmds":
 	[
-		{"name":"关数据","cmd":"s 0","type":"bt"},
 		{"name":"开数据","cmd":"s 1\n^x_axis","type":"bt"},
+		{"name":"关数据","cmd":"s 0","type":"bt"},
 		{"name":"清屏幕缓存","refdname":"指令结果","cmd":"cl_rec","type":"rpl_bool"},
 		{"name":"显示原始","cmd":"oa 1\ns 0\n^clear\n^x_axis 采样值","type":"bt"},
 		{"name":"显示平均","cmd":"oa 2\ns 0\n^clear\n^x_axis 采样值","type":"bt"},

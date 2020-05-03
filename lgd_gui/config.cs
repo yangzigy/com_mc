@@ -20,6 +20,7 @@ namespace lgd_gui
 			cmd_ui_w = 0; //指令区域宽度
 			mv_w = 0;
 			mv_h = 0;
+			bt_margin=2; //按钮间距
 		}
 		public static Config load(string s)
 		{
@@ -63,6 +64,7 @@ namespace lgd_gui
 		public int cmd_ui_w { get; set; } //指令区域宽度
 		public int mv_w { get; set; } //主窗体宽
 		public int mv_h { get; set; } //主窗体高
+		public int bt_margin { get; set; } //按钮的间距
 		public List<DataDes> dset { get; set; } //通用测控对象
 		public List<CmdDes> cmds { get; set; } //指令列表
 		public List<string> ctrl_cmds { get; set; } //界面控制的指令

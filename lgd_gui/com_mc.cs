@@ -159,23 +159,34 @@ namespace lgd_gui
 	public enum CmdType //指令类型
 	{
 		bt, //按键
-		text, //带文本框的按键
+		text, //文本框
 		sw, //开关
-		rpl_bool //带回复的指令
+		rpl_bool, //带回复的指令
+		label, //文本控件
 	}
 	public class CmdDes //指令描述
 	{
 		public string name { get; set; } //命令显示名称(唯一)
 		public string refdname { get; set; } //关联的数据名称
+		public string suffixname { get; set; } //后缀参数名称
 		public string cmd { get; set; } //命令名称
 		public string cmdoff { get; set; } //关闭指令
+		public int c_span { get; set; } //列跨度
 		public CmdType type { get; set; } //命令名称
 		public string dft { get; set; } //默认值
+		public CB_s_v get_stat= void_fun; //获取此指令对象状态的回调函数
+
+		public delegate string CB_s_v();
+		public static string void_fun() { return ""; }
 		public CmdDes()
 		{
 			name="";
+			refdname = "";
 			cmd="";
-			type=CmdType.bt;
+			cmdoff = "";
+			c_span = 1;
+			suffixname = "";
+			type =CmdType.bt;
 			dft="";
 			refdname = "";
 		}

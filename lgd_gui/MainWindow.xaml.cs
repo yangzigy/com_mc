@@ -52,15 +52,14 @@ namespace lgd_gui
 				config = Config.load(configfilename);
 			}
 			// 获取COM口列表
-			string[] commPort = SerialPort.GetPortNames();
-			List<string> dsrclist = new List<string>(commPort);
-			comPort.ItemsSource = dsrclist;
-			comPort.SelectedIndex = 0;
+			bt_refresh_uart_Click(null,null);
 			uart.BaudRate = config.uart_b;
 			uart.DataReceived += new SerialDataReceivedEventHandler(uart_DataReceived);
 		}
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
+			if(config.mv_w!=0) Width = config.mv_w;
+			if(config.mv_h!=0) Height = config.mv_h;
 			//初始化界面
 			state_dis_ini();
 			timer10Hz = new Timer((TimerCallback)delegate (object state)
@@ -80,6 +79,17 @@ namespace lgd_gui
 			}, this, 0, 100);
 		}
 		#region click
+		private void bt_save_curve_data_Click(object sender, RoutedEventArgs e) //保存曲线数据
+		{
+
+		}
+		private void bt_refresh_uart_Click(object sender, RoutedEventArgs e)
+		{
+			string[] commPort = SerialPort.GetPortNames();
+			List<string> dsrclist = new List<string>(commPort);
+			comPort.ItemsSource = dsrclist;
+			comPort.SelectedIndex = 0;
+		}
 		private void btnConnCom_Click(object sender, RoutedEventArgs e)
 		{
 			var btn = sender as Button;

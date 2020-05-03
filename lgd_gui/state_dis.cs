@@ -135,19 +135,44 @@ namespace lgd_gui
 			chart1.ChartAreas[0].Axes[1].Minimum = 20;
 			//chart1.Series[0].Points.Add(0);
 			//chart1.Series[0].Points.Add(0);
-			row_para_dis.Height = new GridLength((sp_measure.Children.Count+4)/5*20+20);
+			if(config.svar_ui_h!=0)
+			{
+				row_para_dis.Height = new GridLength(config.svar_ui_h);
+			}
+			else row_para_dis.Height = new GridLength((sp_measure.Children.Count+4)/5*20+20);
 			//sp_measure.Height = row_para_dis.Height.Value;
 #endregion
 #region 指令ui初始化
+			if(config.cmd_ui_w>0)
+			{
+				colD_cmd_ui.Width = new GridLength(config.cmd_ui_w);
+			}
+			if (config.ctrl_cols==3) //若是3列排布的,把默认控制按钮的位置改一下
+			{ 
+				//通用控制按钮加一列
+				grid_ctrl_bts.ColumnDefinitions.Add(new ColumnDefinition());
+				//通用控制按钮位置修改
+				System.Windows.Controls.Grid.SetRow(bt_refresh_uart, 0);
+				System.Windows.Controls.Grid.SetColumn(bt_refresh_uart, 2);
+				System.Windows.Controls.Grid.SetRow(checkb_rec_data, 1);
+				System.Windows.Controls.Grid.SetColumn(checkb_rec_data, 0);
+				System.Windows.Controls.Grid.SetRow(bt_clear, 1);
+				System.Windows.Controls.Grid.SetColumn(bt_clear, 1);
+				System.Windows.Controls.Grid.SetRow(bt_save_curve_data, 1);
+				System.Windows.Controls.Grid.SetColumn(bt_save_curve_data, 2);
+				//面板border加长
+				System.Windows.Controls.Grid.SetColumnSpan(bd_dft_and_cfg, 3);
+				//配置按钮面板加一列
+				para_grid.ColumnDefinitions.Add(new ColumnDefinition());
+			}
 			int i =0,j=0; //i行，j列
 			foreach (var item in config.cmds)
 			{ //本来有一行
 				commc.cmds[item.name]=item;
 				int rownu = para_grid.RowDefinitions.Count - 1; //添加一行
-				var v=CCmd_Button.bt_factory(item.type);
-				v.grid = para_grid;
-				v.ini(item, ref i, ref j);
-				if(j>=2)
+				var v=CCmd_Button.bt_factory(item.type,item, para_grid);
+				v.ini(ref i, ref j);
+				if(j>=config.ctrl_cols)
 				{
 					para_grid.RowDefinitions.Add(new RowDefinition());
 					i++;j=0;
@@ -167,6 +192,11 @@ namespace lgd_gui
 			dispatcherTimer.Tick += new EventHandler(OnTimedEvent);
 			dispatcherTimer.Interval = TimeSpan.FromMilliseconds(10);
 			dispatcherTimer.Start();
+			//配置初始化指令
+			foreach (var item in config.ctrl_cmds)
+			{
+				ctrl_cmd(item);
+			}
 		}
 		private void OnTimedEvent(object sender, EventArgs e)
 		{
@@ -174,23 +204,6 @@ namespace lgd_gui
 			{
 				string s = Mingw.so_poll_100();
 				rx_line(s);
-			}
-		}
-		private void chart1_CursorPositionChanged(object sender, System.Windows.Forms.DataVisualization.Charting.CursorEventArgs e)
-		{
-		//	for (int i = 0; i < config.curve.Length; i++)
-			{
-				try
-				{
-					//curve_value_textboxes[i].Text=(from p in chart1.Series[i].Points
-					//    where p.XValue==chart1.ChartAreas[0].CursorX.Position
-					//    select p.YValues[0]).First<double>().ToString();
-					//curve_value_textboxes[i].Text = chart1.Series[i].Points[(int)chart1.ChartAreas[0].CursorX.Position].YValues[0].ToString();
-				}
-				catch
-				{
-					//curve_value_textboxes[i].Text = "no data";
-				}
 			}
 		}
 #region 串口
@@ -360,73 +373,91 @@ namespace lgd_gui
 	public class CCmd_Button
 	{
 		static public SolidColorBrush br_normal = new SolidColorBrush(Color.FromRgb(0xdd, 0xdd, 0xdd)); //普通按键颜色
-		static public CCmd_Button bt_factory(CmdType t) //工厂方法
+		static public CCmd_Button bt_factory(CmdType t,CmdDes cd, System.Windows.Controls.Grid g) //工厂方法
 		{
 			switch(t)
 			{
-				case CmdType.bt: return new CCmd_Button();
-				case CmdType.text: return new CCmd_Text();
-				case CmdType.sw: return new CCmd_Switch();
-				case CmdType.rpl_bool: return new CCmd_rpl_bool();
+				case CmdType.bt: return new CCmd_Button(cd,g);
+				case CmdType.text: return new CCmd_Text(cd, g);
+				case CmdType.sw: return new CCmd_Switch(cd, g);
+				case CmdType.rpl_bool: return new CCmd_rpl_bool(cd, g);
+				case CmdType.label: return new CCmd_label(cd, g);
 			}
 			return null;
 		}
 
 		public System.Windows.Controls.Grid grid;
 		public Button tb=new Button();
+		public CmdDes cmddes; //缓存命令描述
+		public CCmd_Button(CmdDes cd, System.Windows.Controls.Grid g)
+		{
+			cmddes =cd;
+			grid = g;
+		}
 		public void add_ctrl(UIElement c, ref int row, ref int col)
 		{
+			int space_left = MainWindow.mw.config.ctrl_cols - col;
+			if(cmddes.c_span>space_left) //若不够了
+			{
+				grid.RowDefinitions.Add(new RowDefinition());
+				row++; col = 0;
+			}
 			grid.Children.Add(c);
-			System.Windows.Controls.Grid.SetColumn(c, col++);
+			System.Windows.Controls.Grid.SetColumn(c, col);
 			System.Windows.Controls.Grid.SetRow(c, row);
+			System.Windows.Controls.Grid.SetColumnSpan(c, cmddes.c_span);
+			col += cmddes.c_span;
 		}
-		virtual public void ini(CmdDes cd, ref int row,ref int col)
+		virtual public void ini(ref int row,ref int col)
 		{
-			tb.Content = cd.name;
-			tb.Tag = cd.name;
+			tb.Content = cmddes.name;
+			tb.Tag = cmddes.name;
 			add_ctrl(tb,ref row,ref col);
 			tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
 			{
 				try
 				{
-					MainWindow.mw.send_uart_cmd(MainWindow.mw.commc.cmds[(string)((Button)sender).Tag].cmd);
+					string s = MainWindow.mw.commc.cmds[(string)((Button)sender).Tag].cmd;
+					if (cmddes.suffixname!="" && MainWindow.mw.commc.cmds.ContainsKey(cmddes.suffixname))
+					{
+						s += " " + MainWindow.mw.commc.cmds[cmddes.suffixname].get_stat();
+					}
+					MainWindow.mw.send_uart_cmd(s);
 				}
 				catch { }
 			});
 		}
 	}
-	public class CCmd_Text : CCmd_Button //带输入文本框的按钮
+	public class CCmd_label : CCmd_Button //字符显示
 	{
-		TextBox tt1 = new TextBox(); //参数显示
-		public override void ini(CmdDes cd,ref int row, ref int col)
+		public CCmd_label(CmdDes cd, System.Windows.Controls.Grid g) : base(cd,g) {}
+		public Label lb = new Label();
+		public override void ini(ref int row, ref int col)
 		{
-			if (col == 1) //若已经是一半了
-			{
-				grid.RowDefinitions.Add(new RowDefinition());
-				row++; col = 0;
-			}
-			tb.Content = cd.name;
-			tb.Tag = cd.name;
-			add_ctrl(tb, ref row, ref col);
-			tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
-			{
-				try
-				{
-					MainWindow.mw.send_uart_cmd(MainWindow.mw.commc.cmds[(string)((Button)sender).Tag].cmd + " " + tt1.Text);
-				}
-				catch { }
-			});
-			tt1.Text = string.Format("{0:0.00}", cd.dft);
+			lb.Content = cmddes.name;
+			lb.Tag = cmddes.name;
+			add_ctrl(lb, ref row, ref col);
+		}
+	}
+	public class CCmd_Text : CCmd_Button //文本框
+	{
+		public CCmd_Text(CmdDes cd, System.Windows.Controls.Grid g) : base(cd, g) { }
+		TextBox tt1 = new TextBox(); //参数显示
+		public override void ini(ref int row, ref int col)
+		{
+			tt1.Text = cmddes.dft;
+			cmddes.get_stat= ()=> tt1.Text;
 			add_ctrl(tt1, ref row, ref col);
 		}
 	}
 	public class CCmd_Switch : CCmd_Button  //开关控件
 	{
+		public CCmd_Switch(CmdDes cd, System.Windows.Controls.Grid g) : base(cd, g) { }
 		public System.Windows.Controls.Grid subgrid= new System.Windows.Controls.Grid(); //控件容器
 		public Label lb_on = new Label();
 		public Label lb_off = new Label();
 		public Border bd = new Border();
-		public override void ini(CmdDes cd, ref int row, ref int col)
+		public override void ini(ref int row, ref int col)
 		{
 			//注册到主面板中
 			subgrid.Margin = new Thickness(1, 2, 1, 2);
@@ -436,8 +467,8 @@ namespace lgd_gui
 			lb_on.AddHandler(Button.MouseDownEvent, new RoutedEventHandler(mouseDown), true);
 			lb_off.AddHandler(Button.MouseDownEvent, new RoutedEventHandler(mouseDown), true);
 			//控件自身的属性
-			tb.Content = cd.name;
-			tb.Tag = cd.name;
+			tb.Content = cmddes.name;
+			tb.Tag = cmddes.name;
 
 			FrameworkElementFactory f = new FrameworkElementFactory(typeof(Border), "Border");
 			f.SetValue(Border.CornerRadiusProperty, new CornerRadius(15));
@@ -472,10 +503,10 @@ namespace lgd_gui
 			lb_off.HorizontalAlignment = HorizontalAlignment.Right;
 			sw_action(8);
 			//控件的接收配置
-			if (MainWindow.mw.commc.dset.ContainsKey(cd.refdname)) //若有反馈值
+			if (MainWindow.mw.commc.dset.ContainsKey(cmddes.refdname)) //若有反馈值
 			{
-				var t = MainWindow.mw.commc.dset[cd.refdname];
-				judge_out(t, cd.dft);
+				var t = MainWindow.mw.commc.dset[cmddes.refdname];
+				judge_out(t, cmddes.dft);
 				//t.update_cb = tn => { t.update_times = 10; };//数据更新回调函数
 				t.update_dis += delegate (string tn) //数据更新回调函数
 				{
@@ -521,10 +552,11 @@ namespace lgd_gui
 	}
 	public class CCmd_rpl_bool : CCmd_Button  //带回复的指令
 	{
+		public CCmd_rpl_bool(CmdDes cd, System.Windows.Controls.Grid g) : base(cd, g) { }
 		public Border bd = new Border();
 		public bool result = true; //结果缓存
 		public int sent_times = 0; //发送后倒计时，计时结束就不响应了
-		public override void ini(CmdDes cd, ref int row, ref int col)
+		public override void ini(ref int row, ref int col)
 		{
 			//注册到主面板中
 			add_ctrl(tb, ref row, ref col);
@@ -533,8 +565,8 @@ namespace lgd_gui
 			System.Windows.Controls.Grid.SetRow(bd, row);
 			
 			//控件自身的属性
-			tb.Content = cd.name;
-			tb.Tag = cd.name;
+			tb.Content = cmddes.name;
+			tb.Tag = cmddes.name;
 			tb.HorizontalContentAlignment = HorizontalAlignment.Left;
 			tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
 			{
@@ -556,10 +588,10 @@ namespace lgd_gui
 			bd.VerticalAlignment = VerticalAlignment.Center;
 			bd.Margin = new Thickness(0,0,10,0);
 			//控件的接收配置
-			if (MainWindow.mw.commc.dset.ContainsKey(cd.refdname)) //若有反馈值
+			if (MainWindow.mw.commc.dset.ContainsKey(cmddes.refdname)) //若有反馈值
 			{
-				var t = MainWindow.mw.commc.dset[cd.refdname];
-				judge_out(t, cd.dft);
+				var t = MainWindow.mw.commc.dset[cmddes.refdname];
+				judge_out(t, cmddes.dft);
 				//t.update_cb = tn => { t.update_times = 10; };//数据更新回调函数
 				t.update_dis += delegate (string tn) //数据更新回调函数
 				{

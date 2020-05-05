@@ -21,6 +21,9 @@ namespace lgd_gui
 			mv_w = 0;
 			mv_h = 0;
 			bt_margin=2; //按钮间距
+			dset = new List<DataDes>();
+			cmds = new List<CmdDes>();
+			ctrl_cmds = new List<string>();
 		}
 		public static Config load(string s)
 		{

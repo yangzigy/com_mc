@@ -42,6 +42,15 @@ public enum CmdType //指令类型
 	para, //参数型
 }
 ```  
+指令包括：  
+1. name:命令显示名称(唯一)
+1. refdname:关联的数据名称
+1. suffixname:后缀参数名称
+1. cmd:命令名称
+1. cmdoff:关闭指令
+1. c_span:列跨度
+1. type:命令名称
+1. dft:默认值
 ### 按键控件  
 ### 文本框控件  
 ### 开关控件  
@@ -63,4 +72,53 @@ $开头的是与插件或下位机约定的文本协议
 ## 指令配置协议  
 指令名称要求没有空格  
 # 案例  
-
+## 传感数据  
+默认源类型：src_float  
+默认数据类型：t_val  
+默认处理类型：pro_val
+协议名不写为""，仅通过列数区分  
+```  
+{"name":"浓度","prot_l":9,"prot_off":0, "dis_curve":"true"},
+//在配置文件中可通过//进行注释
+//显示类型为字符，源类型为hex，处理方法为按位处理，从11到第13位（共3位）
+//给出显示字符表
+{ "name":"错误","type":"t_str","prot_l":9,"prot_off":8,
+	"src_type":"src_hex","pro_method":"pro_bit","pro_bit":11,"end_bit":13,
+	"str_tab":["正确","初始化","拟合错误","峰位错误","信噪比","跳过处理","强度低"]},
+//字符型，不显示。从hex中获取，按bit处理，不写end_bit，只处理一个bit
+{ "name":"参考路","type":"t_str","prot_l":9,"prot_off":8,"is_dis":"false",
+	"src_type":"src_hex","pro_method":"pro_bit","pro_bit":14},
+//对于指令的回复，可统一一种回复方法
+//以$r为协议名，共两列，例如： $r,OK
+//字符显示，字符为err或OK
+{ "name":"指令结果","type":"t_str","prot_name":"$r","prot_l":2,"prot_off":1,
+	"src_type":"src_str","str_tab":["err","OK"],"pro_method":"pro_val"}
+```  
+## 指令  
+```  
+//普通按键
+{"name":"关数据","cmd":"s 0","type":"bt"},
+//带软件指令，以^开头。指令可用\n分割，一次发送多条
+{"name":"开数据","cmd":"s 1\n^x_axis","type":"bt"},
+//带回复的按钮，按下后1s内收到回复，按钮会亮一下表示有反应
+//refdname表示引用变量作为回复内容
+//按钮的颜色表示回复是否正确，要求是字符型，等于显示字符的第二个字符串（bool型的1）为正确
+{"name":"清屏幕缓存","refdname":"指令结果","cmd":"cl_rec","type":"rpl_bool"},
+//显示数据前清空数据，给曲线数据指定x轴刷新条件，若没有条件则按ms数去做x轴
+{"name":"显示原始","cmd":"oa 1\ns 0\n^clear\n^x_axis 采样值","type":"bt"},
+//占位用，也可以写字，注意name为唯一字符
+{"name":"","type":"label"},
+//带文本框的按钮，分为两部分，按钮使用suffixname来引用文本框。一个文本框可被多个按钮引用
+{"name":"温度期望","cmd":"st","type":"bt","suffixname":"tb_exp_T"},
+{"name":"tb_exp_T","type":"text","dft":"25"},
+//开关型控件，可下达“开”“关”指令，同时显示开关状态，以及刷新状态
+//通过引用传感变量的方式获得开关状态和刷新状态，传感变量可设置不显示
+//使用cmdoff设置关闭的指令,使用c_span指明此控件占用的空间
+{"name":"温控","refdname":"温控","dft":"开",
+	"cmd":"outc 1","cmdoff":"outc 0","type":"sw","c_span":2},
+//参数的测控，以内存访问指令@进行，文本框使用para类型，以cmd指明刷新指令，以refdname指明参考的传感变量
+{"name":"i_off","cmd":"@ 1,1,0,16,","type":"bt","suffixname":"tb_i_off"},
+{"name":"tb_i_off","type":"para","dft":"100","cmd":"@ 0,1,0,16,0","refdname":"i_off"}
+其中，传感变量的定义：
+{ "name":"i_off","prot_l":2,"prot_name":"$@:3:1:0:16","prot_off":1,"is_dis":"false"}
+```  

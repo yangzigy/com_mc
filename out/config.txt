@@ -32,7 +32,7 @@
 		{ "name":"蜂鸣","type":"t_str","prot_l":9,"prot_off":8,"is_dis":"false",
 			"src_type":"src_hex","pro_method":"pro_bit","pro_bit":1},
 		{ "name":"温控","type":"t_str","prot_l":9,"prot_off":8,"is_dis":"false",
-			"src_type":"src_hex","pro_method":"pro_bit","pro_bit":5},
+			"src_type":"src_hex","pro_method":"pro_bit","pro_bit":15},
 		{ "name":"高增益","type":"t_str","prot_l":9,"prot_off":8,"is_dis":"false",
 			"src_type":"src_hex","pro_method":"pro_bit","pro_bit":0},
 		{ "name":"调制输出","type":"t_str","prot_l":9,"prot_off":8,"is_dis":"false",

@@ -382,6 +382,7 @@ namespace lgd_gui
 				case CmdType.sw: return new CCmd_Switch(cd, g);
 				case CmdType.rpl_bool: return new CCmd_rpl_bool(cd, g);
 				case CmdType.label: return new CCmd_label(cd, g);
+				case CmdType.para: return new CCmd_para(cd, g);
 			}
 			return null;
 		}
@@ -627,6 +628,65 @@ namespace lgd_gui
 			else result = false;
 			bd.Background = result ? Brushes.Green : Brushes.Red;
 			bd.BorderBrush = result ? Brushes.LightGreen : Brushes.LightPink;
+		}
+	}
+	public class CCmd_para : CCmd_Button  //参数型
+	{
+		public CCmd_para(CmdDes cd, System.Windows.Controls.Grid g) : base(cd, g) { }
+		TextBox tt1 = new TextBox(); //参数显示
+		public Image img_refresh = new Image();
+		public int sent_times = 0; //发送后倒计时，计时结束就不响应了
+		public BitmapImage i_on; //刷新按钮
+		public BitmapImage i_off; //刷新按钮
+		public override void ini(ref int row, ref int col)
+		{
+			i_on = new BitmapImage(new Uri("pack://application:,,,/pic/refresh_on.jpg"));
+			i_off = new BitmapImage(new Uri("pack://application:,,,/pic/refresh_off.jpg"));
+			//控件自身的属性
+			tt1.Text = cmddes.dft;
+			tt1.VerticalContentAlignment = VerticalAlignment.Center;
+			var tm = bt_margin;
+			tm.Right = 30;
+			tt1.Margin = tm;
+			cmddes.get_stat = () => tt1.Text;
+			img_refresh.Source = i_off;
+			img_refresh.Width = 30;
+			img_refresh.AddHandler(Button.MouseDownEvent, new RoutedEventHandler(mouseDown), true);
+			//注册到主面板中
+			add_ctrl(tt1, ref row, ref col);
+			col--;
+			add_ctrl(img_refresh, ref row,ref col);
+			img_refresh.VerticalAlignment = VerticalAlignment.Center;
+			img_refresh.HorizontalAlignment = HorizontalAlignment.Right;
+
+			//控件的接收配置
+			if (MainWindow.mw.commc.dset.ContainsKey(cmddes.refdname)) //若有反馈值
+			{
+				var t = MainWindow.mw.commc.dset[cmddes.refdname];
+				t.update_dis += delegate (string tn) //数据更新回调函数
+				{
+					if (sent_times > 0)
+					{
+						sent_times--; //发送后的计时
+						if (t.update_times > 0) //若有刷新
+						{
+							img_refresh.Source = i_on;
+							tt1.Text = t.val;
+						}
+						else img_refresh.Source = i_off; //若无刷新
+					}
+					else img_refresh.Source = i_off; //若已经超时
+				};
+			}
+		}
+		void mouseDown(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				MainWindow.mw.send_uart_cmd(cmddes.cmd);
+				sent_times = 10;
+			}
+			catch { }
 		}
 	}
 	#endregion

@@ -52,7 +52,7 @@
 		{"name":"tb_exp_T","type":"text","dft":"25"},
 		{"name":"5~25℃","type":"label"},
 		{"name":"直流电流","cmd":"si","type":"bt","suffixname":"tb_i"},
-		{"name":"tb_i","type":"text","dft":"80"},
+		{"name":"tb_i","type":"para","dft":"80","refdname":"采样值"},
 		{"name":"直流偏移","cmd":"i_off","type":"bt","suffixname":"tb_i"},
 		{"name":"调试模式","cmd":"mod 3","type":"bt"},
 		{"name":"","type":"label"},

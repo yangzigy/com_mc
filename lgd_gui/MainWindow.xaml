@@ -72,6 +72,7 @@
 						<Button Margin="20,0,0,0" HorizontalContentAlignment="Left">清空数据</Button>
 						<Border CornerRadius="10" Background="Gray" BorderBrush="LightGreen" Width="20" Height="20"
 								BorderThickness="3" HorizontalAlignment="Right" VerticalAlignment="Center"></Border>
+						<Image Source="pic/refresh_on.jpg" Width="30"></Image>
 					</Grid>-->
 				</Grid>
 				<Grid Name="para_grid" Margin="1,1,1,1">

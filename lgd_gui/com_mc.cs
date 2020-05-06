@@ -163,6 +163,7 @@ namespace lgd_gui
 		sw, //开关
 		rpl_bool, //带回复的指令
 		label, //文本控件
+		para, //参数型
 	}
 	public class CmdDes //指令描述
 	{

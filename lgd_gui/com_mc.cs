@@ -234,9 +234,10 @@ namespace lgd_gui
 				{
 					if(item.Value.prot_l==vs.Length) //若数量对了
 					{
-						if(item.Value.prot_name!="" && vs[0].StartsWith("$")) //有协议名称，且协议里也有名称
+						if(item.Value.prot_name!="") //有协议名称
 						{
-							if(item.Value.prot_name!=vs[0]) //协议名称不等
+							if((!vs[0].StartsWith("$")) || //数据里没有协议
+								item.Value.prot_name!=vs[0]) //协议名称不等
 							{
 								continue;
 							}

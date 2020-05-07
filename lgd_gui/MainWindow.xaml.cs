@@ -129,6 +129,10 @@ namespace lgd_gui
 			ell.Text = string.Format("x:{0},y:{1}", (int)x,y);
 			//chart1.Series[0].LabelToolTip = "asdf";
 		}
+		private void mi_help_Click(object sender, RoutedEventArgs e) //帮助按钮
+		{
+
+		}
 		#endregion
 	}
 }

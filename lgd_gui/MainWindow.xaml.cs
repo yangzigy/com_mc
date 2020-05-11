@@ -131,7 +131,9 @@ namespace lgd_gui
 		}
 		private void mi_help_Click(object sender, RoutedEventArgs e) //帮助按钮
 		{
-
+			var b= Properties.Resources.readme;
+			var s=Encoding.UTF8.GetString(b);
+			MessageBox.Show(s);
 		}
 		#endregion
 	}

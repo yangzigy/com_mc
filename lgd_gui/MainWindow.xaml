@@ -56,6 +56,28 @@
 			</MenuItem>
 			<MenuItem Header="显示">
 				<MenuItem Header="适应屏幕" IsEnabled="False"></MenuItem>
+				<!--<Grid>
+					<Button Margin="0,0,30,0">清空数据</Button>
+					<Image Source="pic/refresh_on.jpg" Width="30" HorizontalAlignment="Right"></Image>
+				</Grid>
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition></ColumnDefinition>
+						<ColumnDefinition></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Button Margin="0,0,30,0" Grid.Row="0">清空数据</Button>
+					<Image Source="pic/refresh_on.jpg" Width="30" HorizontalAlignment="Right" Grid.Row="0"></Image>
+					<TextBox Grid.Column="1">asdf</TextBox>
+					<Button Margin="0,0,30,0" Grid.Row="1">清空数据</Button>
+					<Image Source="pic/refresh_on.jpg" Width="30" HorizontalAlignment="Right" Grid.Row="1"></Image>
+				</Grid>-->
 			</MenuItem>
 			<MenuItem Header="帮助" Click="mi_help_Click"></MenuItem>
 		</Menu>

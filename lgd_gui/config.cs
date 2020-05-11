@@ -14,7 +14,7 @@ namespace lgd_gui
 		public Config()
 		{
 			dis_data_len = 1000;
-			uart_b=460800;
+			uart_b=115200;
 			ctrl_cols = 2; //控制按钮默认2列
 			svar_ui_h = 0; //传感变量显示区高度，为0则为自动
 			cmd_ui_w = 0; //指令区域宽度

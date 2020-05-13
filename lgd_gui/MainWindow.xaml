@@ -79,6 +79,17 @@
 					<Image Source="pic/refresh_on.jpg" Width="30" HorizontalAlignment="Right" Grid.Row="1"></Image>
 				</Grid>-->
 			</MenuItem>
+			<MenuItem Header="参数" Name="mi_menu_cmd">
+				<Grid Name="grid_menu_cmd" Margin="1,1,1,1" Width="250">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"></ColumnDefinition>
+						<ColumnDefinition Width="*"></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition></RowDefinition>
+					</Grid.RowDefinitions>
+				</Grid>
+			</MenuItem>
 			<MenuItem Header="帮助" Click="mi_help_Click"></MenuItem>
 		</Menu>
 		<ScrollViewer Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto" Margin="5">
@@ -282,7 +293,7 @@
 				</Chr:Chart>
 			</WindowsFormsHost>
 			<Border Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="Chocolate" BorderThickness="1"/>
-			<UniformGrid  Grid.Row="1" Name="sp_measure"></UniformGrid>
+			<UniformGrid  Grid.Row="1" Name="sp_measure" Margin="0,7,0,0"></UniformGrid>
 		</Grid>
 	</Grid>
 </Window>

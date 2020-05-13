@@ -42,7 +42,9 @@
 		{ "name":"指令结果","type":"t_str","prot_name":"$r","prot_l":2,"prot_off":1,
 			"src_type":"src_str","str_tab":["err","OK"],"pro_method":"pro_val"},
 		{"name":"i_off","prot_l":2,"prot_name":"$@:3:1:0:16","prot_off":1,"pro_k":0.1,"is_dis":"false"},
-		{"name":"uid","prot_l":2,"prot_name":"$@:3:2:0:0","prot_off":1,"is_dis":"false"}
+		//参数
+		{"name":"uid","prot_l":2,"prot_name":"$@:3:2:0:0","prot_off":1,"is_dis":"false"},
+		{"name":"tpid_p","prot_l":2,"prot_name":"$@:3:2:6:0","prot_off":1,"is_dis":"false"}
 	],
 	"cmds":
 	[
@@ -91,5 +93,11 @@
 		{"name":"保存参数","refdname":"指令结果","cmd":"save","type":"rpl_bool"},
 		{"name":"序列号","cmd":"@ 1,2,0,0,","type":"bt","suffixname":"tb_uid"},
 		{"name":"tb_uid","type":"para","dft":"80","cmd":"@ 0,2,0,0,0","refdname":"uid"}
-	]
+	],
+	"menu_cmd":
+	[
+		{"name":"tpid_p","cmd":"@ 1,2,0,0,","type":"bt","suffixname":"tb_uid"},
+		{"name":"tb_tpid_p","type":"para","dft":"80","cmd":"@ 0,2,0,6,0","refdname":"tpid_p"}
+	],
+	"menu_name":"参数"
 }

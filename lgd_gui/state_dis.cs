@@ -54,6 +54,7 @@ namespace lgd_gui
 				cb.IsChecked = item.dis_curve;
 				cb.Width = 150;
 				cb.Background = Brushes.LightCoral;
+				cb.Margin = new Thickness(2, 2, 2, 0);
 				Series tmpserial=null;
 				if (item.type==DataType.t_str) //字符型的，不让选择曲线
 				{
@@ -176,6 +177,23 @@ namespace lgd_gui
 				{
 					para_grid.RowDefinitions.Add(new RowDefinition());
 					i++;j=0;
+				}
+			}
+#endregion
+#region 菜单指令
+			i = 0;j = 0;
+			mi_menu_cmd.Header = config.menu_name;
+			mi_menu_cmd.Click += (s, e) =>  { mi_menu_cmd.IsSubmenuOpen = true; };
+			foreach (var item in config.menu_cmd)
+			{ //本来有一行
+				commc.cmds[item.name] = item;
+				int rownu = grid_menu_cmd.RowDefinitions.Count - 1; //添加一行
+				var v = CCmd_Button.bt_factory(item.type, item, grid_menu_cmd);
+				v.ini(ref i, ref j);
+				if (j >= config.ctrl_cols)
+				{
+					grid_menu_cmd.RowDefinitions.Add(new RowDefinition());
+					i++; j = 0;
 				}
 			}
 #endregion

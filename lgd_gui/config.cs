@@ -70,6 +70,8 @@ namespace lgd_gui
 		public int bt_margin { get; set; } //按钮的间距
 		public List<DataDes> dset { get; set; } //通用测控对象
 		public List<CmdDes> cmds { get; set; } //指令列表
-		public List<string> ctrl_cmds { get; set; } //界面控制的指令
+		public List<string> ctrl_cmds { get; set; } //界面控制的指令,程序初始化的时候直接执行
+		public List<CmdDes> menu_cmd { get; set; } //在菜单栏的指令
+		public string menu_name { get; set; } //菜单名
 	}
 }

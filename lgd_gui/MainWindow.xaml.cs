@@ -133,7 +133,10 @@ namespace lgd_gui
 		{
 			var b= Properties.Resources.readme;
 			var s=Encoding.UTF8.GetString(b);
-			MessageBox.Show(s);
+			//MessageBox.Show(s);
+			Dlg_help h = new Dlg_help();
+			h.helptext = s;
+			h.Show();
 		}
 		#endregion
 	}

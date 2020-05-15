@@ -10,15 +10,15 @@
 	"ctrl_cmds":["^x_axis"], //软件开启后的显示指令
 	"dset":
 	[
-		{ "name":"浓度","prot_l":9,"prot_off":0, "dis_curve":"true"},
-		{ "name":"位置","prot_l":9,"prot_off":1, "dis_curve":"true"},
+		{ "name":"浓度","prot_l":9,"prot_off":0, "is_cv":"true"},
+		{ "name":"位置","prot_l":9,"prot_off":1, "is_cv":"true"},
 		{ "name":"信噪比","prot_l":9,"prot_off":2},
 		{ "name":"信号强度","prot_l":9,"prot_off":3},
 		{ "name":"期望温度","prot_l":9,"prot_off":4},
-		{ "name":"温度","prot_l":9,"prot_off":5, "dis_curve":"true"},
+		{ "name":"温度","prot_l":9,"prot_off":5, "is_cv":"true"},
 		{ "name":"板温","prot_l":9,"prot_off":6},
 		{ "name":"光功率","prot_l":9,"prot_off":7},
-		{ "name":"采样值","prot_l":1,"prot_off":0, "dis_curve":"true"},
+		{ "name":"采样值","prot_l":1,"prot_off":0, "is_cv":"true"},
 		{ "name":"错误","dtype":"str","prot_l":9,"prot_off":8,
 			"stype":"hex","pro_method":"pro_bit","pro_bit":11,"end_bit":13,
 			"str_tab":["正确","初始化","拟合错误","峰位错误","信噪比","跳过处理","强度低"]},

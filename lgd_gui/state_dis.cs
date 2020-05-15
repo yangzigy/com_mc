@@ -157,10 +157,10 @@ namespace lgd_gui
 				System.Windows.Controls.Grid.SetColumn(bt_refresh_uart, 2);
 				System.Windows.Controls.Grid.SetRow(checkb_rec_data, 1);
 				System.Windows.Controls.Grid.SetColumn(checkb_rec_data, 0);
+				System.Windows.Controls.Grid.SetRow(cb_fit_screen, 1);
+				System.Windows.Controls.Grid.SetColumn(cb_fit_screen, 1);
 				System.Windows.Controls.Grid.SetRow(bt_clear, 1);
-				System.Windows.Controls.Grid.SetColumn(bt_clear, 1);
-				System.Windows.Controls.Grid.SetRow(bt_save_curve_data, 1);
-				System.Windows.Controls.Grid.SetColumn(bt_save_curve_data, 2);
+				System.Windows.Controls.Grid.SetColumn(bt_clear, 2);
 				//面板border加长
 				System.Windows.Controls.Grid.SetColumnSpan(bd_dft_and_cfg, 3);
 				//配置按钮面板加一列
@@ -329,29 +329,35 @@ namespace lgd_gui
 			//给传感变量刷新
 			commc.update_data(line);
 		}
-		void fit_screen() //曲线范围
+		double curv_x_max = int.MinValue, curv_y_max = int.MinValue;
+		double curv_x_min = int.MaxValue, curv_y_min = int.MaxValue; //曲线极值
+		void fit_screen_data() //只更新边界数据，不更新界面
 		{
-			double x_max = int.MinValue, y_max = int.MinValue;
-			double x_min = int.MaxValue, y_min = int.MaxValue;
+			curv_x_max = int.MinValue; curv_y_max = int.MinValue;
+			curv_x_min = int.MaxValue; curv_y_min = int.MaxValue;
 			foreach (var item in series_map) //遍历所有曲线，找极值
 			{
 				foreach (var p in item.Value.Points)
 				{
-					if (p.XValue > x_max) x_max = p.XValue;
-					if (p.YValues[0] > y_max) y_max = p.YValues[0];
-					if (p.XValue < x_min) x_min = p.XValue;
-					if (p.YValues[0] < y_min) y_min = p.YValues[0];
+					if (p.XValue > curv_x_max) curv_x_max = p.XValue;
+					if (p.YValues[0] > curv_y_max) curv_y_max = p.YValues[0];
+					if (p.XValue < curv_x_min) curv_x_min = p.XValue;
+					if (p.YValues[0] < curv_y_min) curv_y_min = p.YValues[0];
 				}
 			}
-			if ((int)(x_max + 1.5) < (int)(x_min - 1) || (int)(x_max + 1.5)<0)
+		}
+		void fit_screen() //曲线范围
+		{
+			fit_screen_data();
+			if ((int)(curv_x_max + 1.5) < (int)(curv_x_min - 1) || (int)(curv_x_max + 1.5)<0)
 			{
 				return;
 			}
-			else if (y_max < y_min) return;
-			chart1.ChartAreas[0].Axes[0].Maximum = (int)(x_max + 1.5);
-			chart1.ChartAreas[0].Axes[0].Minimum = (int)(x_min - 1);
-			chart1.ChartAreas[0].Axes[1].Maximum = (int)(y_max + 1.5);
-			chart1.ChartAreas[0].Axes[1].Minimum = (int)(y_min - 1);
+			else if (curv_y_max < curv_y_min) return;
+			chart1.ChartAreas[0].Axes[0].Maximum = (int)(curv_x_max + 1.5);
+			chart1.ChartAreas[0].Axes[0].Minimum = (int)(curv_x_min - 1);
+			chart1.ChartAreas[0].Axes[1].Maximum = (int)(curv_y_max + 1.5);
+			chart1.ChartAreas[0].Axes[1].Minimum = (int)(curv_y_min - 1);
 		}
 #endregion
 		bool ctrl_cmd(string s) //返回是否是控制指令

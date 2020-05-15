@@ -51,7 +51,7 @@
 		</Grid.RowDefinitions>
 		<Menu Grid.Row="0" Grid.ColumnSpan="1" FontSize="16">
 			<MenuItem Header="文件">
-				<MenuItem Header="保存曲线" IsEnabled="False"></MenuItem>
+				<MenuItem Header="保存曲线" Click="bt_save_curve_data_Click"></MenuItem>
 				<MenuItem Header="加载曲线" IsEnabled="False"></MenuItem>
 			</MenuItem>
 			<MenuItem Header="显示">
@@ -110,8 +110,8 @@
 					<Button Grid.Column="1" Click="btnConnCom_Click" Content="打开串口"></Button>
 					<Button Grid.Column="0" Grid.Row="1" Click="bt_refresh_uart_Click" Name="bt_refresh_uart" Content="刷新串口"></Button>
 					<CheckBox Grid.Column="1" Grid.Row="1" Name="checkb_rec_data" VerticalAlignment="Center">保存数据</CheckBox>
-					<Button Grid.Column="0" Grid.Row="2" Name="bt_clear" Click="clear_Click">清曲线</Button>
-					<Button Grid.Column="1" Grid.Row="2" Name="bt_save_curve_data" Click="bt_save_curve_data_Click">存曲线</Button>
+					<CheckBox Grid.Column="0" Grid.Row="2" Name="cb_fit_screen" IsChecked="True" VerticalAlignment="Center">适应屏幕</CheckBox>
+					<Button Grid.Column="1" Grid.Row="2" Name="bt_clear" Click="clear_Click">清曲线</Button>
 					<Border Name="bd_dft_and_cfg" Grid.Row="3" Grid.ColumnSpan="2" BorderThickness="2" BorderBrush="Black"></Border>
 					<!--<Grid Grid.Column="0" Grid.Row="2">
 						<Label>开</Label>
@@ -139,7 +139,8 @@
 				<RowDefinition Height="80" Name="row_para_dis"></RowDefinition>
 			</Grid.RowDefinitions>
 			<WindowsFormsHost Grid.Row="0" Name="mainFGrid" Margin="0,0,0,0">
-				<Chr:Chart Name="myChart" CursorPositionChanged="Chart_CursorPositionChanged">
+				<Chr:Chart Name="myChart" CursorPositionChanged="Chart_CursorPositionChanged"
+						   MouseMove="Chart_MouseMove" MouseWheel="Chart_MouseWheel" MouseDown="Chart_MouseDown" MouseUp="Chart_MouseUp">
 					<Chr:Chart.Annotations>
 						<Chr:TextAnnotation/>
 					</Chr:Chart.Annotations>
@@ -283,10 +284,10 @@
 								</Chr:Axis>
 							</Chr:ChartArea.AxisY2>
 							<Chr:ChartArea.CursorX>
-								<Chr:Cursor IsUserEnabled="True" IsUserSelectionEnabled="True" />
+								<Chr:Cursor IsUserEnabled="True" IsUserSelectionEnabled="False" AutoScroll="True" IntervalType="Number" Interval="0.1" IntervalOffsetType="Auto" />
 							</Chr:ChartArea.CursorX>
 							<Chr:ChartArea.CursorY>
-								<Chr:Cursor IsUserEnabled="True" IsUserSelectionEnabled="True" />
+								<Chr:Cursor IsUserEnabled="True" IsUserSelectionEnabled="False" AutoScroll="True" IntervalType="Number" Interval="0.1" />
 							</Chr:ChartArea.CursorY>
 						</Chr:ChartArea>
 					</Chr:Chart.ChartAreas>

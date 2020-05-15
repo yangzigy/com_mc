@@ -51,12 +51,12 @@ namespace lgd_gui
 				if (item.is_dis == false) continue;
 				CheckBox cb = new CheckBox();
 				cb.Content = item.name;
-				cb.IsChecked = item.dis_curve;
+				cb.IsChecked = item.is_cv;
 				cb.Width = 150;
 				cb.Background = Brushes.LightCoral;
 				cb.Margin = new Thickness(2, 2, 2, 0);
 				Series tmpserial=null;
-				if (item.type==DataType.t_str) //字符型的，不让选择曲线
+				if (item.dtype==DestType.str) //字符型的，不让选择曲线
 				{
 					//cb.IsEnabled = false;
 				}
@@ -82,7 +82,7 @@ namespace lgd_gui
 					{
 						var it = commc.dset[tn];
 						//it.update_times = 10;
-						if (it.type == DataType.t_val && (bool)cb.IsChecked) //若显示曲线
+						if (it.dtype == DestType.val && (bool)cb.IsChecked) //若显示曲线
 						{
 							if (is_first == 1) //首次加入数据点，清除初始化点
 							{
@@ -140,7 +140,7 @@ namespace lgd_gui
 			{
 				row_para_dis.Height = new GridLength(config.svar_ui_h);
 			}
-			else row_para_dis.Height = new GridLength((sp_measure.Children.Count+4)/5*20+20);
+			else row_para_dis.Height = new GridLength((sp_measure.Children.Count+4)/5*20+27);
 			//sp_measure.Height = row_para_dis.Height.Value;
 #endregion
 #region 指令ui初始化

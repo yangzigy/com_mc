@@ -1,6 +1,7 @@
 通用测控上位机
 ======
-https://github.com/yangzigy/com_mc  
+项目地址：https://github.com/yangzigy/com_mc  
+bug反馈：yangzigy@sina.com  
 # 功能  
 嵌入式设备开发调试过程中，需要使用上位机查看设备状态，下达指令。使用曲线实现状态可视化，记录数据事后分析等功能能够大大提高开发调试效率。  
 而不同的嵌入式设备，不同的项目，需要上位机控制的量完全不同，导致基本上每块电路都需要自己的上位机，这个工作量是难以承担的。  
@@ -80,8 +81,8 @@ $开头的是与插件或下位机约定的文本协议
 1. dft:默认值  
 # 案例  
 ## 传感数据  
-默认源类型：src_float  
-默认数据类型：t_val  
+默认源类型：df  
+默认数据类型：val  
 默认处理类型：pro_val
 协议名不写为""，仅通过列数区分  
 ```  
@@ -89,17 +90,17 @@ $开头的是与插件或下位机约定的文本协议
 //在配置文件中可通过//进行注释
 //显示类型为字符，源类型为hex，处理方法为按位处理，从11到第13位（共3位）
 //给出显示字符表
-{ "name":"错误","type":"t_str","prot_l":9,"prot_off":8,
-	"src_type":"src_hex","pro_method":"pro_bit","pro_bit":11,"end_bit":13,
+{ "name":"错误","dtype":"str","prot_l":9,"prot_off":8,
+	"stype":"hex","pro_method":"pro_bit","pro_bit":11,"end_bit":13,
 	"str_tab":["正确","初始化","拟合错误","峰位错误","信噪比","跳过处理","强度低"]},
 //字符型，不显示。从hex中获取，按bit处理，不写end_bit，只处理一个bit
-{ "name":"参考路","type":"t_str","prot_l":9,"prot_off":8,"is_dis":"false",
-	"src_type":"src_hex","pro_method":"pro_bit","pro_bit":14},
+{ "name":"参考路","dtype":"str","prot_l":9,"prot_off":8,"is_dis":"false",
+	"stype":"hex","pro_method":"pro_bit","pro_bit":14},
 //对于指令的回复，可统一一种回复方法
 //以$r为协议名，共两列，例如： $r,OK
 //字符显示，字符为err或OK
-{ "name":"指令结果","type":"t_str","prot_name":"$r","prot_l":2,"prot_off":1,
-	"src_type":"src_str","str_tab":["err","OK"],"pro_method":"pro_val"}
+{ "name":"指令结果","dtype":"str","prot_name":"$r","prot_l":2,"prot_off":1,
+	"stype":"str","str_tab":["err","OK"]},
 ```  
 ## 指令  
 ```  
@@ -127,7 +128,7 @@ $开头的是与插件或下位机约定的文本协议
 {"name":"i_off","cmd":"@ 1,1,0,16,","type":"bt","suffixname":"tb_i_off"},
 {"name":"tb_i_off","type":"para","dft":"100","cmd":"@ 0,1,0,16,0","refdname":"i_off"}
 其中，传感变量的定义：
-{ "name":"i_off","prot_l":2,"prot_name":"$@:3:1:0:16","prot_off":1,"is_dis":"false"}
+{"name":"i_off","prot_l":2,"prot_name":"$@:3:1:0:16","prot_off":1,"pro_k":0.1,"is_dis":"false"},
 ```  
 ## 数据  
 

@@ -11,13 +11,16 @@ namespace lgd_gui
 	//UI通过数据名称唯一的访问
 	//上传的数据通过适配器转换为通用的数据协议（类NMEA）,查询所有数据项，符合条件的更新
 	//////////////////////////////////////////////////////////////////
-	public enum DataType //数据类型
+	public enum DestType //处理输出类型
 	{   //值，字符
-		t_val, t_str
+		val, str
 	}
 	public enum SrcType //源类型
 	{   //浮点，字符，hex，整数
-		src_double,src_float, src_str, src_hex, src_int  
+		df,str, hex,
+		u32, s32,
+		u16, s16,
+		u8,  s8,
 	}
 	public enum PRO_METHOD //处理类型
 	{   //线性处理，按位处理
@@ -26,104 +29,79 @@ namespace lgd_gui
 	public class DataDes //数据描述
 	{
 		public string name { get; set; } //显示名称(唯一)
-		public DataType type {get;set;} //数据类型
+		public DestType dtype {get;set;} //数据类型
 		public string prot_name { get; set; } //协议名
 		public int prot_l { get; set; } //协议tab数量
 		public int prot_off { get; set; } //协议中的位置
-		public SrcType src_type { get; set; } //源数据的类型
+		public SrcType stype { get; set; } //源数据的类型
 		public PRO_METHOD pro_method{get;set; } //处理方法
 		public int pro_bit { get; set; } //处理bit的位数(起始)
 		public int end_bit { get; set; } //处理bit的位数（终止,包含）
 		public double pro_k { get; set; } //处理变换kx+b
 		public double pro_b { get; set; } //处理变换kx+b
 		public string[] str_tab { get; set; } //显示字符串表
-		public bool dis_curve { get; set; } //是否显示曲线
+		public bool is_cv { get; set; } //是否显示曲线
 		public bool is_dis { get; set; } //是否显示，若是按钮的从属，则可以不显示
 
 		string cur_str; //当前值
 		public double cur_val; //当前值
 		public string val
 		{
-			get { return type==DataType.t_val?cur_val.ToString():cur_str;}
+			get { return dtype==DestType.val?cur_val.ToString():cur_str;}
 			set
 			{
 				double df = 0;
 				int di = 0;
-				if (type == DataType.t_str) //若是字符型的
+				//首先按输入类型区分
+				if(stype== SrcType.df) df = double.Parse(value);
+				else if(stype== SrcType.hex)
 				{
-					switch (src_type) //也得看看源数据类型
-					{
-						case SrcType.src_str:
-							cur_str = value;
-							update_cb(name); //调用回调函数
-							return;
-						case SrcType.src_int:
-							di = int.Parse(value);
-							break;
-						case SrcType.src_hex:
-							di = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
-							break;
-						default:
-							return;
-					}
-					if (pro_method == PRO_METHOD.pro_val) //若是值处理
-					{
-						cur_val = df * pro_k + pro_b;
-						uint o = (uint)cur_val;
-						if (o < str_tab.Length) cur_str = str_tab[o];
-						else cur_str = "";
-					}
-					else //若是bit处理
-					{
-						int i = pro_bit;
-						uint v = 0;
-						do
-						{
-							v |= (uint)(di & (1 << i));
-							i++;
-						} while (i<=end_bit);
-						v >>= pro_bit;
-						if (v < str_tab.Length) cur_str = str_tab[v];
-						else cur_str = "";
-					}
+					df = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
 				}
 				else
 				{
-					switch (src_type) //若是值型的
+					bool b=int.TryParse(value,out di);
+					switch (stype) //若是值型的
 					{
-						case SrcType.src_float:
-							df = float.Parse(value);
-							break;
-						case SrcType.src_double:
-							df = double.Parse(value);
-							break;
-						case SrcType.src_int:
-							di = int.Parse(value);
-							df = di;
-							break;
-						case SrcType.src_hex:
-							di = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
-							df = di;
-							break;
+						case SrcType.u32: df = (uint)di; break;
+						case SrcType.s32: df = di; break;
+						case SrcType.u16: df = (ushort)di; break;
+						case SrcType.s16: df = (short)di; break;
+						case SrcType.u8: df = (byte)di; break;
+						case SrcType.s8: df = (sbyte)di; break;
+						case SrcType.str: //若源类型是字符
+							if (dtype == DestType.str) //且输出字符型
+							{
+								cur_str = value;
+								update_cb(name); //调用回调函数
+							}
+							return;
 						default:
 							return;
 					}
-					if (pro_method == PRO_METHOD.pro_val) //若是值处理
+					if (!b) throw new Exception("");
+				}
+				if (pro_method == PRO_METHOD.pro_val) //若是值处理
+				{
+					cur_val = df * pro_k + pro_b;
+				}
+				else //若是bit处理
+				{
+					int i = pro_bit;
+					uint v = 0;
+					do
 					{
-						cur_val = df * pro_k + pro_b;
-					}
-					else //若是bit处理
-					{
-						int i = pro_bit;
-						uint v = 0;
-						do
-						{
-							v |= (uint)(di & (1 << i));
-							i++;
-						} while (i <= end_bit);
-						v >>= pro_bit;
-						cur_val = v;
-					}
+						v |= (uint)(di & (1 << i));
+						i++;
+					} while (i <= end_bit);
+					v >>= pro_bit;
+					cur_val = v;
+				}
+				if (dtype == DestType.str) //输出字符型
+				{
+					uint o = (uint)cur_val;
+					if (o < str_tab.Length) cur_str = str_tab[o];
+					else cur_str = "";
 				}
 				update_cb(name); //调用回调函数
 			}
@@ -133,17 +111,17 @@ namespace lgd_gui
 		public DataDes()
 		{
 			name="";
-			type=DataType.t_val;
+			dtype=DestType.val;
 			prot_name="";
 			prot_l=0;
 			prot_off=0;
-			src_type=SrcType.src_float;
+			stype=SrcType.df;
 			pro_method=PRO_METHOD.pro_val;
 			pro_bit = 0;
 			pro_k =1;
 			pro_b=0;
 			str_tab=new string[] { "关","开" };
-			dis_curve = false;
+			is_cv = false;
 			is_dis = true;
 
 			update_cb =void_fun;

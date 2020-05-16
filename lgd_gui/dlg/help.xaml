@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="help" Height="450" Width="800" Loaded="Window_Loaded">
     <Grid>
-		<RichTextBox Name="rtb_help" VerticalScrollBarVisibility="Auto"></RichTextBox>
+		<RichTextBox Name="rtb_help" VerticalScrollBarVisibility="Auto" FontSize="16"></RichTextBox>
     </Grid>
 </Window>

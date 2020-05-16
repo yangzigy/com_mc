@@ -56,7 +56,8 @@ namespace lgd_gui
 				if(stype== SrcType.df) df = double.Parse(value);
 				else if(stype== SrcType.hex)
 				{
-					df = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
+					di = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
+					df = di;
 				}
 				else
 				{

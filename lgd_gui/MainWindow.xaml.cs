@@ -82,7 +82,96 @@ namespace lgd_gui
 		#region click
 		private void bt_save_curve_data_Click(object sender, RoutedEventArgs e) //保存曲线数据
 		{
-
+			var ofd = new System.Windows.Forms.SaveFileDialog();
+			ofd.Filter = "*.csv|*.csv";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+			StreamWriter sw = new StreamWriter(ofd.FileName);
+			//由于x轴一定是整数，所以按x轴作为索引。取得曲线的x轴极值坐标
+			fit_screen_data();
+			Int64 i = 0;
+			//遍历所有曲线的标题，写入文件，按标题来取值
+			string s = "";
+			var cv_id = new List<int>(); //参与输出的曲线的名称，按顺序
+			for(int j=0;j<chart1.Series.Count;j++)
+			{
+				if(chart1.Series[j].Points.Count>0) //若此曲线有点
+				{
+					cv_id.Add(j);
+					s += chart1.Series[j].Name + ",";
+				}
+			}
+			if (cv_id.Count == 0) return;
+			s = s.Substring(0, s.Length - 1);
+			sw.WriteLine(s);
+			var mi = new int[cv_id.Count]; //各曲线的索引
+			for (i = (Int64)curv_x_min; i < curv_x_max; i++) //i为横坐标值
+			{
+				s = "";
+				int flag = 0;
+				for(int j =0;j<cv_id.Count;j++) //遍历所有曲线
+				{
+					var ser = chart1.Series[cv_id[j]];
+					for (; mi[j] < ser.Points.Count; mi[j]++)
+					{
+						int cur_x_val = (int)(ser.Points[mi[j]].XValue);
+						if (cur_x_val > i) break; //若还没到，就过
+						if (cur_x_val == i)
+						{
+							s += string.Format("{0}", ser.Points[mi[j]].YValues[0]);
+							flag = 1;
+							break;
+						}
+					}
+					s += ","; //每个曲线加一个逗号
+				}
+				if (flag== 0) continue;
+				s=s.Substring(0, s.Length - 1);
+				sw.WriteLine(s);
+			}
+			sw.Close();
+		}
+		private void bt_load_curve_data_Click(object sender, RoutedEventArgs e) //加载曲线数据
+		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.csv|*.csv";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+			StreamReader sw = new StreamReader(ofd.FileName);
+			string text = sw.ReadToEnd();
+			sw.Close();
+			var lines = text.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+			if(lines.Length<=1) //只有标题，不加载
+			{
+				MessageBox.Show("无数据");
+				return;
+			}
+			var tags = lines[0].Split(",".ToCharArray(), StringSplitOptions.None); //要带着空位
+			var cv_ind = new List<int>(); //曲线索引的列表
+			foreach (var item in tags) //看看数据的标题是否都在曲线中
+			{
+				int j;
+				for (j = 0; j < chart1.Series.Count; j++)
+				{
+					if (chart1.Series[j].Name==item) //若是这个曲线
+					{
+						cv_ind.Add(j);
+						break;
+					}
+				}
+				if (j == chart1.Series.Count) return;//若没有曲线是这个名字
+			}
+			clear_data(); //首先清空数据
+			for(int i = 1; i < lines.Length; i++)
+			{
+				tags = lines[i].Split(",".ToCharArray(), StringSplitOptions.None); //要带着空位
+				if (tags.Length != cv_ind.Count) continue; //列数不等的跳过
+				for (int j = 0; j < tags.Length; j++)
+				{
+					var ser = chart1.Series[cv_ind[j]];
+					double y = 0;
+					if (!double.TryParse(tags[j], out y)) continue;
+					ser.Points.AddXY(i,y);
+				}
+			}
 		}
 		private void bt_refresh_uart_Click(object sender, RoutedEventArgs e)
 		{
@@ -112,9 +201,13 @@ namespace lgd_gui
 				uart.Close();
 			}
 		}
-		private void clear_Click(object sender, RoutedEventArgs e)
+		private void clear_Click(object sender, RoutedEventArgs e) //清除数据
 		{
 			clear_data();
+		}
+		private void bt_fitscreen_Click(object sender, RoutedEventArgs e) //适应屏幕
+		{
+			fit_screen();
 		}
 		private void Chart_CursorPositionChanged(object sender, System.Windows.Forms.DataVisualization.Charting.CursorEventArgs e)
 		{ //此函数不进，不知道为啥
@@ -156,6 +249,17 @@ namespace lgd_gui
 			chart1.ChartAreas[0].Axes[1].Minimum = y0 / 10.0;
 			chart1.ChartAreas[0].Axes[1].Maximum = y1 / 10.0;
 		}
+		double rx_max = 0;
+		double rx_min = 0;
+		double ry_max = 0;
+		double ry_min = 0; //曲线实际边界，不同于曲线极值
+		void get_curv_range()
+		{
+			rx_max = chart1.ChartAreas[0].Axes[0].Maximum;
+			rx_min = chart1.ChartAreas[0].Axes[0].Minimum;
+			ry_max = chart1.ChartAreas[0].Axes[1].Maximum;
+			ry_min = chart1.ChartAreas[0].Axes[1].Minimum;
+		}
 		private void Chart_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e) //曲线控件的鼠标移动
 		{
 			double x = e.X;
@@ -169,15 +273,23 @@ namespace lgd_gui
 				double ry0 = chart1.ChartAreas[0].AxisY.PixelPositionToValue(pre_m.Y);
 				double rdx = rx - rx0;
 				double rdy = ry - ry0; //物坐标的增量
-				Int64 x0 = (Int64)((chart1.ChartAreas[0].Axes[0].Minimum - rdx)*10);
-				Int64 x1 = (Int64)((chart1.ChartAreas[0].Axes[0].Maximum - rdx)*10);
-				Int64 y0 = (Int64)((chart1.ChartAreas[0].Axes[1].Minimum - rdy)*10);
-				Int64 y1 = (Int64)((chart1.ChartAreas[0].Axes[1].Maximum - rdy)*10);
+				rx_min -= rdx;
+				rx_max -= rdx;
+				ry_min -= rdy;
+				ry_max -= rdy;
+				Int64 x0 = (Int64)(rx_min*10);
+				Int64 x1 = (Int64)(rx_max*10);
+				Int64 y0 = (Int64)(ry_min*10);
+				Int64 y1 = (Int64)(ry_max*10);
 				set_chart1_range(x0, x1, y0, y1);
 			}
 			else if(e.Button==System.Windows.Forms.MouseButtons.Left) //左键
 			{
 
+			}
+			else
+			{
+				get_curv_range();
 			}
 			pre_m.X = x;
 			pre_m.Y = y;
@@ -190,10 +302,7 @@ namespace lgd_gui
 				float t = d / 1000.0f; //比例
 				if (t < -0.5f) t = -0.5f;
 				else if (t > 0.5f) t = 0.5f; //t为正，缩小范围，相当于放大
-				double rx_max = chart1.ChartAreas[0].Axes[0].Maximum;
-				double rx_min = chart1.ChartAreas[0].Axes[0].Minimum;
-				double ry_max = chart1.ChartAreas[0].Axes[1].Maximum;
-				double ry_min = chart1.ChartAreas[0].Axes[1].Minimum;
+				get_curv_range();
 				double lx = rx_max - rx_min;
 				double ly = ry_max - ry_min; //长度
 				if(lx>2*(curv_x_max-curv_x_min) && t<0 &&
@@ -234,6 +343,7 @@ namespace lgd_gui
 		{
 			if(pre_left.X>=0)
 			{
+				if (e.X == pre_left.X && e.Y == pre_left.Y) return;
 				double rx = chart1.ChartAreas[0].AxisX.PixelPositionToValue(e.X);
 				double ry = chart1.ChartAreas[0].AxisY.PixelPositionToValue(e.Y);
 				double rx0 = chart1.ChartAreas[0].AxisX.PixelPositionToValue(pre_left.X);

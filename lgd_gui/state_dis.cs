@@ -90,7 +90,7 @@ namespace lgd_gui
 								is_first = 0;
 							}
 							double d = double.Parse(it.val);
-							if(x_axis_id != "" && commc.dset.ContainsKey(x_axis_id))
+							if(x_axis_id != "" && commc.dset.ContainsKey(x_axis_id)) //若有索引列
 							{
 								if(tmpserial.Points.Count>0 && 
 									Math.Abs(tmpserial.Points[tmpserial.Points.Count-1].XValue-x_tick)<0.1f) //跟上次一样
@@ -100,7 +100,7 @@ namespace lgd_gui
 								else tmpserial.Points.AddXY(x_tick, d);
 								if (tn == x_axis_id) x_tick++;
 							}
-							else
+							else //没有索引列，就用时间ms数作为x轴
 							{
 								long ticks0 = DateTime.Now.Ticks / 10000;
 								tmpserial.Points.AddXY(ticks0 - st_ms, d);

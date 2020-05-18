@@ -52,10 +52,10 @@
 		<Menu Grid.Row="0" Grid.ColumnSpan="1" FontSize="16">
 			<MenuItem Header="文件">
 				<MenuItem Header="保存曲线" Click="bt_save_curve_data_Click"></MenuItem>
-				<MenuItem Header="加载曲线" IsEnabled="False"></MenuItem>
+				<MenuItem Header="加载曲线" Click="bt_load_curve_data_Click"></MenuItem>
 			</MenuItem>
 			<MenuItem Header="显示">
-				<MenuItem Header="适应屏幕" IsEnabled="False"></MenuItem>
+				<MenuItem Header="适应屏幕" Click="bt_fitscreen_Click"></MenuItem>
 				<!--<Grid>
 					<Button Margin="0,0,30,0">清空数据</Button>
 					<Image Source="pic/refresh_on.jpg" Width="30" HorizontalAlignment="Right"></Image>

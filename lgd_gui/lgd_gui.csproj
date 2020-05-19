@@ -77,6 +77,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="com_mc.cs" />
+    <Compile Include="DataSrc.cs" />
     <Compile Include="dlg\help.xaml.cs">
       <DependentUpon>help.xaml</DependentUpon>
     </Compile>

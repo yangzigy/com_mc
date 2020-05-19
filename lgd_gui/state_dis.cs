@@ -23,6 +23,10 @@ namespace lgd_gui
 	{
 		static public MainWindow mw;
 		public Com_MC commc = new Com_MC(); //通用测控对象
+		public DataSrc dataSrc=null; //数据源
+		public SerialPort uart = new SerialPort(); //串口
+		public int data_src = 0; //0串口，1网络
+
 		TextDataFile rec_file = new TextDataFile();
 		object[] invokeobj=new object[2];
 		Dictionary<string, Series> series_map=new Dictionary<string, Series>();
@@ -232,12 +236,7 @@ namespace lgd_gui
 			//send_uart_data(ss);
 			byte[] ys = new byte[n];
 			Marshal.Copy(p, ys, 0, n);
-			try
-			{
-				uart.Write(ys, 0, n);
-			}
-			catch
-			{ }
+			send_uart_data(ys);
 			return 0;
 		}
 		public void send_uart_cmd(string s) //向设备发送文本指令
@@ -252,11 +251,17 @@ namespace lgd_gui
 				else send_uart_data(vs[i]);
 			}
 		}
-		void send_uart_data(string s) //向设备发送数据
+		void send_uart_data(string s) //字符串版的发送函数
+		{
+			var b=Encoding.UTF8.GetBytes(s);
+			send_uart_data(b);
+		}
+		void send_uart_data(byte[] b) //向设备发送数据
 		{
 			try
 			{
-				uart.WriteLine(s);
+				if (data_src == 0) uart.Write(b,0,b.Length);
+				else dataSrc.send_data(b);
 			}
 			catch (Exception ee)
 			{
@@ -297,7 +302,12 @@ namespace lgd_gui
 			}
 			catch
 			{ }
-			for(int i=0;i<buf.Length;i++)
+			rx_fun(buf);
+			return;
+		}
+		void rx_fun(byte[] buf)
+		{
+			for (int i = 0; i < buf.Length; i++)
 			{
 				string s = "";
 				if (is_plugin) s = Mingw.so_rx(buf[i]); //使用插件
@@ -312,13 +322,12 @@ namespace lgd_gui
 				}
 				if (s != "")
 				{
-					Dispatcher.BeginInvoke((EventHandler)delegate(object sd, EventArgs ea)
+					Dispatcher.BeginInvoke((EventHandler)delegate (object sd, EventArgs ea)
 					{
 						rx_line(s);
 					}, invokeobj);
 				}
 			}
-			return;
 		}
 		void proc_text(string line) //处理一行传感字符
 		{

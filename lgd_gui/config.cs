@@ -9,6 +9,22 @@ using System.Text.RegularExpressions;
 
 namespace lgd_gui
 {
+	public class Socket_cfg //网络通信配置
+	{
+		public Socket_cfg()
+		{
+			ip = "0.0.0.0";
+			port = 12345;
+			type = SocketType.none;
+			rmt_ip = "127.0.0.1";
+			rmt_port = 12346;
+		}
+		public string ip { set; get; }
+		public ushort port { set; get; }
+		public SocketType type { get; set; }
+		public string rmt_ip { set; get; }
+		public ushort rmt_port { get; set; } //对方的ip和端口
+	}
 	public class Config
 	{
 		public Config()
@@ -24,6 +40,8 @@ namespace lgd_gui
 			dset = new List<DataDes>();
 			cmds = new List<CmdDes>();
 			ctrl_cmds = new List<string>();
+			menu_cmd = new List<CmdDes>();
+			socket = new Socket_cfg();
 		}
 		public static Config load(string s)
 		{
@@ -73,5 +91,7 @@ namespace lgd_gui
 		public List<string> ctrl_cmds { get; set; } //界面控制的指令,程序初始化的时候直接执行
 		public List<CmdDes> menu_cmd { get; set; } //在菜单栏的指令
 		public string menu_name { get; set; } //菜单名
+		//数据输入
+		public Socket_cfg socket { get; set; } //网络端口配置
 	}
 }

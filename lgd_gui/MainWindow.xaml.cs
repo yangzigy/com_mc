@@ -27,7 +27,6 @@ namespace lgd_gui
 		public Config config = new Config();     // 存放系统设置
 		public string configfilename = AppDomain.CurrentDomain.BaseDirectory + "/config.txt";
 		System.Windows.Forms.DataVisualization.Charting.Chart chart1;
-		public SerialPort uart = new SerialPort();
 		public Timer timer10Hz;
 		public uint tick = 0;
 
@@ -51,6 +50,8 @@ namespace lgd_gui
 			{
 				config = Config.load(configfilename);
 			}
+			dataSrc = DataSrc.factory(config.socket.type);
+			if(dataSrc!=null) dataSrc.uart_rx_event = rx_fun; //注册回调函数
 			// 获取COM口列表
 			bt_refresh_uart_Click(null, null);
 			uart.BaudRate = config.uart_b;
@@ -177,6 +178,7 @@ namespace lgd_gui
 		{
 			string[] commPort = SerialPort.GetPortNames();
 			List<string> dsrclist = new List<string>(commPort);
+			if (dataSrc!=null) dsrclist.Add("socket"); //加入网络通信的选项
 			comPort.ItemsSource = dsrclist;
 			comPort.SelectedIndex = 0;
 		}
@@ -187,8 +189,17 @@ namespace lgd_gui
 			{
 				try
 				{
-					uart.PortName = comPort.Text;
-					uart.Open();
+					if(comPort.Text!="socket")
+					{
+						uart.PortName = comPort.Text;
+						uart.Open();
+						data_src = 0;
+					}
+					else
+					{
+						dataSrc.open(config);
+						data_src = 1;
+					}
 					btn.Content = "关闭串口";
 				}
 				catch
@@ -198,7 +209,8 @@ namespace lgd_gui
 			else
 			{
 				btn.Content = "打开串口";
-				uart.Close();
+				if(data_src==0)	uart.Close();
+				else dataSrc.close();
 			}
 		}
 		private void clear_Click(object sender, RoutedEventArgs e) //清除数据
@@ -233,6 +245,7 @@ namespace lgd_gui
 			h.Show();
 		}
 		#endregion
+		#region 鼠标操作
 		Point pre_m = new Point(0, 0);//鼠标上次拖动的像素位置
 		Point pre_left = new Point(-1, 0);//鼠标上次左键按下的位置
 		void set_chart1_range(Int64 x0,Int64 x1,Int64 y0,Int64 y1) //输入10倍的坐标
@@ -356,5 +369,6 @@ namespace lgd_gui
 				pre_left.X=-1; //变为无效
 			}
 		}
+		#endregion
 	}
 }

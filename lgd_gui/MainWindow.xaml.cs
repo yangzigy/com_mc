@@ -50,12 +50,14 @@ namespace lgd_gui
 			{
 				config = Config.load(configfilename);
 			}
-			dataSrc = DataSrc.factory(config.socket.type);
-			if(dataSrc!=null) dataSrc.uart_rx_event = rx_fun; //注册回调函数
+			DataSrc.ini(rx_fun);
+			if (config.socket.type != DSType.uart)
+			{
+				DataSrc.dsdict[config.socket.type]= DataSrc.factory(config.socket.type,rx_fun);
+				DataSrc.dsdict[config.socket.type].rx_event = rx_fun; //注册回调函数
+			}
 			// 获取COM口列表
 			bt_refresh_uart_Click(null, null);
-			uart.BaudRate = config.uart_b;
-			uart.DataReceived += new SerialDataReceivedEventHandler(uart_DataReceived);
 		}
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
@@ -178,40 +180,28 @@ namespace lgd_gui
 		{
 			string[] commPort = SerialPort.GetPortNames();
 			List<string> dsrclist = new List<string>(commPort);
-			if (dataSrc!=null) dsrclist.Add("socket"); //加入网络通信的选项
+			if (config.socket.type != DSType.uart) dsrclist.Add("socket"); //加入网络通信的选项
 			comPort.ItemsSource = dsrclist;
 			comPort.SelectedIndex = 0;
 		}
 		private void btnConnCom_Click(object sender, RoutedEventArgs e)
 		{
 			var btn = sender as Button;
-			if (btn.Content.ToString() == "打开串口")
+			try
 			{
-				try
+				if (btn.Content.ToString() == "打开端口")
 				{
-					if(comPort.Text!="socket")
-					{
-						uart.PortName = comPort.Text;
-						uart.Open();
-						data_src = 0;
-					}
-					else
-					{
-						dataSrc.open(config);
-						data_src = 1;
-					}
-					btn.Content = "关闭串口";
+					DataSrc.open(config, comPort.Text);
+					btn.Content = "关闭端口";
 				}
-				catch
+				else
 				{
+					btn.Content = "打开端口";
+					DataSrc.cur_ds.close();
 				}
 			}
-			else
-			{
-				btn.Content = "打开串口";
-				if(data_src==0)	uart.Close();
-				else dataSrc.close();
-			}
+			catch
+			{ }
 		}
 		private void clear_Click(object sender, RoutedEventArgs e) //清除数据
 		{

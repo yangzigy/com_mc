@@ -15,13 +15,13 @@ namespace lgd_gui
 		{
 			ip = "0.0.0.0";
 			port = 12345;
-			type = SocketType.none;
+			type = DSType.uart;
 			rmt_ip = "127.0.0.1";
 			rmt_port = 12346;
 		}
 		public string ip { set; get; }
 		public ushort port { set; get; }
-		public SocketType type { get; set; }
+		public DSType type { get; set; }
 		public string rmt_ip { set; get; }
 		public ushort rmt_port { get; set; } //对方的ip和端口
 	}

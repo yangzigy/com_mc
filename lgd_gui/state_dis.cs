@@ -23,9 +23,6 @@ namespace lgd_gui
 	{
 		static public MainWindow mw;
 		public Com_MC commc = new Com_MC(); //通用测控对象
-		public DataSrc dataSrc=null; //数据源
-		public SerialPort uart = new SerialPort(); //串口
-		public int data_src = 0; //0串口，1网络
 
 		TextDataFile rec_file = new TextDataFile();
 		object[] invokeobj=new object[2];
@@ -225,21 +222,19 @@ namespace lgd_gui
 			if (is_plugin)
 			{
 				string s = Mingw.so_poll_100();
-				rx_line(s);
+				rx_line(s); //是否有额外的数据过来
 			}
 		}
 #region 串口
 		Mingw.DllcallBack _so_tx_cb; //构造不被回收的委托
 		int so_tx_cb(IntPtr p, int n) //构造不被回收的委托
 		{
-			//string ss = Marshal.PtrToStringAnsi(p);
-			//send_uart_data(ss);
 			byte[] ys = new byte[n];
 			Marshal.Copy(p, ys, 0, n);
-			send_uart_data(ys);
+			send_data(ys);
 			return 0;
 		}
-		public void send_uart_cmd(string s) //向设备发送文本指令
+		public void send_cmd_str(string s) //向设备发送文本指令
 		{ //支持多条指令同时发送
 			string[] vs = s.Split("\n".ToCharArray(), StringSplitOptions.None);
 			for(int i=0;i<vs.Length;i++)
@@ -248,20 +243,19 @@ namespace lgd_gui
 				if(ctrl_cmd(vs[i])) continue;
 				//发送，或给插件处理
 				if (is_plugin) Mingw.so_cmd(vs[i]);
-				else send_uart_data(vs[i]);
+				else send_data(vs[i]);
 			}
 		}
-		void send_uart_data(string s) //字符串版的发送函数
+		void send_data(string s) //字符串版的发送函数
 		{
-			var b=Encoding.UTF8.GetBytes(s);
-			send_uart_data(b);
+			var b=Encoding.UTF8.GetBytes(s+"\n");
+			send_data(b);
 		}
-		void send_uart_data(byte[] b) //向设备发送数据
+		void send_data(byte[] b) //向设备发送数据
 		{
 			try
 			{
-				if (data_src == 0) uart.Write(b,0,b.Length);
-				else dataSrc.send_data(b);
+				DataSrc.cur_ds.send_data(b);
 			}
 			catch (Exception ee)
 			{
@@ -288,24 +282,9 @@ namespace lgd_gui
 				//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
 			}
 		}
-		List<string> uartline = new List<string>(); //接收到的行，需要调用方清除
-		List<byte> uartbuf = new List<byte>(); //串口接收缓冲
-		void uart_DataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-			int n = 0;
-			byte[] buf =new byte[0];
-			try
-			{
-				n = uart.BytesToRead;
-				buf = new byte[n];
-				uart.Read(buf, 0, n);
-			}
-			catch
-			{ }
-			rx_fun(buf);
-			return;
-		}
-		void rx_fun(byte[] buf)
+		List<string> rxline = new List<string>(); //接收到的行，需要调用方清除
+		List<byte> rxbuf = new List<byte>(); //串口接收缓冲
+		void rx_fun(byte[] buf) //数据源接收回调函数
 		{
 			for (int i = 0; i < buf.Length; i++)
 			{
@@ -313,11 +292,11 @@ namespace lgd_gui
 				if (is_plugin) s = Mingw.so_rx(buf[i]); //使用插件
 				else //直接文本的形式
 				{
-					uartbuf.Add(buf[i]);
+					rxbuf.Add(buf[i]);
 					if (buf[i] == 0x0a)
 					{
-						s = Encoding.Default.GetString(uartbuf.ToArray(), 0, uartbuf.Count);
-						uartbuf.Clear();
+						s = Encoding.Default.GetString(rxbuf.ToArray(), 0, rxbuf.Count);
+						rxbuf.Clear();
 					}
 				}
 				if (s != "")
@@ -460,7 +439,7 @@ namespace lgd_gui
 					{
 						s += " " + MainWindow.mw.commc.cmds[cmddes.suffixname].get_stat();
 					}
-					MainWindow.mw.send_uart_cmd(s);
+					MainWindow.mw.send_cmd_str(s);
 				}
 				catch { }
 			});
@@ -567,12 +546,12 @@ namespace lgd_gui
 			if (p.X < tb.ActualWidth / 2) //开
 			{
 				sw_action(12);
-				MainWindow.mw.send_uart_cmd(MainWindow.mw.commc.cmds[(string)tb.Tag].cmd);
+				MainWindow.mw.send_cmd_str(MainWindow.mw.commc.cmds[(string)tb.Tag].cmd);
 			}
 			else //关
 			{
 				sw_action(-12);
-				MainWindow.mw.send_uart_cmd(MainWindow.mw.commc.cmds[(string)tb.Tag].cmdoff);
+				MainWindow.mw.send_cmd_str(MainWindow.mw.commc.cmds[(string)tb.Tag].cmdoff);
 			}
 		}
 		public void judge_out(string s) //判断当前输出，设置到显示
@@ -615,7 +594,7 @@ namespace lgd_gui
 			{
 				try
 				{
-					MainWindow.mw.send_uart_cmd(MainWindow.mw.commc.cmds[(string)((Button)sender).Tag].cmd);
+					MainWindow.mw.send_cmd_str(MainWindow.mw.commc.cmds[(string)((Button)sender).Tag].cmd);
 					sent_times = 10;
 				}
 				catch { }
@@ -716,7 +695,7 @@ namespace lgd_gui
 		{
 			try
 			{
-				MainWindow.mw.send_uart_cmd(cmddes.cmd);
+				MainWindow.mw.send_cmd_str(cmddes.cmd);
 				sent_times = 10;
 			}
 			catch { }

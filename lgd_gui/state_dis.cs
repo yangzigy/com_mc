@@ -103,7 +103,6 @@ namespace lgd_gui
 							}
 							else //没有索引列，就用时间ms数作为x轴
 							{
-								long ticks0 = DateTime.Now.Ticks / 10000;
 								tmpserial.Points.AddXY(ticks0 - st_ms, d);
 							}
 							if (tmpserial.Points.Count >= config.dis_data_len)
@@ -308,6 +307,7 @@ namespace lgd_gui
 				}
 			}
 		}
+		long ticks0= DateTime.Now.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
 		void proc_text(string line) //处理一行传感字符
 		{
 			line = line.Trim();
@@ -315,6 +315,7 @@ namespace lgd_gui
 			//首先看看是不是软件指令
 			if(ctrl_cmd(line)) return;
 			//给传感变量刷新
+			ticks0 = DateTime.Now.Ticks / 10000;
 			commc.update_data(line);
 		}
 		double curv_x_max = int.MinValue, curv_y_max = int.MinValue;

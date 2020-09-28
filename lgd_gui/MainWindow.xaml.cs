@@ -63,6 +63,11 @@ namespace lgd_gui
 		{
 			if (config.mv_w != 0) Width = config.mv_w;
 			if (config.mv_h != 0) Height = config.mv_h;
+			//加入配置
+			CCmd_Button.bt_margin_len=config.bt_margin;
+			CCmd_Button.ctrl_cols=config.ctrl_cols;
+			CCmd_Button.commc=commc;
+			CCmd_Button.send_cmd_str=send_cmd_str;
 			//初始化界面
 			state_dis_ini();
 			timer10Hz = new Timer((TimerCallback)delegate (object state)
@@ -77,7 +82,7 @@ namespace lgd_gui
 					}
 					foreach (var item in commc.dset) //刷新每个参数
 					{
-						item.Value.update_dis(item.Value.name);
+						item.Value.update_dis(item.Value.name); //周期刷新，输入名称给指令对象索引，本身只需更新刷新计数
 					}
 				}, invokeobj);
 			}, this, 0, 100);

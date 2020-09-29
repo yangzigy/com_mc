@@ -39,37 +39,43 @@ namespace lgd_gui
 		public int end_bit { get; set; } //处理bit的位数（终止,包含）
 		public double pro_k { get; set; } //处理变换kx+b
 		public double pro_b { get; set; } //处理变换kx+b
+		public int point_n { get; set; } //小数位数
 		public string[] str_tab { get; set; } //显示字符串表
 		public bool is_cv { get; set; } //是否显示曲线
 		public bool is_dis { get; set; } //是否显示，若是按钮的从属，则可以不显示
 
 		string cur_str; //当前值
 		public double cur_val; //当前值
+		public int cur_di; //当前整数值
 		public string val
 		{
-			get { return dtype==DestType.val?cur_val.ToString():cur_str;}
+			get
+			{
+				if(dtype==DestType.str) return cur_str;
+				if(Math.Abs(cur_val-cur_di)<1e-9) return cur_di.ToString();
+				return cur_val.ToString(string.Format("F{0}",point_n));
+			}
 			set
 			{
 				double df = 0;
-				int di = 0;
 				//首先按输入类型区分
 				if(stype== SrcType.df) df = double.Parse(value);
 				else if(stype== SrcType.hex)
 				{
-					di = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
-					df = di;
+					cur_di = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
+					df = cur_di;
 				}
 				else
 				{
-					bool b=int.TryParse(value,out di);
+					bool b=int.TryParse(value,out cur_di);
 					switch (stype) //若是值型的
 					{
-						case SrcType.u32: df = (uint)di; break;
-						case SrcType.s32: df = di; break;
-						case SrcType.u16: df = (ushort)di; break;
-						case SrcType.s16: df = (short)di; break;
-						case SrcType.u8: df = (byte)di; break;
-						case SrcType.s8: df = (sbyte)di; break;
+						case SrcType.u32: df = (uint)cur_di; break;
+						case SrcType.s32: df = cur_di; break;
+						case SrcType.u16: df = (ushort)cur_di; break;
+						case SrcType.s16: df = (short)cur_di; break;
+						case SrcType.u8: df = (byte)cur_di; break;
+						case SrcType.s8: df = (sbyte)cur_di; break;
 						case SrcType.str: //若源类型是字符
 							if (dtype == DestType.str) //且输出字符型
 							{
@@ -92,7 +98,7 @@ namespace lgd_gui
 					uint v = 0;
 					do
 					{
-						v |= (uint)(di & (1 << i));
+						v |= (uint)(cur_di & (1 << i));
 						i++;
 					} while (i <= end_bit);
 					v >>= pro_bit;
@@ -121,6 +127,7 @@ namespace lgd_gui
 			pro_bit = 0;
 			pro_k =1;
 			pro_b=0;
+			point_n=2; //小数位数默认为2位
 			str_tab=new string[] { "关","开" };
 			is_cv = false;
 			is_dis = true;

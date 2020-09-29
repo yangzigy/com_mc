@@ -144,6 +144,8 @@ namespace lgd_gui
 			//sp_measure.Height = row_para_dis.Height.Value;
 #endregion
 #region 指令ui初始化
+			CCmd_para.i_on = new BitmapImage(new Uri("pack://application:,,,/pic/refresh_on.jpg"));
+			CCmd_para.i_off = new BitmapImage(new Uri("pack://application:,,,/pic/refresh_off.jpg"));
 			if(config.cmd_ui_w>0)
 			{
 				colD_cmd_ui.Width = new GridLength(config.cmd_ui_w);

@@ -281,12 +281,10 @@ namespace lgd_gui
 		TextBox tt1 = new TextBox(); //参数显示
 		public Image img_refresh = new Image();
 		public int sent_times = 0; //发送后倒计时，计时结束就不响应了
-		public BitmapImage i_on; //刷新按钮
-		public BitmapImage i_off; //刷新按钮
+		static public BitmapImage i_on; //刷新按钮
+		static public BitmapImage i_off; //刷新按钮
 		public override void ini(ref int row, ref int col)
 		{
-			i_on = new BitmapImage(new Uri("pack://application:,,,/pic/refresh_on.jpg"));
-			i_off = new BitmapImage(new Uri("pack://application:,,,/pic/refresh_off.jpg"));
 			//控件自身的属性
 			tt1.Text = cmddes.dft;
 			tt1.VerticalContentAlignment = VerticalAlignment.Center;

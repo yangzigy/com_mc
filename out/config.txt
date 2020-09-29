@@ -96,7 +96,7 @@
 	],
 	"menu_cmd":
 	[
-		{"name":"tpid_p","cmd":"@ 1,2,0,0,","type":"bt","suffixname":"tb_uid"},
+		{"name":"tpid_p","cmd":"@ 1,2,0,0,","type":"bt","suffixname":"tb_tpid_p"},
 		{"name":"tb_tpid_p","type":"para","dft":"80","cmd":"@ 0,2,0,6,0","refdname":"tpid_p"}
 	],
 	"menu_name":"参数"

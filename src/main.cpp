@@ -1,5 +1,4 @@
 #include "common.h"
-#include "json.h"
 extern "C"
 {
 #include "comm_rec.h"

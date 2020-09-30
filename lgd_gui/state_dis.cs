@@ -283,10 +283,11 @@ namespace lgd_gui
 				//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
 			}
 		}
-		List<string> rxline = new List<string>(); //接收到的行，需要调用方清除
 		List<byte> rxbuf = new List<byte>(); //串口接收缓冲
+		int rx_Byte_1_s = 0; //每秒接收的字节数
 		void rx_fun(byte[] buf) //数据源接收回调函数
 		{
+			rx_Byte_1_s += buf.Length;
 			for (int i = 0; i < buf.Length; i++)
 			{
 				string s = "";

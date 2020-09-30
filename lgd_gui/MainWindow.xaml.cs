@@ -80,6 +80,11 @@ namespace lgd_gui
 						if (cb_fit_screen.IsChecked == true) fit_screen();
 						else fit_screen_data();
 					}
+					else if (tick % 10 == 1) //1Hz
+					{
+						lb_rx_Bps.Content = string.Format("接收:{0} Bps", rx_Byte_1_s);
+						rx_Byte_1_s = 0;
+					}
 					foreach (var item in commc.dset) //刷新每个参数
 					{
 						item.Value.update_dis(item.Value.name); //周期刷新，输入名称给指令对象索引，本身只需更新刷新计数

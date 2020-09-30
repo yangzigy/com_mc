@@ -91,6 +91,7 @@
 				</Grid>
 			</MenuItem>
 			<MenuItem Header="帮助" Click="mi_help_Click"></MenuItem>
+			<Label Name="lb_rx_Bps" FontSize="16" Margin="3,-4,0,0">接收:</Label>
 		</Menu>
 		<ScrollViewer Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto" Margin="5">
 			<StackPanel>

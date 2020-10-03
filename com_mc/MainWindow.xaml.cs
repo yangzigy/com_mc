@@ -17,7 +17,7 @@ using System.Windows.Forms.DataVisualization;
 using System.Windows.Forms.Integration;
 using System.Threading;
 
-namespace lgd_gui
+namespace com_mc
 {
 	/// <summary>
 	/// MainWindow.xaml 的交互逻辑

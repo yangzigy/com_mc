@@ -5,7 +5,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Web.Script.Serialization;
 
-namespace lgd_gui
+namespace com_mc
 {
 	static public class Mingw
 	{

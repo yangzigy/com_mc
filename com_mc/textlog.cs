@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace lgd_gui
+namespace com_mc
 {
 	public class TextDataFile //存储二进制数据的文件
 	{

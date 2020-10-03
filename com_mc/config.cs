@@ -7,7 +7,7 @@ using System.IO;
 using System.Windows;
 using System.Text.RegularExpressions;
 
-namespace lgd_gui
+namespace com_mc
 {
 	public class Socket_cfg //网络通信配置
 	{

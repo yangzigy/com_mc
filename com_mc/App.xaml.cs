@@ -5,7 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Windows;
 
-namespace lgd_gui
+namespace com_mc
 {
 	/// <summary>
 	/// App.xaml 的交互逻辑

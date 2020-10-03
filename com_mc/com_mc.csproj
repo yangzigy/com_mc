@@ -8,8 +8,8 @@
     <ProjectGuid>{6190E610-FB6E-4ACF-93DF-8D4A972408BD}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>lgd_gui</RootNamespace>
-    <AssemblyName>lgd_gui</AssemblyName>
+    <RootNamespace>com_mc</RootNamespace>
+    <AssemblyName>com_mc</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>

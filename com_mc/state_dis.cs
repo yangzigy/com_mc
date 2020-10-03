@@ -17,7 +17,7 @@ using System.Threading;
 using System.Windows.Threading;
 using System.Runtime.InteropServices;
 
-namespace lgd_gui
+namespace com_mc
 {
 	public partial class MainWindow : Window
 	{

@@ -6,7 +6,7 @@ using System.Web.Script.Serialization;
 using System.IO;
 using System.Windows;
 
-namespace lgd_gui
+namespace com_mc
 {
 	//UI通过数据名称唯一的访问
 	//上传的数据通过适配器转换为通用的数据协议（类NMEA）,查询所有数据项，符合条件的更新

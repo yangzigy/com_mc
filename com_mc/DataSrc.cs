@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace lgd_gui
+namespace com_mc
 {
 	public enum DSType //通信类型
 	{

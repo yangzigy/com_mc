@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace lgd_gui.Properties {
+namespace com_mc.Properties {
     using System;
     
     

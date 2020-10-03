@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lgd_gui", "lgd_gui\lgd_gui.csproj", "{6190E610-FB6E-4ACF-93DF-8D4A972408BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "com_mc", "com_mc\com_mc.csproj", "{6190E610-FB6E-4ACF-93DF-8D4A972408BD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

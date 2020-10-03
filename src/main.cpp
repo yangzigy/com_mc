@@ -1,4 +1,4 @@
-#include "common.h"
+#include "main.h"
 extern "C"
 {
 #include "comm_rec.h"

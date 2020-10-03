@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Data;
 using System.Windows.Input;
 
-namespace lgd_gui
+namespace com_mc
 { //通用测控的界面部分，传感值是曲线和值的显示，通用的控件是控制控件
 	public class CCmd_Button //指令基类
 	{

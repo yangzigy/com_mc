@@ -11,7 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace lgd_gui
+namespace com_mc
 {
     /// <summary>
     /// help.xaml 的交互逻辑

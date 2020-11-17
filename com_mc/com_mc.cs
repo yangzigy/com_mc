@@ -44,7 +44,7 @@ namespace com_mc
 		public bool is_cv { get; set; } //是否显示曲线
 		public bool is_dis { get; set; } //是否显示，若是按钮的从属，则可以不显示
 
-		string cur_str; //当前值
+		public string cur_str; //当前值
 		public double cur_val; //当前值
 		public int cur_di; //当前整数值
 		public string val

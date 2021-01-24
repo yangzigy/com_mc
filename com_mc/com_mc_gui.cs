@@ -308,17 +308,23 @@ namespace com_mc
 				var t = commc.dset[cmddes.refdname];
 				t.update_dis += delegate (string tn) //数据更新回调函数
 				{
-					if (sent_times > 0)
+					//if (sent_times > 0) //在发送后的一段时间内
+					//{
+					//	sent_times--; //发送后的计时
+					//	if (t.update_times > 0) //若有刷新
+					//	{
+					//		img_refresh.Source = i_on;
+					//		tt1.Text = t.val;
+					//	}
+					//	else img_refresh.Source = i_off; //若无刷新
+					//}
+					//else img_refresh.Source = i_off; //若已经超时
+					if (t.update_times > 0) //若有刷新
 					{
-						sent_times--; //发送后的计时
-						if (t.update_times > 0) //若有刷新
-						{
-							img_refresh.Source = i_on;
-							tt1.Text = t.val;
-						}
-						else img_refresh.Source = i_off; //若无刷新
+						img_refresh.Source = i_on;
+						tt1.Text = t.val;
 					}
-					else img_refresh.Source = i_off; //若已经超时
+					else img_refresh.Source = i_off; //若无刷新
 				};
 			}
 		}

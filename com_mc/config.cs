@@ -39,6 +39,7 @@ namespace com_mc
 			bt_margin=2; //按钮间距
 			dset = new List<DataDes>();
 			cmds = new List<CmdDes>();
+			menu_cols = 2;
 			ctrl_cmds = new List<string>();
 			menu_cmd = new List<CmdDes>();
 			socket = new Socket_cfg();
@@ -78,20 +79,24 @@ namespace com_mc
 		}
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 //配置内容
+		//显示控制
 		public int dis_data_len { get; set; } //显示数据长度
-		public int uart_b { get; set; } //串口波特率
 		public int ctrl_cols { get; set; } //控制按钮的列数
 		public int svar_ui_h { get; set; } //传感变量区域高度
 		public int cmd_ui_w { get; set; } //指令区域宽度
 		public int mv_w { get; set; } //主窗体宽
 		public int mv_h { get; set; } //主窗体高
 		public int bt_margin { get; set; } //按钮的间距
+		//数据结构
 		public List<DataDes> dset { get; set; } //通用测控对象
 		public List<CmdDes> cmds { get; set; } //指令列表
+		//菜单
+		public int menu_cols { get; set; } //菜单控制按钮的列数
 		public List<string> ctrl_cmds { get; set; } //界面控制的指令,程序初始化的时候直接执行
 		public List<CmdDes> menu_cmd { get; set; } //在菜单栏的指令
 		public string menu_name { get; set; } //菜单名
 		//数据输入
+		public int uart_b { get; set; } //串口波特率
 		public Socket_cfg socket { get; set; } //网络端口配置
 	}
 }

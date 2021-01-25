@@ -192,7 +192,7 @@ namespace com_mc
 				int rownu = grid_menu_cmd.RowDefinitions.Count - 1; //添加一行
 				var v = CCmd_Button.bt_factory(item.type, item, grid_menu_cmd);
 				v.ini(ref i, ref j);
-				if (j >= config.ctrl_cols)
+				if (j >= config.menu_cols)
 				{
 					grid_menu_cmd.RowDefinitions.Add(new RowDefinition());
 					i++; j = 0;

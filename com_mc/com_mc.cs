@@ -47,6 +47,37 @@ namespace com_mc
 		public string cur_str; //当前值
 		public double cur_val; //当前值
 		public int cur_di; //当前整数值
+		public void set_i_val(int di) //直接设置整数值
+		{
+			cur_di = di;
+			set_f_val(di);
+		}
+		public void set_f_val(double df) //直接设置浮点值
+		{
+			if (pro_method == PRO_METHOD.pro_val) //若是值处理
+			{
+				cur_val = df * pro_k + pro_b;
+			}
+			else //若是bit处理
+			{
+				int i = pro_bit;
+				uint v = 0;
+				do
+				{
+					v |= (uint)(cur_di & (1 << i));
+					i++;
+				} while (i <= end_bit);
+				v >>= pro_bit;
+				cur_val = v;
+			}
+			if (dtype == DestType.str) //输出字符型
+			{
+				uint o = (uint)cur_val;
+				if (o < str_tab.Length) cur_str = str_tab[o];
+				else cur_str = "";
+			}
+			update_cb(name); //调用回调函数
+		}
 		public string val
 		{
 			get
@@ -58,6 +89,7 @@ namespace com_mc
 			set
 			{
 				double df = 0;
+				int di = 0;
 				//首先按输入类型区分
 				if(stype== SrcType.df) df = double.Parse(value);
 				else if(stype== SrcType.hex)
@@ -65,7 +97,7 @@ namespace com_mc
 					cur_di = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
 					df = cur_di;
 				}
-				else
+				else //若是整型
 				{
 					bool b=int.TryParse(value,out cur_di);
 					switch (stype) //若是值型的
@@ -88,29 +120,7 @@ namespace com_mc
 					}
 					if (!b) throw new Exception("");
 				}
-				if (pro_method == PRO_METHOD.pro_val) //若是值处理
-				{
-					cur_val = df * pro_k + pro_b;
-				}
-				else //若是bit处理
-				{
-					int i = pro_bit;
-					uint v = 0;
-					do
-					{
-						v |= (uint)(cur_di & (1 << i));
-						i++;
-					} while (i <= end_bit);
-					v >>= pro_bit;
-					cur_val = v;
-				}
-				if (dtype == DestType.str) //输出字符型
-				{
-					uint o = (uint)cur_val;
-					if (o < str_tab.Length) cur_str = str_tab[o];
-					else cur_str = "";
-				}
-				update_cb(name); //调用回调函数
+				set_f_val(df);
 			}
 		}
 		public int update_times = 0; //刷新倒计时

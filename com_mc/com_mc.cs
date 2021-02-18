@@ -78,7 +78,7 @@ namespace com_mc
 			}
 			update_cb(name); //调用回调函数
 		}
-		public string val
+		public string val //以文本方式设置，或读取文本值时使用
 		{
 			get
 			{

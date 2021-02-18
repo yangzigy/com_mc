@@ -300,16 +300,35 @@ namespace com_mc
 			axis_y_min = (int)(curv_y_min - 1);
 			set_chart1_range();
 		}
-		double rx_max = 0;
-		double rx_min = 0;
-		double ry_max = 0;
-		double ry_min = 0; //曲线实际边界，不同于曲线极值
-		void get_curv_range()
+		void set_legend(double x) //根据横坐标设置曲线图例值
 		{
-			rx_max = chart1.ChartAreas[0].Axes[0].Maximum;
-			rx_min = chart1.ChartAreas[0].Axes[0].Minimum;
-			ry_max = chart1.ChartAreas[0].Axes[1].Maximum;
-			ry_min = chart1.ChartAreas[0].Axes[1].Minimum;
+			foreach (var item in series_map) //遍历所有曲线
+			{
+				int i;
+				double d = double.NaN;
+				for (i = 0; i < item.Value.Points.Count; i++) //遍历本曲线的所有点
+				{
+					var ps = item.Value.Points;
+					if (ps[i].XValue > x) //若此点大于游标，这是右侧点，找前一点作为左侧点
+					{
+						if (i < 1) d = double.NaN;//若没有左侧点，则为空
+						else //插值
+						{
+							double w = ps[i].XValue - ps[i - 1].XValue; //两点x距离
+							double d1 = ps[i].XValue - x; //靠右的这块距离
+							if (w < 0.01 || d1 < 0.01) //若离i点很近
+							{
+								d = ps[i].YValues[0];
+							}
+							else d = (ps[i].YValues[0] * (w - d1) + ps[i - 1].YValues[0] * d1) / w;
+						}
+						break;
+					}
+				}
+				var tm = commc.dset[item.Value.Name]; //测控数据对象
+				item.Value.LegendText = tm.name + ":" +
+					(double.IsNaN(d) ? "null" : d.ToString(string.Format("F{0}", tm.point_n)));
+			}
 		}
 		private void Chart_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e) //曲线控件的鼠标移动
 		{
@@ -375,6 +394,7 @@ namespace com_mc
 				ell.AnchorX = rx;
 				ell.AnchorY = ry;
 				ell.Text = string.Format("x:{0},y:{1:0.0}", (int)rx, ry);
+				set_legend(rx); //根据横坐标设置曲线图例值
 				//左键按下
 				pre_left = new Point(e.X, e.Y);
 				tm_left_down = DateTime.Now; //左键按下的时间

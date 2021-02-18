@@ -194,7 +194,7 @@ namespace com_mc
 	{
 		public Dictionary<string,DataDes> dset { get; set; } //数据列表,key为数据项的名称
 		public Dictionary<string,CmdDes> cmds { get; set; } //数据列表,key为数据项的名称
-        public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
+		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 		public Com_MC()
 		{
 			dset = new Dictionary<string, DataDes>();

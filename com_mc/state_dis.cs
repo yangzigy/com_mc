@@ -321,36 +321,6 @@ namespace com_mc
 			ticks0 = DateTime.Now.Ticks / 10000;
 			commc.update_data(line);
 		}
-		double curv_x_max = int.MinValue, curv_y_max = int.MinValue;
-		double curv_x_min = int.MaxValue, curv_y_min = int.MaxValue; //曲线极值
-		void fit_screen_data() //只更新边界数据，不更新界面
-		{
-			curv_x_max = int.MinValue; curv_y_max = int.MinValue;
-			curv_x_min = int.MaxValue; curv_y_min = int.MaxValue;
-			foreach (var item in series_map) //遍历所有曲线，找极值
-			{
-				foreach (var p in item.Value.Points)
-				{
-					if (p.XValue > curv_x_max) curv_x_max = p.XValue;
-					if (p.YValues[0] > curv_y_max) curv_y_max = p.YValues[0];
-					if (p.XValue < curv_x_min) curv_x_min = p.XValue;
-					if (p.YValues[0] < curv_y_min) curv_y_min = p.YValues[0];
-				}
-			}
-		}
-		void fit_screen() //曲线范围
-		{
-			fit_screen_data();
-			if ((int)(curv_x_max + 1.5) < (int)(curv_x_min - 1) || (int)(curv_x_max + 1.5)<0)
-			{
-				return;
-			}
-			else if (curv_y_max < curv_y_min) return;
-			chart1.ChartAreas[0].Axes[0].Maximum = (int)(curv_x_max + 1.5);
-			chart1.ChartAreas[0].Axes[0].Minimum = (int)(curv_x_min - 1);
-			chart1.ChartAreas[0].Axes[1].Maximum = (int)(curv_y_max + 1.5);
-			chart1.ChartAreas[0].Axes[1].Minimum = (int)(curv_y_min - 1);
-		}
 #endregion
 		bool ctrl_cmd(string s) //返回是否是控制指令
 		{

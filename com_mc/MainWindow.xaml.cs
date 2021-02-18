@@ -248,19 +248,57 @@ namespace com_mc
 		#region 鼠标操作
 		Point pre_m = new Point(0, 0);//鼠标上次拖动的像素位置
 		Point pre_left = new Point(-1, 0);//鼠标上次左键按下的位置
-		void set_chart1_range(Int64 x0,Int64 x1,Int64 y0,Int64 y1) //输入10倍的坐标
+		double axis_x_min = 0;
+		double axis_x_max = 1000;
+		double axis_y_min = 0;
+		double axis_y_max = 10;
+		void set_chart1_range() //设置曲线的显示区域
 		{
-			if (x1 <= x0) x1 = x0 + 1;
-			if (y1 <= y0) y1 = y0 + 1;
-			if (x1 > int.MaxValue) x1 = int.MaxValue;
-			if (x0 < int.MinValue) x0 = int.MinValue;
-			if (y1 > int.MaxValue) y1 = int.MaxValue;
-			if (y0 < int.MinValue) y0 = int.MinValue;
-			//Console.WriteLine("{0},{1},{2},{3}",x0,x1,y0,y1);
-			chart1.ChartAreas[0].Axes[0].Minimum = x0 / 10.0;
-			chart1.ChartAreas[0].Axes[0].Maximum = x1 / 10.0;
+			if (axis_x_max > int.MaxValue) axis_x_max = int.MaxValue;
+			if (axis_x_min < int.MinValue) axis_x_min = int.MinValue;
+			if (axis_y_max > int.MaxValue) axis_y_max = int.MaxValue;
+			if (axis_y_min < int.MinValue) axis_y_min = int.MinValue;
+			long x0 = (long)(axis_x_min);
+			long x1 = (long)(axis_x_max);
+			if (x1 < x0 + 1) x1 = x0 + 1;
+			if (axis_y_max < axis_y_min + 0.1) axis_y_max = axis_y_min + 0.1;
+			long y0 = (long)(axis_y_min * 10);
+			long y1 = (long)(axis_y_max * 10);
+			chart1.ChartAreas[0].Axes[0].Minimum = x0;
+			chart1.ChartAreas[0].Axes[0].Maximum = x1; //横轴是整数
 			chart1.ChartAreas[0].Axes[1].Minimum = y0 / 10.0;
 			chart1.ChartAreas[0].Axes[1].Maximum = y1 / 10.0;
+		}
+		double curv_x_max = int.MinValue, curv_y_max = int.MinValue;
+		double curv_x_min = int.MaxValue, curv_y_min = int.MaxValue; //曲线极值
+		void fit_screen_data() //只更新边界数据，不更新界面
+		{
+			curv_x_max = int.MinValue; curv_y_max = int.MinValue;
+			curv_x_min = int.MaxValue; curv_y_min = int.MaxValue;
+			foreach (var item in series_map) //遍历所有曲线，找极值
+			{
+				foreach (var p in item.Value.Points)
+				{
+					if (p.XValue > curv_x_max) curv_x_max = p.XValue;
+					if (p.YValues[0] > curv_y_max) curv_y_max = p.YValues[0];
+					if (p.XValue < curv_x_min) curv_x_min = p.XValue;
+					if (p.YValues[0] < curv_y_min) curv_y_min = p.YValues[0];
+				}
+			}
+		}
+		void fit_screen() //曲线范围
+		{
+			fit_screen_data();
+			if ((int)(curv_x_max + 1.5) < (int)(curv_x_min - 1) || (int)(curv_x_max + 1.5) < 0)
+			{
+				return;
+			}
+			else if (curv_y_max < curv_y_min) return;
+			axis_x_max = (int)(curv_x_max + 1.5);
+			axis_x_min = (int)(curv_x_min - 1);
+			axis_y_max = (int)(curv_y_max + 1.5);
+			axis_y_min = (int)(curv_y_min - 1);
+			set_chart1_range();
 		}
 		double rx_max = 0;
 		double rx_min = 0;
@@ -286,23 +324,11 @@ namespace com_mc
 				double ry0 = chart1.ChartAreas[0].AxisY.PixelPositionToValue(pre_m.Y);
 				double rdx = rx - rx0;
 				double rdy = ry - ry0; //物坐标的增量
-				rx_min -= rdx;
-				rx_max -= rdx;
-				ry_min -= rdy;
-				ry_max -= rdy;
-				Int64 x0 = (Int64)(rx_min*10);
-				Int64 x1 = (Int64)(rx_max*10);
-				Int64 y0 = (Int64)(ry_min*10);
-				Int64 y1 = (Int64)(ry_max*10);
-				set_chart1_range(x0, x1, y0, y1);
-			}
-			else if(e.Button==System.Windows.Forms.MouseButtons.Left) //左键
-			{
-
-			}
-			else
-			{
-				get_curv_range();
+				axis_x_max -= rdx;
+				axis_x_min -= rdx;
+				axis_y_max -= rdy;
+				axis_y_min -= rdy;
+				set_chart1_range(); //设置曲线显示区
 			}
 			pre_m.X = x;
 			pre_m.Y = y;
@@ -315,23 +341,24 @@ namespace com_mc
 				float t = d / 1000.0f; //比例
 				if (t < -0.5f) t = -0.5f;
 				else if (t > 0.5f) t = 0.5f; //t为正，缩小范围，相当于放大
-				get_curv_range();
-				double lx = rx_max - rx_min;
-				double ly = ry_max - ry_min; //长度
-				if(lx>2*(curv_x_max-curv_x_min) && t<0 &&
-					ly>2*(curv_y_max-curv_y_min) && t<0) return ;
-				if(lx<1 && t>0) return ;
-				if(ly<1 && t>0) return ;
+				double lx = axis_x_max - axis_x_min;
+				double ly = axis_y_max - axis_y_min; //长度
+													 //判断是否过大过小（以最佳显示范围为基准）
+				if (lx > 2 * (curv_x_max - curv_x_min) && t < 0 &&
+					ly > 2 * (curv_y_max - curv_y_min) && t < 0) return;
+				if (lx < 1 && t > 0) return;
+				if (ly < 0.1 && t > 0) return;
 				t = 1 - t;
 				double rdx = (lx * t - lx) / 2;
 				double rdy = (ly * t - ly) / 2;
-				Int64 x1 = (Int64)((rx_max + rdx)*10);
-				Int64 x0 = (Int64)((rx_min - rdx) * 10);
-				Int64 y1 = (Int64)((ry_max + rdy) * 10);
-				Int64 y0 = (Int64)((ry_min - rdy) * 10);
-				set_chart1_range(x0, x1, y0, y1);
+				axis_x_max += rdx;
+				axis_x_min -= rdx;
+				axis_y_max += rdy;
+				axis_y_min -= rdy;
+				set_chart1_range(); //设置曲线显示区
 			}
 		}
+		DateTime tm_left_down = DateTime.Now; //左键按下的时间
 		private void Chart_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
 			if(e.Button==System.Windows.Forms.MouseButtons.Left)
@@ -350,6 +377,7 @@ namespace com_mc
 				ell.Text = string.Format("x:{0},y:{1:0.0}", (int)rx, ry);
 				//左键按下
 				pre_left = new Point(e.X, e.Y);
+				tm_left_down = DateTime.Now; //左键按下的时间
 			}
 		}
 		private void Chart_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -357,17 +385,19 @@ namespace com_mc
 			if(pre_left.X>=0)
 			{
 				if (e.X == pre_left.X && e.Y == pre_left.Y) return;
+				if ((DateTime.Now - tm_left_down).TotalMilliseconds < 300) goto End; //若点击时间短
 				double rx = chart1.ChartAreas[0].AxisX.PixelPositionToValue(e.X);
 				double ry = chart1.ChartAreas[0].AxisY.PixelPositionToValue(e.Y);
 				double rx0 = chart1.ChartAreas[0].AxisX.PixelPositionToValue(pre_left.X);
 				double ry0 = chart1.ChartAreas[0].AxisY.PixelPositionToValue(pre_left.Y);
-				Int64 x0 = (Int64)(Math.Min(rx, rx0) * 10);
-				Int64 x1 = (Int64)(Math.Max(rx,rx0) * 10);
-				Int64 y0 = (Int64)(Math.Min(ry, ry0) * 10);
-				Int64 y1 = (Int64)(Math.Max(ry, ry0) * 10);
-				set_chart1_range(x0, x1, y0, y1);
-				pre_left.X=-1; //变为无效
+				axis_x_min = Math.Min(rx, rx0);
+				axis_x_max = Math.Max(rx, rx0);
+				axis_y_min = Math.Min(ry, ry0);
+				axis_y_max = Math.Max(ry, ry0);
+				set_chart1_range();
 			}
+		End:
+			pre_left.X = -1; //变为无效
 		}
 		#endregion
 	}

@@ -89,6 +89,26 @@ namespace com_mc
 					{
 						item.Value.update_dis(item.Value.name); //周期刷新，输入名称给指令对象索引，本身只需更新刷新计数
 					}
+					if (tick % 2 == 0) //5Hz
+					{
+						foreach (var item in series_map) //遍历所有曲线，看是否添加到控件
+						{
+							var mco = commc.dset[item.Key];  //测控对象
+							mco.is_cv = (bool)(checkb_map[item.Key].IsChecked); //设置曲线标志
+							bool is_display = chart1.Series.Contains(item.Value); //是否已经显示了曲线
+							if (mco.is_cv) //若要显示曲线
+							{
+								if (!is_display) //若还没加入
+								{
+									chart1.Series.Add(item.Value);
+								}
+							}
+							else //若不显示曲线
+							{
+								chart1.Series.Remove(item.Value);
+							}
+						}
+					}
 				}, invokeobj);
 			}, this, 0, 100);
 		}

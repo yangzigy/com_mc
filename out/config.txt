@@ -1,6 +1,6 @@
 {
 	"dis_data_len":1000, //曲线显示长度
-	"uart_b":460800,
+	"uart_b":115200,
 	"ctrl_cols":3, //命令按钮区域按钮列数
 	"svar_ui_h":0, //传感变量区域的高度
 	"cmd_ui_w":350, //命令按钮区域宽度
@@ -15,7 +15,7 @@
 		{ "name":"信噪比","prot_l":9,"prot_off":2},
 		{ "name":"信号强度","prot_l":9,"prot_off":3},
 		{ "name":"期望温度","prot_l":9,"prot_off":4},
-		{ "name":"温度","prot_l":9,"prot_off":5,"point_n":3, "is_cv":"true"},
+		{ "name":"温度","prot_l":9,"prot_off":5, "is_cv":"true"},
 		{ "name":"板温","prot_l":9,"prot_off":6},
 		{ "name":"光功率","prot_l":9,"prot_off":7},
 		{ "name":"采样值","prot_l":1,"prot_off":0, "is_cv":"true"},
@@ -53,6 +53,9 @@
 		{"name":"清屏幕缓存","refdname":"指令结果","cmd":"cl_rec","type":"rpl_bool"},
 		{"name":"显示原始","cmd":"oa 1\ns 0\n^clear\n^x_axis 采样值","type":"bt"},
 		{"name":"显示平均","cmd":"oa 2\ns 0\n^clear\n^x_axis 采样值","type":"bt"},
+		{"name":"参考原始","cmd":"oa 3\ns 0\n^clear\n^x_axis 采样值","type":"bt"},
+		{"name":"参考平均","cmd":"oa 4\ns 0\n^clear\n^x_axis 采样值","type":"bt"},
+		{"name":"","type":"label"},
 		{"name":"","type":"label"},
 		{"name":"温度期望","cmd":"st","type":"bt","suffixname":"tb_exp_T"},
 		{"name":"tb_exp_T","type":"text","dft":"25"},
@@ -96,7 +99,7 @@
 	],
 	"menu_cmd":
 	[
-		{"name":"tpid_p","cmd":"@ 1,2,0,0,","type":"bt","suffixname":"tb_tpid_p"},
+		{"name":"tpid_p","cmd":"@ 1,2,0,0,","type":"bt","suffixname":"tb_uid"},
 		{"name":"tb_tpid_p","type":"para","dft":"80","cmd":"@ 0,2,0,6,0","refdname":"tpid_p"}
 	],
 	"menu_name":"参数"

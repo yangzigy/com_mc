@@ -72,7 +72,7 @@ namespace com_mc
 						Legend = "Legend1",
 						Name = item.name,
 					};
-					//chart1.Series.Add(tmpserial);
+					chart1.Series.Add(tmpserial);
 					series_map[item.name] = tmpserial;
 				}
 				checkb_map[item.name] = cb;
@@ -96,16 +96,16 @@ namespace com_mc
 								if(tmpserial.Points.Count>0 && 
 									Math.Abs(tmpserial.Points[tmpserial.Points.Count-1].XValue-x_tick)<0.1f) //跟上次一样
 								{
-									tmpserial.Points[tmpserial.Points.Count - 1].YValues[0]= d; //更新最后一个值
+									tmpserial.Points[tmpserial.Points.Count - 1].YValues[0]= d;
 								}
-								else tmpserial.Points.AddXY(x_tick, d); //加入曲线
-								if (tn == x_axis_id) x_tick++; //若是索引列，则x轴+1
+								else tmpserial.Points.AddXY(x_tick, d);
+								if (tn == x_axis_id) x_tick++;
 							}
 							else //没有索引列，就用时间ms数作为x轴
 							{
 								tmpserial.Points.AddXY(ticks0 - st_ms, d);
 							}
-							if (tmpserial.Points.Count >= config.dis_data_len) //若曲线数据过多，则向前移动
+							if (tmpserial.Points.Count >= config.dis_data_len)
 							{
 								tmpserial.Points.RemoveAt(0);
 							}
@@ -320,37 +320,6 @@ namespace com_mc
 			//给传感变量刷新
 			ticks0 = DateTime.Now.Ticks / 10000;
 			commc.update_data(line);
-		}
-		double curv_x_max = int.MinValue, curv_y_max = int.MinValue;
-		double curv_x_min = int.MaxValue, curv_y_min = int.MaxValue; //曲线极值
-		void fit_screen_data() //只更新边界数据，不更新界面
-		{
-			curv_x_max = int.MinValue; curv_y_max = int.MinValue;
-			curv_x_min = int.MaxValue; curv_y_min = int.MaxValue;
-			foreach (var item in series_map) //遍历所有曲线，找极值
-			{
-				if (commc.dset[item.Key].is_cv == false) continue;
-				foreach (var p in item.Value.Points)
-				{
-					if (p.XValue > curv_x_max) curv_x_max = p.XValue;
-					if (p.YValues[0] > curv_y_max) curv_y_max = p.YValues[0];
-					if (p.XValue < curv_x_min) curv_x_min = p.XValue;
-					if (p.YValues[0] < curv_y_min) curv_y_min = p.YValues[0];
-				}
-			}
-		}
-		void fit_screen() //曲线范围
-		{
-			fit_screen_data();
-			if ((int)(curv_x_max + 1.5) < (int)(curv_x_min - 1) || (int)(curv_x_max + 1.5)<0)
-			{
-				return;
-			}
-			else if (curv_y_max < curv_y_min) return;
-			chart1.ChartAreas[0].Axes[0].Maximum = (int)(curv_x_max + 1.5);
-			chart1.ChartAreas[0].Axes[0].Minimum = (int)(curv_x_min - 1);
-			chart1.ChartAreas[0].Axes[1].Maximum = (int)(curv_y_max + 1.5);
-			chart1.ChartAreas[0].Axes[1].Minimum = (int)(curv_y_min - 1);
 		}
 #endregion
 		bool ctrl_cmd(string s) //返回是否是控制指令

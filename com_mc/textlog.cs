@@ -33,6 +33,7 @@ namespace com_mc
 		}
 		public void close()
 		{
+			if (sw == null) return;
 			try
 			{
 				sw.Close();

@@ -297,6 +297,7 @@ namespace com_mc
 			curv_x_min = int.MaxValue; curv_y_min = int.MaxValue;
 			foreach (var item in series_map) //遍历所有曲线，找极值
 			{
+				if (commc.dset[item.Key].is_cv == false) continue; //不显示的不管
 				foreach (var p in item.Value.Points)
 				{
 					if (p.XValue > curv_x_max) curv_x_max = p.XValue;

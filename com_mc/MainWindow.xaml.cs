@@ -425,17 +425,22 @@ namespace com_mc
 		{
 			if(pre_left.X>=0)
 			{
-				if (e.X == pre_left.X && e.Y == pre_left.Y) return;
+				if (e.X == pre_left.X && e.Y == pre_left.Y) goto End;
 				if ((DateTime.Now - tm_left_down).TotalMilliseconds < 300) goto End; //若点击时间短
-				double rx = chart1.ChartAreas[0].AxisX.PixelPositionToValue(e.X);
-				double ry = chart1.ChartAreas[0].AxisY.PixelPositionToValue(e.Y);
-				double rx0 = chart1.ChartAreas[0].AxisX.PixelPositionToValue(pre_left.X);
-				double ry0 = chart1.ChartAreas[0].AxisY.PixelPositionToValue(pre_left.Y);
-				axis_x_min = Math.Min(rx, rx0);
-				axis_x_max = Math.Max(rx, rx0);
-				axis_y_min = Math.Min(ry, ry0);
-				axis_y_max = Math.Max(ry, ry0);
-				set_chart1_range();
+				try
+				{
+					double rx = chart1.ChartAreas[0].AxisX.PixelPositionToValue(e.X);
+					double ry = chart1.ChartAreas[0].AxisY.PixelPositionToValue(e.Y);
+					double rx0 = chart1.ChartAreas[0].AxisX.PixelPositionToValue(pre_left.X);
+					double ry0 = chart1.ChartAreas[0].AxisY.PixelPositionToValue(pre_left.Y);
+					axis_x_min = Math.Min(rx, rx0);
+					axis_x_max = Math.Max(rx, rx0);
+					axis_y_min = Math.Min(ry, ry0);
+					axis_y_max = Math.Max(ry, ry0);
+					set_chart1_range();
+				}
+				catch
+				{ }
 			}
 		End:
 			pre_left.X = -1; //变为无效

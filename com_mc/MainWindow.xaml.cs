@@ -356,22 +356,31 @@ namespace com_mc
 			double x = e.X;
 			double y = e.Y;
 			if (x < 0 || x >= chart1.Width || y < 0 || y >= chart1.Height) return;
-			double rx = chart1.ChartAreas[0].AxisX.PixelPositionToValue(x);
-			double ry = chart1.ChartAreas[0].AxisY.PixelPositionToValue(y);
-			if (e.Button == System.Windows.Forms.MouseButtons.Right) //右键
+			try
 			{
-				double rx0 = chart1.ChartAreas[0].AxisX.PixelPositionToValue(pre_m.X);
-				double ry0 = chart1.ChartAreas[0].AxisY.PixelPositionToValue(pre_m.Y);
-				double rdx = rx - rx0;
-				double rdy = ry - ry0; //物坐标的增量
-				axis_x_max -= rdx;
-				axis_x_min -= rdx;
-				axis_y_max -= rdy;
-				axis_y_min -= rdy;
-				set_chart1_range(); //设置曲线显示区
+				double rx = chart1.ChartAreas[0].AxisX.PixelPositionToValue(x);
+				double ry = chart1.ChartAreas[0].AxisY.PixelPositionToValue(y);
+				if (e.Button == System.Windows.Forms.MouseButtons.Right) //右键
+				{
+					double rx0 = chart1.ChartAreas[0].AxisX.PixelPositionToValue(pre_m.X);
+					double ry0 = chart1.ChartAreas[0].AxisY.PixelPositionToValue(pre_m.Y);
+					double rdx = rx - rx0;
+					double rdy = ry - ry0; //物坐标的增量
+					axis_x_max -= rdx;
+					axis_x_min -= rdx;
+					axis_y_max -= rdy;
+					axis_y_min -= rdy;
+					set_chart1_range(); //设置曲线显示区
+				}
+				pre_m.X = x;
+				pre_m.Y = y;
 			}
-			pre_m.X = x;
-			pre_m.Y = y;
+			catch (Exception ee)
+			{
+
+				throw;
+			}
+
 		}
 		private void Chart_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
 		{

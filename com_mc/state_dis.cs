@@ -91,6 +91,7 @@ namespace com_mc
 								is_first = 0;
 							}
 							double d = double.Parse(it.val);
+							if (Math.Abs(d) >= (double)Decimal.MaxValue) throw new Exception("");
 							if(x_axis_id != "" && commc.dset.ContainsKey(x_axis_id)) //若有索引列
 							{
 								if(tmpserial.Points.Count>0 && 

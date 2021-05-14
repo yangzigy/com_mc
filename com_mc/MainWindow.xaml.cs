@@ -378,7 +378,7 @@ namespace com_mc
 			catch (Exception ee)
 			{
 
-				throw;
+				//throw;
 			}
 
 		}

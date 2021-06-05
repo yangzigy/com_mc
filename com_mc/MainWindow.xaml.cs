@@ -56,6 +56,7 @@ namespace com_mc
 				DataSrc.dsdict[config.socket.type]= DataSrc.factory(config.socket.type,rx_fun);
 				DataSrc.dsdict[config.socket.type].rx_event = rx_fun; //注册回调函数
 			}
+			Title = config.title_str;
 			// 获取COM口列表
 			bt_refresh_uart_Click(null, null);
 		}
@@ -178,27 +179,28 @@ namespace com_mc
 				return;
 			}
 			var tags = lines[0].Split(",".ToCharArray(), StringSplitOptions.None); //要带着空位
-			var cv_ind = new List<int>(); //曲线索引的列表
-			foreach (var item in tags) //看看数据的标题是否都在曲线中
+			var cv_ind = new int[tags.Length]; //曲线索引的列表
+			for(int i=0;i<tags.Length;i++) //看看数据的标题是否都在曲线中
 			{
 				int j;
+				cv_ind[i] = -1;
 				for (j = 0; j < chart1.Series.Count; j++)
 				{
-					if (chart1.Series[j].Name==item) //若是这个曲线
+					if (chart1.Series[j].Name==tags[i]) //若是这个曲线
 					{
-						cv_ind.Add(j);
+						cv_ind[i] = j;
 						break;
 					}
 				}
-				if (j == chart1.Series.Count) return;//若没有曲线是这个名字
 			}
 			clear_data(); //首先清空数据
-			for(int i = 1; i < lines.Length; i++)
+			Title= config.title_str+":"+ ofd.FileName;
+			for (int i = 1; i < lines.Length; i++)
 			{
 				tags = lines[i].Split(",".ToCharArray(), StringSplitOptions.None); //要带着空位
-				if (tags.Length != cv_ind.Count) continue; //列数不等的跳过
 				for (int j = 0; j < tags.Length; j++)
 				{
+					if(cv_ind[j]<0) continue; //若没有对应的曲线
 					var ser = chart1.Series[cv_ind[j]];
 					double y = 0;
 					if (!double.TryParse(tags[j], out y)) continue;
@@ -222,6 +224,7 @@ namespace com_mc
 				if (btn.Content.ToString() == "打开端口")
 				{
 					DataSrc.open(config, comPort.Text);
+					Title = config.title_str + ":" + comPort.Text;
 					btn.Content = "关闭端口";
 				}
 				else

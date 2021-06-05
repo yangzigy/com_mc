@@ -29,6 +29,7 @@ namespace com_mc
 	{
 		public Config()
 		{
+			title_str = "通用上位机";
 			dis_data_len = 1000;
 			uart_b=115200;
 			ctrl_cols = 2; //控制按钮默认2列
@@ -80,6 +81,7 @@ namespace com_mc
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 //配置内容
 		//显示控制
+		public string title_str { get; set; } //软件标题
 		public int dis_data_len { get; set; } //显示数据长度
 		public int ctrl_cols { get; set; } //控制按钮的列数
 		public int svar_ui_h { get; set; } //传感变量区域高度

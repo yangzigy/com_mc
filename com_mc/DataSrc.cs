@@ -17,7 +17,7 @@ namespace com_mc
 		{
 			string s = (string)v["type"];
 			Type t = Type.GetType("com_mc.DataSrc_" + s);
-			var r = Activator.CreateInstance(t) as DataSrc;
+			var r = Activator.CreateInstance(t,cb) as DataSrc;
 			r.fromDict(v); //初始化对象
 			return r;
 		}
@@ -57,8 +57,9 @@ namespace com_mc
 		const uint IOC_VENDOR = 0x18000000;
 		uint SIO_UDP_CONNRESET = (IOC_IN | IOC_VENDOR | 12); //由于WindowsSB必须设置一下否则出现远程主机强迫关闭了一个现有的连接
 		public UdpClient udp = null; //接收数据转发
-		public Socket_cfg cfg; //udp的配置，缓存，用于重连
+		public Socket_cfg cfg=new Socket_cfg(); //udp的配置，缓存，用于重连
 		public bool is_reopen = false; //是否正在重连
+		public bool is_open = false; //是否在开的状态，若关闭，也不用重连了
 		public delegate void RX_FUN(byte[] buf);
 		public IPEndPoint rmt_addr = new IPEndPoint(0, 0); //接收到数据后，对方的地址
 		public DataSrc_udp(RX_CB cb) : base(cb) { }
@@ -66,9 +67,10 @@ namespace com_mc
 		{
 			base.fromDict(v);
 			cfg.ip = (string)v["ip"];
-			cfg.port = (ushort)v["port"];
+			int t = (int)v["port"];
+			cfg.port = (ushort)t;
 			if (v.ContainsKey("rmt_ip")) cfg.rmt_ip = (string)v["rmt_ip"];
-			if (v.ContainsKey("rmt_port")) cfg.rmt_port = (ushort)v["rmt_port"];
+			if (v.ContainsKey("rmt_port")) cfg.rmt_port = (ushort)(int)v["rmt_port"];
 		}
 		void udp_rx_cb(IAsyncResult ar) //接收失败后进行重连
 		{
@@ -108,11 +110,12 @@ namespace com_mc
 			udp.Client.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
 			//udp.Connect(new IPEndPoint(IPAddress.Parse(cfg.socket.rmt_ip), cfg.socket.rmt_port)); //若指定了目标，就收不到其他地址了
 			udp.Client.ReceiveBufferSize = 1000000;
+			is_open = true;
 			udp.BeginReceive(udp_rx_cb, udp); //开始接收
 		}
 		public void reopen(bool block = false) //重连，输入是否阻塞
 		{
-			if (is_reopen) return; //正在重连，这里就不管了
+			if (is_reopen || is_open==false) return; //正在重连，或者在关闭状态，这里就不管了
 			is_reopen = true;
 			do
 			{
@@ -129,7 +132,8 @@ namespace com_mc
 		}
 		public override void close()
 		{
-			udp.Close();
+			is_open = false;
+			if (udp!=null) udp.Close();
 			udp = null;
 		}
 		public override string[] get_names()
@@ -193,12 +197,82 @@ namespace com_mc
 	public class DataSrc_replay : DataSrc //回放模式
 	{
 		public DataSrc_replay(RX_CB cb) : base(cb) { name = "回放"; }
+		public int state = 0;//0终止，1暂停，2回放
+		DateTime dt_st;
+		public int replay_line=0; //回放位置
+		public int total_line=0; //回放总行数
+		public int cur_line_ms = 0; //当前回放行的ms数
 		public override void open(string s) //打开数据源，输入以什么名称打开的
 		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.txt|*.txt";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			StreamReader sw = new StreamReader(ofd.FileName);
+			string text = sw.ReadToEnd();
+			sw.Close();
+			var lines = text.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+			total_line = lines.Length;
+			ThreadPool.QueueUserWorkItem(delegate (object ss)
+			{
+				state = 2;
+				dt_st = DateTime.Now; //开始时刻 - 数据起始的ms数 + 当前数据的ms 与当前时刻比较。第一帧认为时间为0
+				try
+				{
+					for (replay_line = 0; replay_line < lines.Length; replay_line++) //1201.123	xxx,233
+					{
+						if (state==0) throw new Exception("终止");
+
+						if (lines[replay_line].Length < 10) continue;
+						string ts = lines[replay_line].Substring(0, 8); //取得时间戳字符
+						int minute = Convert.ToInt32(ts.Substring(0, 2));
+						int second = Convert.ToInt32(ts.Substring(2, 2));
+						int ms = Convert.ToInt32(ts.Substring(5, 3));
+						cur_line_ms = minute * 60000 + second * 1000 + ms; //转换为到文件建立时的ms数
+
+						DateTime data_time = dt_st.AddMilliseconds(cur_line_ms); //回放到现在的ms数
+						while (data_time >= DateTime.Now) //若数据时间大于当前时间，等着
+						{
+							if (state == 0) throw new Exception("终止");
+							Thread.Sleep(20);  //睡20ms
+						}
+						string sline = lines[replay_line].Substring(9)+"\n";
+						var b = Encoding.UTF8.GetBytes(sline);
+						rx_event(b);
+						while(state==1)//判断是否是暂停
+						{
+							Thread.Sleep(100);
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					state = 0;
+				}
+			});
+		}
+		public override void close()
+		{
+			stop();
 		}
 		public override string[] get_names()
 		{
 			return new string[] { name };
+		}
+		public void resume() //恢复
+		{
+			if(state==2) //若正在运行
+			{
+				state = 1;
+				dt_st = DateTime.Now.AddMilliseconds(-cur_line_ms); //恢复时，起始时间要减去当前数据的时间
+			}
+		}
+		public void suspend() //暂停
+		{
+			if(state==2) state = 1;
+		}
+		public void stop() //终止
+		{
+			state = 0;
 		}
 	}
 	public class Socket_cfg //网络通信配置

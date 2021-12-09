@@ -46,7 +46,7 @@
 			<ColumnDefinition Name="colD_cmd_ui" Width="280"></ColumnDefinition>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="25"></RowDefinition>
+			<RowDefinition Height="28"></RowDefinition>
 			<RowDefinition></RowDefinition>
 		</Grid.RowDefinitions>
 		<Menu Grid.Row="0" Grid.ColumnSpan="1" FontSize="16">
@@ -92,6 +92,7 @@
 			</MenuItem>
 			<MenuItem Header="帮助" Click="mi_help_Click"></MenuItem>
 			<Label Name="lb_rx_Bps" FontSize="16" Margin="3,-4,0,0">接收:</Label>
+			<Label Name="lb_replay_info" FontSize="16" Margin="3,-4,0,0"></Label>
 			<Label Name="lb_measure" FontSize="16" Margin="3,-4,0,0"></Label>
 		</Menu>
 		<ScrollViewer Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto" Margin="5">

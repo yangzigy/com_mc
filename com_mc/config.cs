@@ -16,7 +16,6 @@ namespace com_mc
 		{
 			title_str = "通用上位机";
 			dis_data_len = 1000;
-			uart_b=115200;
 			ctrl_cols = 2; //控制按钮默认2列
 			svar_ui_h = 0; //传感变量显示区高度，为0则为自动
 			cmd_ui_w = 0; //指令区域宽度
@@ -28,7 +27,6 @@ namespace com_mc
 			menu_cols = 2;
 			ctrl_cmds = new List<string>();
 			menu_cmd = new List<CmdDes>();
-			socket = new Socket_cfg();
 		}
 		public static Config load(string s)
 		{
@@ -84,7 +82,5 @@ namespace com_mc
 		public string menu_name { get; set; } //菜单名
 		//数据输入
 		public List<Dictionary<string, object>> data_src { get; set; }
-		public int uart_b { get; set; } //串口波特率
-		public Socket_cfg socket { get; set; } //网络端口配置
 	}
 }

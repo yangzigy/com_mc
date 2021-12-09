@@ -57,11 +57,9 @@ namespace com_mc
 				var ds = DataSrc.factory(item, rx_fun);
 				DataSrc.dslist.Add(ds);
 			}
-			//DataSrc.ini(rx_fun);
-			//if (config.socket.type != DSType.uart)
-			//{
-			//	DataSrc.dsdict[config.socket.type]= DataSrc.factory(config.socket.type,rx_fun);
-			//}
+			Dictionary<string, object> td = new Dictionary<string, object>();
+			td["type"] = "replay";
+			DataSrc.dslist.Add(DataSrc.factory(td, rx_fun));
 			Title = config.title_str;
 			// 获取COM口列表
 			bt_refresh_uart_Click(null, null);
@@ -86,6 +84,16 @@ namespace com_mc
 					{
 						if (cb_fit_screen.IsChecked == true) fit_screen();
 						else fit_screen_data();
+						if(DataSrc.cur_ds is DataSrc_replay) //若是回放，把回放的东西显示出来
+						{
+							var rep = DataSrc.cur_ds as DataSrc_replay;
+							lb_replay_info.Visibility = Visibility.Visible;
+							lb_replay_info.Content = string.Format("共{0}行,当前{1}行", rep.total_line,rep.replay_line);
+						}
+						else
+						{
+							lb_replay_info.Visibility = Visibility.Hidden;
+						}
 					}
 					else if (tick % 10 == 1) //1Hz
 					{
@@ -223,6 +231,7 @@ namespace com_mc
 				foreach (var it in l)
 				{
 					ds_tab[it] = item; //此名称索引到同一个数据源，例如COM1、COM2都索引到uart数据源
+					dsrclist.Add(it);
 				}
 			}
 			cb_datasrc.ItemsSource = dsrclist;
@@ -235,10 +244,9 @@ namespace com_mc
 			{
 				if (btn.Content.ToString() == "打开端口")
 				{
-					string ds_name = cb_datasrc.SelectedValue as string;
+					string ds_name = cb_datasrc.Text;
 					DataSrc.cur_ds = ds_tab[ds_name];
-					DataSrc.cur_ds.name=ds_name;
-					DataSrc.cur_ds.open();
+					DataSrc.cur_ds.open(ds_name);
 					Title = config.title_str + ":" + cb_datasrc.Text;
 					btn.Content = "关闭端口";
 				}

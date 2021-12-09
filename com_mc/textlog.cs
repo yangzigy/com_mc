@@ -11,6 +11,7 @@ namespace com_mc
 		StreamWriter sw=null;
 		string logpath="";
 		string cur_time = "";
+		DateTime dt_st=DateTime.Now;
 		public TextDataFile()
 		{
 		}
@@ -22,10 +23,10 @@ namespace com_mc
 				Directory.CreateDirectory(AppDomain.CurrentDomain.BaseDirectory + "/" + "data");
 			}
 			//建立文件
-			cur_time = DateTime.Now.ToString("yyyy-MM-dd_HH");
+			dt_st=DateTime.Now;
+			cur_time = dt_st.ToString("yyyy-MM-dd_HH");
 			logpath = AppDomain.CurrentDomain.BaseDirectory + "/data/" +cur_time+  ".txt";
 			sw= new StreamWriter(logpath,true);
-			//sw.WriteLine("时间	温度	板温	功率	状态");
 		}
 		~TextDataFile()
 		{
@@ -49,7 +50,9 @@ namespace com_mc
 				close();
 				create();
 			}
-			tmp_time = DateTime.Now.ToString("HHmmss	"); //时间戳
+			//时间戳
+			var dt = DateTime.Now - dt_st;
+			tmp_time =String.Format("{0:00}{1:00}.{2:000}	",dt.Minutes,dt.Seconds,dt.Milliseconds); //时间戳
 			sw.Write(tmp_time + s);
 			sw.Flush();
 		}

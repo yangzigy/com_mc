@@ -30,6 +30,7 @@ namespace com_mc
 		public Timer timer10Hz;
 		public uint tick = 0;
 
+		public Dictionary<string, DataSrc> ds_tab = new Dictionary<string, DataSrc>(); //字符与数据源的对应关系
 		public MainWindow()
 		{
 			//首先保存错误
@@ -50,12 +51,17 @@ namespace com_mc
 			{
 				config = Config.load(configfilename);
 			}
-			DataSrc.ini(rx_fun);
-			if (config.socket.type != DSType.uart)
+			//加载数据源
+			foreach (var item in config.data_src) //对于每一种配置的数据源
 			{
-				DataSrc.dsdict[config.socket.type]= DataSrc.factory(config.socket.type,rx_fun);
-				DataSrc.dsdict[config.socket.type].rx_event = rx_fun; //注册回调函数
+				var ds = DataSrc.factory(item, rx_fun);
+				DataSrc.dslist.Add(ds);
 			}
+			//DataSrc.ini(rx_fun);
+			//if (config.socket.type != DSType.uart)
+			//{
+			//	DataSrc.dsdict[config.socket.type]= DataSrc.factory(config.socket.type,rx_fun);
+			//}
 			Title = config.title_str;
 			// 获取COM口列表
 			bt_refresh_uart_Click(null, null);
@@ -208,13 +214,19 @@ namespace com_mc
 				}
 			}
 		}
-		private void bt_refresh_uart_Click(object sender, RoutedEventArgs e)
+		private void bt_refresh_uart_Click(object sender, RoutedEventArgs e) //建立数据源的名称列表
 		{
-			string[] commPort = SerialPort.GetPortNames();
-			List<string> dsrclist = new List<string>(commPort);
-			if (config.socket.type != DSType.uart) dsrclist.Add("socket"); //加入网络通信的选项
-			comPort.ItemsSource = dsrclist;
-			comPort.SelectedIndex = 0;
+			List<string> dsrclist = new List<string>();
+			foreach (var item in DataSrc.dslist)
+			{
+				var l=item.get_names();
+				foreach (var it in l)
+				{
+					ds_tab[it] = item; //此名称索引到同一个数据源，例如COM1、COM2都索引到uart数据源
+				}
+			}
+			cb_datasrc.ItemsSource = dsrclist;
+			cb_datasrc.SelectedIndex = 0;
 		}
 		private void btnConnCom_Click(object sender, RoutedEventArgs e)
 		{
@@ -223,8 +235,11 @@ namespace com_mc
 			{
 				if (btn.Content.ToString() == "打开端口")
 				{
-					DataSrc.open(config, comPort.Text);
-					Title = config.title_str + ":" + comPort.Text;
+					string ds_name = cb_datasrc.SelectedValue as string;
+					DataSrc.cur_ds = ds_tab[ds_name];
+					DataSrc.cur_ds.name=ds_name;
+					DataSrc.cur_ds.open();
+					Title = config.title_str + ":" + cb_datasrc.Text;
 					btn.Content = "关闭端口";
 				}
 				else

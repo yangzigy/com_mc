@@ -108,7 +108,7 @@
 						<RowDefinition></RowDefinition>
 						<RowDefinition></RowDefinition>
 					</Grid.RowDefinitions>
-					<ComboBox Grid.Column="0" Margin="5,5" Height="35" Name="comPort" VerticalAlignment="Center" VerticalContentAlignment="Center"></ComboBox>
+					<ComboBox Grid.Column="0" Margin="5,5" Height="35" Name="cb_datasrc" VerticalAlignment="Center" VerticalContentAlignment="Center"></ComboBox>
 					<Button Grid.Column="1" Click="btnConnCom_Click" Content="打开端口"></Button>
 					<Button Grid.Column="0" Grid.Row="1" Click="bt_refresh_uart_Click" Name="bt_refresh_uart" Content="刷新串口"></Button>
 					<CheckBox Grid.Column="1" Grid.Row="1" Name="checkb_rec_data" VerticalAlignment="Center">保存数据</CheckBox>

@@ -9,22 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace com_mc
 {
-	public class Socket_cfg //网络通信配置
-	{
-		public Socket_cfg()
-		{
-			ip = "0.0.0.0";
-			port = 12345;
-			type = DSType.uart;
-			rmt_ip = "127.0.0.1";
-			rmt_port = 12346;
-		}
-		public string ip { set; get; }
-		public ushort port { set; get; }
-		public DSType type { get; set; }
-		public string rmt_ip { set; get; }
-		public ushort rmt_port { get; set; } //对方的ip和端口
-	}
+
 	public class Config
 	{
 		public Config()
@@ -98,6 +83,7 @@ namespace com_mc
 		public List<CmdDes> menu_cmd { get; set; } //在菜单栏的指令
 		public string menu_name { get; set; } //菜单名
 		//数据输入
+		public List<Dictionary<string, object>> data_src { get; set; }
 		public int uart_b { get; set; } //串口波特率
 		public Socket_cfg socket { get; set; } //网络端口配置
 	}

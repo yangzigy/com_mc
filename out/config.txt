@@ -75,7 +75,7 @@
 		{"name":"参考平均","cmd":"oa 4\ns 0\n^clear\n^x_axis 采样值","type":"bt"},
 		{"name":"","type":"label"},
 		{"name":"","type":"label"},
-		{"name":"温度期望","cmd":"st","type":"bt","suffixname":"tb_exp_T"},
+		{"name":"温度期望","cmd":"st","type":"bt","suffixname":"tb_exp_T","repeat_T":5},
 		{"name":"tb_exp_T","type":"text","dft":"25"},
 		{"name":"0~35℃","type":"label"},
 		{"name":"直流电流","cmd":"si","type":"bt","suffixname":"tb_i"},

@@ -23,6 +23,7 @@ namespace com_mc
 	{
 		static public MainWindow mw;
 		public Com_MC commc = new Com_MC(); //通用测控对象
+		public Dictionary<string, CCmd_Button> cmd_ctrl_dict = new Dictionary<string, CCmd_Button>(); //控制控件
 
 		TextDataFile rec_file = new TextDataFile();
 		object[] invokeobj=new object[2];
@@ -33,7 +34,7 @@ namespace com_mc
 		string x_axis_id=""; //x轴的索引变量名，空则使用时间
 		int is_first=1;
 		bool is_plugin = true; //是否有插件？
-		public DispatcherTimer dispatcherTimer = null;
+		public DispatcherTimer dispatcherTimer = null; //ui线程定时器
 
 		void state_dis_ini()
 		{
@@ -172,7 +173,7 @@ namespace com_mc
 			int i =0,j=0; //i行，j列
 			foreach (var item in config.cmds)
 			{ //本来有一行
-				commc.cmds[item.name]=item;
+				commc.cmds[item.name]=item; //加入指令列表
 				int rownu = para_grid.RowDefinitions.Count - 1; //添加一行
 				var v=CCmd_Button.bt_factory(item.type,item, para_grid);
 				v.ini(ref i, ref j);
@@ -181,6 +182,7 @@ namespace com_mc
 					para_grid.RowDefinitions.Add(new RowDefinition());
 					i++;j=0;
 				}
+				cmd_ctrl_dict[item.name] = v; //加入控件列表
 			}
 #endregion
 #region 菜单指令
@@ -211,7 +213,7 @@ namespace com_mc
 			}
 			dispatcherTimer = new DispatcherTimer();
 			dispatcherTimer.Tick += new EventHandler(OnTimedEvent);
-			dispatcherTimer.Interval = TimeSpan.FromMilliseconds(10);
+			dispatcherTimer.Interval = TimeSpan.FromMilliseconds(10); //100Hz
 			dispatcherTimer.Start();
 			//配置初始化指令
 			foreach (var item in config.ctrl_cmds)
@@ -219,9 +221,9 @@ namespace com_mc
 				ctrl_cmd(item);
 			}
 		}
-		private void OnTimedEvent(object sender, EventArgs e)
+		private void OnTimedEvent(object sender, EventArgs e) //100Hz
 		{
-			if (is_plugin)
+			if (is_plugin) //100Hz
 			{
 				string s = Mingw.so_poll_100();
 				rx_line(s); //是否有额外的数据过来

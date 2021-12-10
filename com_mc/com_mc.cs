@@ -170,6 +170,7 @@ namespace com_mc
 		public string cmdoff { get; set; } //关闭指令
 		public int c_span { get; set; } //列跨度
 		public CmdType type { get; set; } //命令名称
+		public int repeat_T { get; set; } = 0; //重复周期，若为0，则不是重复指令
 		public string dft { get; set; } //默认值
 		public CB_s_v get_stat= void_fun; //获取此指令对象状态的回调函数
 
@@ -193,7 +194,7 @@ namespace com_mc
 	public class Com_MC //通用测控类
 	{
 		public Dictionary<string,DataDes> dset { get; set; } //数据列表,key为数据项的名称
-		public Dictionary<string,CmdDes> cmds { get; set; } //数据列表,key为数据项的名称
+		public Dictionary<string,CmdDes> cmds { get; set; } //指令列表,key为数据项的名称
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 		public Com_MC()
 		{

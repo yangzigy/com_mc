@@ -5,42 +5,7 @@
 		xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
 		xmlns:Chr="clr-namespace:System.Windows.Forms.DataVisualization.Charting;assembly=System.Windows.Forms.DataVisualization"
 		xmlns:local="clr-namespace:com_mc" Title="通用上位机" Height="600" Width="925" Loaded="Window_Loaded" FontSize="16">
-	<Window.Resources>
-		<Style TargetType="Button">
-			<Setter Property="Height" Value="30" />
-			<!--<Setter Property="Width" Value="110" />
-			<Setter Property="FontSize" Value="24" />
-			<Setter Property="Background" Value="#FF0087FF" />-->
-			<Setter Property="HorizontalContentAlignment" Value="Center" />
-			<Setter Property="VerticalContentAlignment" Value="Center" />
-			<Setter Property="FontSize" Value="18" />
-			<Setter Property="Margin" Value="2,2" />
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type ButtonBase}">
-						<Border x:Name="Border" Width="{TemplateBinding Width}"
-								Height="{TemplateBinding Height}"
-								Background="{TemplateBinding Background}">
-							<TextBlock x:Name="TextBlock"
-									   Text="{TemplateBinding Content}"
-									   FontSize="{TemplateBinding FontSize}"
-									   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-									   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-						</Border>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsPressed" Value="True">
-								<Setter Property="Background"
-										Value="#FFfcac1c" />
-								<!--<Setter Property="Background"
-										Value="{Binding RelativeSource = {RelativeSource Self},Path=(local:ButtonBrush.ButtonPressBackground)}" />-->
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-	</Window.Resources>
-	<Grid>
+    <Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition></ColumnDefinition>
 			<ColumnDefinition Name="colD_cmd_ui" Width="280"></ColumnDefinition>

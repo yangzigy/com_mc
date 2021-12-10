@@ -79,6 +79,14 @@ namespace com_mc
 			{
 				Dispatcher.BeginInvoke((EventHandler)delegate (object sd, EventArgs ea)
 				{
+					foreach (var item in commc.dset) //刷新每个参数
+					{
+						item.Value.update_dis(item.Value.name); //周期刷新，输入名称给指令对象索引，本身只需更新刷新计数
+					}
+					foreach (var item in cmd_ctrl_dict) //对于每个控制控件，执行poll
+					{
+						item.Value.poll();
+					}
 					tick++;
 					if (tick % 5 == 0) //2Hz
 					{
@@ -99,10 +107,6 @@ namespace com_mc
 					{
 						lb_rx_Bps.Content = string.Format("接收:{0} Bps", rx_Byte_1_s);
 						rx_Byte_1_s = 0;
-					}
-					foreach (var item in commc.dset) //刷新每个参数
-					{
-						item.Value.update_dis(item.Value.name); //周期刷新，输入名称给指令对象索引，本身只需更新刷新计数
 					}
 					if (tick % 2 == 0) //5Hz
 					{

@@ -33,7 +33,7 @@ namespace com_mc
 		static public DataDes.CB send_cmd_str; //数据接收回调
 		//对象内容
 		public Grid grid;
-		public Button tb=new Button();
+		public System.Windows.Controls.Primitives.ButtonBase tb=null;
 		public CmdDes cmddes; //缓存命令描述
 		public Thickness bt_margin; //按钮间距
 		public CCmd_Button(CmdDes cd, Grid g)
@@ -57,25 +57,54 @@ namespace com_mc
 			Grid.SetColumnSpan(c, cmddes.c_span);
 			col += cmddes.c_span;
 		}
-		virtual public void ini(ref int row,ref int col)
+		virtual public void ini(ref int row,ref int col) //初始化并添加到父窗体中
 		{
+			if (cmddes.repeat_T > 0) //若是重复指令
+			{
+				tb = new System.Windows.Controls.Primitives.ToggleButton();
+			}
+			else //若是单次触发指令
+			{
+				tb=new Button();
+				tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
+				{
+					send_cmd();
+				});
+			}
 			tb.Content = cmddes.name;
 			tb.Tag = cmddes.name;
-			tb.Margin=bt_margin;
-			add_ctrl(tb,ref row,ref col);
-			tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
+			tb.Margin = bt_margin;
+			add_ctrl(tb, ref row, ref col);
+		}
+		int repeat_tick = 0; //重复发送计时
+		virtual public void poll() //10Hz周期
+		{
+			if (tb is System.Windows.Controls.Primitives.ToggleButton) //若是重复指令
 			{
-				try
+				var tbt = tb as System.Windows.Controls.Primitives.ToggleButton;
+				if(tbt.IsChecked ==true && cmddes.repeat_T!=0)
 				{
-					string s = cmddes.cmd; //命令字符
-					if (commc.cmds.ContainsKey(cmddes.suffixname)) //后缀控件id
+					repeat_tick++;
+					if (repeat_tick>=cmddes.repeat_T)
 					{
-						s += " " + commc.cmds[cmddes.suffixname].get_stat();
+						send_cmd();
+						repeat_tick=0;
 					}
-					send_cmd_str(s);
 				}
-				catch { }
-			});
+			}
+		}
+		public void send_cmd() //发送指令
+		{
+			try
+			{
+				string s = cmddes.cmd; //命令字符
+				if (commc.cmds.ContainsKey(cmddes.suffixname)) //若有后缀控件
+				{
+					s += " " + commc.cmds[cmddes.suffixname].get_stat(); //从指令列表转了一圈，指令列表回调界面这边的函数得到界面状态
+				}
+				send_cmd_str(s);
+			}
+			catch { }
 		}
 	}
 	public class CCmd_label : CCmd_Button //字符显示
@@ -114,6 +143,7 @@ namespace com_mc
 			//注册到主面板中
 			subgrid.Margin = new Thickness(1, 2, 1, 2);
 			add_ctrl(subgrid, ref row, ref col);
+			tb = new Button();
 			//加入鼠标事件
 			tb.AddHandler(UIElement.MouseDownEvent, new RoutedEventHandler(mouseDown), true);
 			lb_on.AddHandler(UIElement.MouseDownEvent, new RoutedEventHandler(mouseDown), true);
@@ -205,13 +235,23 @@ namespace com_mc
 		}
 	}
 	public class CCmd_rpl_bool : CCmd_Button  //带回复的指令
-	{
+	{ //回复一般是多种指令公用的，所以不做周期了
 		public CCmd_rpl_bool(CmdDes cd, Grid g) : base(cd, g) { }
 		public Border bd = new Border();
 		public bool result = true; //结果缓存
 		public int sent_times = 0; //发送后倒计时，计时结束就不响应了
 		public override void ini(ref int row, ref int col)
 		{
+			tb = new Button();
+			tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
+			{
+				try
+				{
+					send_cmd_str(commc.cmds[(string)((Button)sender).Tag].cmd);
+					sent_times = 10;
+				}
+				catch { }
+			});
 			//注册到主面板中
 			add_ctrl(tb, ref row, ref col);
 			grid.Children.Add(bd);
@@ -223,15 +263,7 @@ namespace com_mc
 			tb.Tag = cmddes.name;
 			tb.HorizontalContentAlignment = HorizontalAlignment.Left;
 			tb.Margin = bt_margin;
-			tb.Click += new RoutedEventHandler((RoutedEventHandler)delegate (object sender, RoutedEventArgs e)
-			{
-				try
-				{
-					send_cmd_str(commc.cmds[(string)((Button)sender).Tag].cmd);
-					sent_times = 10;
-				}
-				catch { }
-			});
+
 			bd.BorderBrush = Brushes.LightGreen;
 			bd.Background = br_normal;
 			bd.CornerRadius = new CornerRadius(10);
@@ -308,17 +340,6 @@ namespace com_mc
 				var t = commc.dset[cmddes.refdname];
 				t.update_dis += delegate (string tn) //数据更新回调函数
 				{
-					//if (sent_times > 0) //在发送后的一段时间内
-					//{
-					//	sent_times--; //发送后的计时
-					//	if (t.update_times > 0) //若有刷新
-					//	{
-					//		img_refresh.Source = i_on;
-					//		tt1.Text = t.val;
-					//	}
-					//	else img_refresh.Source = i_off; //若无刷新
-					//}
-					//else img_refresh.Source = i_off; //若已经超时
 					if (t.update_times > 0) //若有刷新
 					{
 						img_refresh.Source = i_on;

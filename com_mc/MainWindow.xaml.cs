@@ -38,7 +38,6 @@ namespace com_mc
 			domain.UnhandledException += (sender, targs) =>
 			{
 				Console.WriteLine(config.ToString());
-				Console.WriteLine(chart1.ToString());
 				var ex = targs.ExceptionObject as Exception;
 				if (ex != null)
 				{
@@ -52,10 +51,13 @@ namespace com_mc
 				config = Config.load(configfilename);
 			}
 			//加载数据源
-			foreach (var item in config.data_src) //对于每一种配置的数据源
+			if (config.data_src != null)
 			{
-				var ds = DataSrc.factory(item, rx_fun);
-				DataSrc.dslist.Add(ds);
+				foreach (var item in config.data_src) //对于每一种配置的数据源
+				{
+					var ds = DataSrc.factory(item, rx_fun);
+					DataSrc.dslist.Add(ds);
+				}
 			}
 			Dictionary<string, object> td = new Dictionary<string, object>();
 			td["type"] = "replay";

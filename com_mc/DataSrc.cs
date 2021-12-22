@@ -197,11 +197,19 @@ namespace com_mc
 	public class DataSrc_replay : DataSrc //回放模式
 	{
 		public DataSrc_replay(RX_CB cb) : base(cb) { name = "回放"; }
+		public float time_X = 1; //回放时间倍数
 		public int state = 0;//0终止，1暂停，2回放
-		DateTime dt_st;
-		public int replay_line=0; //回放位置
 		public int total_line=0; //回放总行数
+		//数据的ms数，都换成文件内的，可以不从0开始。
+		//回放位置有两个：
+		// 1、查找行位置
+		// 2、当前回放时间ms数
+		public int replay_line=0; //回放位置
+		public int replay_ms = 0; //回放的时间进度，单位ms
+		public DateTime pre_replay_ms=DateTime.Now; //上次更新回放时间的点
 		public int cur_line_ms = 0; //当前回放行的ms数
+		public List<int> line_ms_list = new List<int>(); //每一行的ms时间戳
+		public List<string> data_lines = new List<string>(); //回放数据缓存
 		public override void open(string s) //打开数据源，输入以什么名称打开的
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
@@ -212,28 +220,36 @@ namespace com_mc
 			sw.Close();
 			var lines = text.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 			total_line = lines.Length;
+			//建立回放数据
+			line_ms_list.Clear();
+			data_lines.Clear();
+			for (int i = 0; i < lines.Length; i++) //1201.123	xxx,233
+			{
+				if (lines[i].Length < 10) continue;
+				string ts = lines[i].Substring(0, 8); //取得时间戳字符
+				int minute = Convert.ToInt32(ts.Substring(0, 2));
+				int second = Convert.ToInt32(ts.Substring(2, 2));
+				int ms = Convert.ToInt32(ts.Substring(5, 3));
+				int tms = minute * 60000 + second * 1000 + ms; //转换为到文件建立时的ms数
+				line_ms_list.Add(tms);
+				data_lines.Add(lines[i]);
+			}
+			if (line_ms_list.Count <= 0) return;
+			//提交回放任务
 			ThreadPool.QueueUserWorkItem(delegate (object ss)
 			{
 				state = 2;
-				dt_st = DateTime.Now; //开始时刻 - 数据起始的ms数 + 当前数据的ms 与当前时刻比较。第一帧认为时间为0
+				set_replay_pos(0);
 				try
 				{
 					for (replay_line = 0; replay_line < lines.Length; replay_line++) //1201.123	xxx,233
 					{
 						if (state==0) throw new Exception("终止");
-
-						if (lines[replay_line].Length < 10) continue;
-						string ts = lines[replay_line].Substring(0, 8); //取得时间戳字符
-						int minute = Convert.ToInt32(ts.Substring(0, 2));
-						int second = Convert.ToInt32(ts.Substring(2, 2));
-						int ms = Convert.ToInt32(ts.Substring(5, 3));
-						cur_line_ms = minute * 60000 + second * 1000 + ms; //转换为到文件建立时的ms数
-
-						DateTime data_time = dt_st.AddMilliseconds(cur_line_ms); //回放到现在的ms数
-						while (data_time >= DateTime.Now) //若数据时间大于当前时间，等着
+						while (replay_ms < line_ms_list[replay_line]) //若回放时间小于数据时间，等着
 						{
 							if (state == 0) throw new Exception("终止");
 							Thread.Sleep(20);  //睡20ms
+							update_replay_ms(); //更新回放时间
 						}
 						string sline = lines[replay_line].Substring(9)+"\n";
 						var b = Encoding.UTF8.GetBytes(sline);
@@ -250,6 +266,18 @@ namespace com_mc
 				}
 			});
 		}
+		public void set_replay_pos(int ind) //设置回放位置
+		{
+			replay_line = ind;
+			replay_ms = line_ms_list[ind]; //起始的时间位置在第一个数据处
+			pre_replay_ms = DateTime.Now; //此时为时间基准
+		}
+		public void update_replay_ms() //累加回放时间
+		{
+			var d = (DateTime.Now - pre_replay_ms).TotalMilliseconds; //距上次更新的间隔时间
+			replay_ms += (int)(d* time_X);
+			pre_replay_ms = DateTime.Now; //此时为时间基准
+		}
 		public override void close()
 		{
 			stop();
@@ -263,7 +291,7 @@ namespace com_mc
 			if(state==2) //若正在运行
 			{
 				state = 1;
-				dt_st = DateTime.Now.AddMilliseconds(-cur_line_ms); //恢复时，起始时间要减去当前数据的时间
+				pre_replay_ms = DateTime.Now; //此时为时间基准
 			}
 		}
 		public void suspend() //暂停

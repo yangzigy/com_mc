@@ -80,6 +80,7 @@ namespace com_mc
 		public List<string> ctrl_cmds { get; set; } //界面控制的指令,程序初始化的时候直接执行
 		public List<CmdDes> menu_cmd { get; set; } //在菜单栏的指令
 		public string menu_name { get; set; } //菜单名
+		public string encoding { get; set; } //编码名称（dft为默认编码）
 		//数据输入
 		public List<Dictionary<string, object>> data_src { get; set; }
 	}

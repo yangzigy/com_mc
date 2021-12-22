@@ -25,6 +25,7 @@ namespace com_mc
 		public Com_MC commc = new Com_MC(); //通用测控对象
 		public Dictionary<string, CCmd_Button> cmd_ctrl_dict = new Dictionary<string, CCmd_Button>(); //控制控件
 
+		Encoding cur_encoding = Encoding.Default; //默认编码
 		TextDataFile rec_file = new TextDataFile();
 		object[] invokeobj=new object[2];
 		Dictionary<string, Series> series_map=new Dictionary<string, Series>();
@@ -39,6 +40,7 @@ namespace com_mc
 		void state_dis_ini()
 		{
 			mw = this;
+			if (config.encoding == "utf8") cur_encoding = Encoding.UTF8; //根据配置变换编码
 #region 传感参数部分
 			chart1 = mainFGrid.Child as Chart;
 			chart1.Legends[0].DockedToChartArea ="ChartArea1";
@@ -269,10 +271,6 @@ namespace com_mc
 		void rx_line(string s) //接收一行数据
 		{
 			if (s == "") return;
-			Encoding utf8 = Encoding.UTF8;
-			Encoding dft = Encoding.Default;
-			byte[] temp = dft.GetBytes(s);
-			s = utf8.GetString(temp);
 			if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
 			{
 				rec_file.write(s);
@@ -300,7 +298,7 @@ namespace com_mc
 					rxbuf.Add(buf[i]);
 					if (buf[i] == 0x0a)
 					{
-						s = Encoding.Default.GetString(rxbuf.ToArray(), 0, rxbuf.Count);
+						s = cur_encoding.GetString(rxbuf.ToArray(), 0, rxbuf.Count);
 						rxbuf.Clear();
 					}
 				}

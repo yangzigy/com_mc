@@ -5,7 +5,7 @@
 		xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
 		xmlns:Chr="clr-namespace:System.Windows.Forms.DataVisualization.Charting;assembly=System.Windows.Forms.DataVisualization"
 		xmlns:local="clr-namespace:com_mc" Title="通用上位机" Height="600" Width="925" Loaded="Window_Loaded" FontSize="16">
-    <Grid>
+	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition></ColumnDefinition>
 			<ColumnDefinition Name="colD_cmd_ui" Width="280"></ColumnDefinition>

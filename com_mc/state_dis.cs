@@ -265,7 +265,7 @@ namespace com_mc
 			}
 			catch (Exception ee)
 			{
-				MessageBox.Show(ee.Message);
+				//MessageBox.Show(ee.Message);
 			}
 		}
 		void rx_line(string s) //接收一行数据

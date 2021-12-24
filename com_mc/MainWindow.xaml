@@ -4,6 +4,7 @@
 		xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
 		xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
 		xmlns:Chr="clr-namespace:System.Windows.Forms.DataVisualization.Charting;assembly=System.Windows.Forms.DataVisualization"
+		Closing="Window_Closing"
 		xmlns:local="clr-namespace:com_mc" Title="通用上位机" Height="600" Width="925" Loaded="Window_Loaded" FontSize="16">
 	<Grid>
 		<Grid.ColumnDefinitions>
@@ -21,6 +22,7 @@
 			</MenuItem>
 			<MenuItem Header="显示">
 				<MenuItem Header="适应屏幕" Click="bt_fitscreen_Click"></MenuItem>
+				<MenuItem Header="回放对话框" Click="bt_replay_dlg_Click"></MenuItem>
 				<!--<Grid>
 					<Button Margin="0,0,30,0">清空数据</Button>
 					<Image Source="pic/refresh_on.jpg" Width="30" HorizontalAlignment="Right"></Image>
@@ -57,7 +59,6 @@
 			</MenuItem>
 			<MenuItem Header="帮助" Click="mi_help_Click"></MenuItem>
 			<Label Name="lb_rx_Bps" FontSize="16" Margin="3,-4,0,0">接收:</Label>
-			<Label Name="lb_replay_info" FontSize="16" Margin="3,-4,0,0"></Label>
 			<Label Name="lb_measure" FontSize="16" Margin="3,-4,0,0"></Label>
 		</Menu>
 		<ScrollViewer Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto" Margin="5">

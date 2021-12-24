@@ -85,6 +85,9 @@
       <DependentUpon>help.xaml</DependentUpon>
     </Compile>
     <Compile Include="mingw.cs" />
+    <Compile Include="replay_window.xaml.cs">
+      <DependentUpon>replay_window.xaml</DependentUpon>
+    </Compile>
     <Compile Include="state_dis.cs" />
     <Compile Include="textlog.cs" />
     <Page Include="dlg\help.xaml">
@@ -104,6 +107,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="replay_window.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -141,6 +148,14 @@
   <ItemGroup>
     <Resource Include="pic\refresh_off.jpg" />
     <Resource Include="pic\refresh_on.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="pic\1.PNG" />
+    <Resource Include="pic\2.PNG" />
+    <Resource Include="pic\3.1.PNG" />
+    <Resource Include="pic\3.PNG" />
+    <Resource Include="pic\4.PNG" />
+    <Resource Include="pic\5.PNG" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

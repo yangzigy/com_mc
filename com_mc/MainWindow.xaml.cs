@@ -28,6 +28,7 @@ namespace com_mc
 		public string configfilename = AppDomain.CurrentDomain.BaseDirectory + "/config.txt";
 		System.Windows.Forms.DataVisualization.Charting.Chart chart1;
 		public Timer timer10Hz;
+		public Replay_Window rpl_win = new Replay_Window(); //回放对话框
 		public uint tick = 0;
 
 		public Dictionary<string, DataSrc> ds_tab = new Dictionary<string, DataSrc>(); //字符与数据源的对应关系
@@ -61,7 +62,10 @@ namespace com_mc
 			}
 			Dictionary<string, object> td = new Dictionary<string, object>();
 			td["type"] = "replay";
-			DataSrc.dslist.Add(DataSrc.factory(td, rx_fun));
+			rpl_win.rplobj = DataSrc.factory(td, rx_fun) as DataSrc_replay; //记录回放对象
+			DataSrc.dslist.Add(rpl_win.rplobj);
+			rpl_win.rplobj.open_cb = () => bt_replay_dlg_Click(null, null);
+
 			Title = config.title_str;
 			// 获取COM口列表
 			bt_refresh_uart_Click(null, null);
@@ -79,7 +83,7 @@ namespace com_mc
 			state_dis_ini();
 			timer10Hz = new Timer((TimerCallback)delegate (object state)
 			{
-				Dispatcher.BeginInvoke((EventHandler)delegate (object sd, EventArgs ea)
+				Dispatcher.Invoke((EventHandler)delegate (object sd, EventArgs ea)
 				{
 					foreach (var item in commc.dset) //刷新每个参数
 					{
@@ -94,16 +98,6 @@ namespace com_mc
 					{
 						if (cb_fit_screen.IsChecked == true) fit_screen();
 						else fit_screen_data();
-						if(DataSrc.cur_ds is DataSrc_replay) //若是回放，把回放的东西显示出来
-						{
-							var rep = DataSrc.cur_ds as DataSrc_replay;
-							lb_replay_info.Visibility = Visibility.Visible;
-							lb_replay_info.Content = string.Format("共{0}行,当前{1}行", rep.total_line,rep.replay_line);
-						}
-						else
-						{
-							lb_replay_info.Visibility = Visibility.Hidden;
-						}
 					}
 					else if (tick % 10 == 1) //1Hz
 					{
@@ -130,10 +124,15 @@ namespace com_mc
 							}
 						}
 					}
+					rpl_win.poll(); //10Hz
 				}, invokeobj);
 			}, this, 0, 100);
 		}
-		#region click
+		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			Environment.Exit(0);
+		}
+#region click
 		private void bt_save_curve_data_Click(object sender, RoutedEventArgs e) //保存曲线数据
 		{
 			var ofd = new System.Windows.Forms.SaveFileDialog();
@@ -296,8 +295,14 @@ namespace com_mc
 			h.helptext = s;
 			h.Show();
 		}
-		#endregion
-		#region 鼠标操作
+		private void bt_replay_dlg_Click(object sender, RoutedEventArgs e) //显示回放对话框
+		{
+			rpl_win.Show();
+			rpl_win.Activate();
+			if (rpl_win.WindowState == WindowState.Minimized) rpl_win.WindowState = WindowState.Normal;
+		}
+#endregion
+#region 鼠标操作
 		Point pre_m = new Point(0, 0);//鼠标上次拖动的像素位置
 		Point pre_left = new Point(-1, 0);//鼠标上次左键按下的位置
 		double axis_x_min = 0;
@@ -495,6 +500,6 @@ namespace com_mc
 		End:
 			pre_left.X = -1; //变为无效
 		}
-		#endregion
+#endregion
 	}
 }

@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Input;
+using System.Reflection;
 using System.Windows.Data;
 using System.IO;
 using System.IO.Ports;
@@ -25,7 +25,6 @@ namespace com_mc
 		public Com_MC commc = new Com_MC(); //通用测控对象
 		public Dictionary<string, CCmd_Button> cmd_ctrl_dict = new Dictionary<string, CCmd_Button>(); //控制控件
 
-		Encoding cur_encoding = Encoding.Default; //默认编码
 		TextDataFile rec_file = new TextDataFile();
 		object[] invokeobj=new object[2];
 		Dictionary<string, Series> series_map=new Dictionary<string, Series>();
@@ -40,7 +39,6 @@ namespace com_mc
 		void state_dis_ini()
 		{
 			mw = this;
-			if (config.encoding == "utf8") cur_encoding = Encoding.UTF8; //根据配置变换编码
 #region 传感参数部分
 			chart1 = mainFGrid.Child as Chart;
 			chart1.Legends[0].DockedToChartArea ="ChartArea1";
@@ -204,15 +202,25 @@ namespace com_mc
 				}
 			}
 #endregion
-			_so_tx_cb = new Mingw.DllcallBack(so_tx_cb); //构造不被回收的委托
+			//_so_tx_cb = new CM_Plugin_Interface.DllcallBack(send_data); //构造不被回收的委托
 			try
 			{
-				Mingw.so_ini(_so_tx_cb);
+				Assembly assembly = Assembly.LoadFrom(AppDomain.CurrentDomain.BaseDirectory + "/cm_plugin.dll");
+				foreach (var t in assembly.GetExportedTypes())
+				{
+					if (t.FullName == "com_mc.CM_Plugin")
+					{
+						pro_obj = Activator.CreateInstance(t) as CM_Plugin_Interface;
+					}
+				}
+				if (pro_obj == null) throw new Exception();
 			}
 			catch
 			{
-				is_plugin = false;
+				pro_obj = new CM_Plugin_Interface();
 			}
+			pro_obj.ini(send_data, rx_line); //无插件的情况，发送函数、接收函数
+			if (config.encoding == "utf8") pro_obj.cur_encoding = Encoding.UTF8; //根据配置变换编码
 			dispatcherTimer = new DispatcherTimer();
 			dispatcherTimer.Tick += new EventHandler(OnTimedEvent);
 			dispatcherTimer.Interval = TimeSpan.FromMilliseconds(10); //100Hz
@@ -225,21 +233,11 @@ namespace com_mc
 		}
 		private void OnTimedEvent(object sender, EventArgs e) //100Hz
 		{
-			if (is_plugin) //100Hz
-			{
-				string s = Mingw.so_poll_100();
-				rx_line(s); //是否有额外的数据过来
-			}
+			pro_obj.so_poll_100();
 		}
 #region 串口
-		Mingw.DllcallBack _so_tx_cb; //构造不被回收的委托
-		int so_tx_cb(IntPtr p, int n) //构造不被回收的委托
-		{
-			byte[] ys = new byte[n];
-			Marshal.Copy(p, ys, 0, n);
-			send_data(ys);
-			return 0;
-		}
+		//CM_Plugin_Interface.DllcallBack _so_tx_cb; //构造不被回收的委托
+		CM_Plugin_Interface pro_obj=null; //无插件时的处理对象
 		public void send_cmd_str(string s) //向设备发送文本指令
 		{ //支持多条指令同时发送
 			string[] vs = s.Split("\n".ToCharArray(), StringSplitOptions.None);
@@ -247,9 +245,8 @@ namespace com_mc
 			{
 				//首先看看是不是软件指令
 				if(ctrl_cmd(vs[i])) continue;
-				//发送，或给插件处理
-				if (is_plugin) Mingw.so_cmd(vs[i]);
-				else send_data(vs[i]);
+				//发送
+				pro_obj.send_cmd(vs[i]);
 			}
 		}
 		void send_data(string s) //字符串版的发送函数
@@ -268,60 +265,37 @@ namespace com_mc
 				//MessageBox.Show(ee.Message);
 			}
 		}
-		void rx_line(string s) //接收一行数据
+		void rx_line(string s) //接收一行数据，必是符合通用文本行协议的
 		{
+			s = s.Trim();
 			if (s == "") return;
-			if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
+			Dispatcher.BeginInvoke((EventHandler)delegate (object sd, EventArgs ea)
 			{
-				rec_file.write(s);
-			}
-			try
-			{
-				proc_text(s);
-			}
-			catch (Exception ee)
-			{
-				//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
-			}
+				if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
+				{
+					rec_file.write(s);
+				}
+				try
+				{
+					//首先看看是不是软件指令
+					if (ctrl_cmd(s)) return;
+					//给传感变量刷新
+					ticks0 = DateTime.Now.Ticks / 10000;
+					commc.update_data(s);
+				}
+				catch (Exception ee)
+				{
+					//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
+				}
+			}, invokeobj);
 		}
-		List<byte> rxbuf = new List<byte>(); //串口接收缓冲
 		int rx_Byte_1_s = 0; //每秒接收的字节数
 		void rx_fun(byte[] buf) //数据源接收回调函数
 		{
 			rx_Byte_1_s += buf.Length;
-			for (int i = 0; i < buf.Length; i++)
-			{
-				string s = "";
-				if (is_plugin) s = Mingw.so_rx(buf[i]); //使用插件
-				else //直接文本的形式
-				{
-					rxbuf.Add(buf[i]);
-					if (buf[i] == 0x0a)
-					{
-						s = cur_encoding.GetString(rxbuf.ToArray(), 0, rxbuf.Count);
-						rxbuf.Clear();
-					}
-				}
-				if (s != "")
-				{
-					Dispatcher.BeginInvoke((EventHandler)delegate (object sd, EventArgs ea)
-					{
-						rx_line(s);
-					}, invokeobj);
-				}
-			}
+			pro_obj.rx_fun(buf);
 		}
 		long ticks0= DateTime.Now.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
-		void proc_text(string line) //处理一行传感字符
-		{
-			line = line.Trim();
-			if (line == "") return ;
-			//首先看看是不是软件指令
-			if(ctrl_cmd(line)) return;
-			//给传感变量刷新
-			ticks0 = DateTime.Now.Ticks / 10000;
-			commc.update_data(line);
-		}
 #endregion
 		bool ctrl_cmd(string s) //返回是否是控制指令
 		{

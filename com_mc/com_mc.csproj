@@ -84,7 +84,7 @@
     <Compile Include="dlg\help.xaml.cs">
       <DependentUpon>help.xaml</DependentUpon>
     </Compile>
-    <Compile Include="mingw.cs" />
+    <Compile Include="cm_plugin.cs" />
     <Compile Include="replay_window.xaml.cs">
       <DependentUpon>replay_window.xaml</DependentUpon>
     </Compile>

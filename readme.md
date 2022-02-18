@@ -1,9 +1,9 @@
 通用测控上位机
 ======
 **串口曲线显示工具 udp控制**  
-项目地址：
+项目地址：  
 https://github.com/yangzigy/com_mc  
-https://gitee.com/yangzifb/com_mc
+https://gitee.com/yangzifb/com_mc  
 bug反馈：yangzigy@sina.com  
 # 功能  
 嵌入式设备开发调试过程中，需要使用上位机查看设备状态，下达指令。使用曲线实现状态可视化，记录数据事后分析等功能能够大大提高开发调试效率。  

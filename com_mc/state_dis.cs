@@ -34,7 +34,7 @@ namespace com_mc
 		string x_axis_id=""; //x轴的索引变量名，空则使用时间
 		int is_first=1;
 		bool is_plugin = true; //是否有插件？
-		public DispatcherTimer dispatcherTimer = null; //ui线程定时器
+		public Timer threadTimer = null; //ui线程定时器
 
 		void state_dis_ini()
 		{
@@ -221,17 +221,14 @@ namespace com_mc
 			}
 			pro_obj.ini(send_data, rx_line); //无插件的情况，发送函数、接收函数
 			if (config.encoding == "utf8") pro_obj.cur_encoding = Encoding.UTF8; //根据配置变换编码
-			dispatcherTimer = new DispatcherTimer();
-			dispatcherTimer.Tick += new EventHandler(OnTimedEvent);
-			dispatcherTimer.Interval = TimeSpan.FromMilliseconds(10); //100Hz
-			dispatcherTimer.Start();
+			threadTimer = new Timer(OnTimedEvent,null,0,10); //100Hz
 			//配置初始化指令
 			foreach (var item in config.ctrl_cmds)
 			{
 				ctrl_cmd(item);
 			}
 		}
-		private void OnTimedEvent(object sender, EventArgs e) //100Hz
+		private void OnTimedEvent(object state) //100Hz
 		{
 			pro_obj.so_poll_100();
 		}

@@ -7,33 +7,27 @@
 		},
 		{
 			"type":"udp", //数据源类型：udp
-			"name":"udp1",
-			"ip" : "127.0.0.1", "port" : 12345,
-			"rmt_ip" : "127.0.0.1", "rmt_port" : 12346
-		},
-		{
-			"type":"udp", //数据源类型：udp
 			"name":"udp2",
 			"ip" : "127.0.0.1", "port" : 22000,
 			"rmt_ip" : "127.0.0.1", "rmt_port" : 22001
 		}
 	],
 	"dis_data_len":1000, //曲线显示长度
-	"ctrl_cols":3, //命令按钮区域按钮列数
+	//"ctrl_cols":3, //命令按钮区域按钮列数
 	"svar_ui_h":0, //传感变量区域的高度
 	"cmd_ui_w":350, //命令按钮区域宽度
 	"mv_w":1000, //主窗体默认宽度
 	"mv_h":760, //主窗体默认高度
 	"bt_margin":6, //按钮间距
 	"ctrl_cmds":["^x_axis"], //软件开启后的显示指令
-	"plugin_path":"./cm_plugin.dll",
+	"plugin_path":"./CM_Plugin.dll",
 	"dset":
 	[
 		{ "name":"浓度","prot_l":9,"prot_off":0, "is_cv":"true"},
 		{ "name":"信噪比","prot_l":9,"prot_off":2},
 		{ "name":"信号强度","prot_l":9,"prot_off":3},
 		{ "name":"期望温度","prot_l":9,"prot_off":4},
-		{ "name":"温度","prot_l":9,"prot_off":5, "is_cv":"true"},
+		//{ "name":"温度","prot_l":9,"prot_off":5, "is_cv":"true"},
 		{ "name":"板温","prot_l":9,"prot_off":6},
 		{ "name":"采样值","prot_l":1,"prot_off":0, "is_cv":"true"},
 		{ "name":"模式","dtype":"str","prot_l":9,"prot_off":8,

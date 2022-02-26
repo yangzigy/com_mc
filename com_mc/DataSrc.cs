@@ -23,16 +23,7 @@ namespace com_mc
 		}
 		static public DataSrc cur_ds=null; //当前数据源
 		static public List<DataSrc> dslist = new List<DataSrc>();
-		//static public void open(Config cfg,string portname) //从配置或名称传入
-		//{
-		//	if (portname != "socket") //若是串口
-		//	{
-		//		cur_ds = dsdict[DSType.uart];
-		//		(cur_ds as DataSrc_uart).uart.PortName = portname;
-		//	}
-		//	else cur_ds = dsdict[cfg.socket.type]; //若是网络
-		//	cur_ds.open(cfg);
-		//}
+
 		public string name = ""; //数据源的名称，如果是串口，则为串口号
 		public DataSrc(RX_CB cb)
 		{
@@ -231,7 +222,7 @@ namespace com_mc
 				int minute = Convert.ToInt32(ts.Substring(0, 2));
 				int second = Convert.ToInt32(ts.Substring(2, 2));
 				int ms = Convert.ToInt32(ts.Substring(5, 3));
-				int tms = minute * 60000 + second * 1000 + ms; //转换为到文件建立时的ms数
+				int tms = minute * 60000 + second * 1000 + ms; //转换为到小时的ms数
 				line_ms_list.Add(tms); //加入时间戳列表
 				string sline = lines[i].Substring(9) + "\n";
 				data_lines.Add(sline); //加入数据行列表

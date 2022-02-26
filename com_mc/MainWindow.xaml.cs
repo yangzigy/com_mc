@@ -26,7 +26,6 @@ namespace com_mc
 	{
 		public ConfigList cfglist = null;
 		public Config config = new Config();     // 存放系统设置
-		public string configfilename = AppDomain.CurrentDomain.BaseDirectory + "/config.txt";
 		System.Windows.Forms.DataVisualization.Charting.Chart chart1;
 		public Timer timer10Hz;
 		public Replay_Window rpl_win = new Replay_Window(); //回放对话框
@@ -51,37 +50,24 @@ namespace com_mc
 		}
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
+			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 			//加载配置文件列表
 			cfglist = ConfigList.load(AppDomain.CurrentDomain.BaseDirectory + "/cm_cfgs.txt");
-			//加载默认配置文件
-			config = Config.load(configfilename);
-			//加载数据源
-			if (config.data_src != null)
+			for (int i=0;i< cfglist.cfgs.Count;i++)
 			{
-				foreach (var item in config.data_src) //对于每一种配置的数据源
+				var me = new MenuItem();
+				me.Header = cfglist.cfgs[i].des;
+				me.Tag = cfglist.cfgs[i];
+				me.Click += (RoutedEventHandler)delegate(object se, RoutedEventArgs ee)
 				{
-					var ds = DataSrc.factory(item, rx_fun);
-					DataSrc.dslist.Add(ds);
-				}
+					ini_by_config(((Config_Prop)(((MenuItem)se).Tag)).fname); //按这个配置初始化
+				};
+				mi_file.Items.Add(me);
 			}
-			Dictionary<string, object> td = new Dictionary<string, object>();
-			td["type"] = "replay";
-			rpl_win.rplobj = DataSrc.factory(td, rx_fun) as DataSrc_replay; //记录回放对象
-			DataSrc.dslist.Add(rpl_win.rplobj);
-			rpl_win.rplobj.open_cb = () => bt_replay_dlg_Click(null, null);
-
-			Title = config.title_str;
-			// 获取COM口列表
-			bt_refresh_uart_Click(null, null);
-			if (config.mv_w != 0) Width = config.mv_w;
-			if (config.mv_h != 0) Height = config.mv_h;
-			//加入配置
-			CCmd_Button.bt_margin_len=config.bt_margin;
-			CCmd_Button.ctrl_cols=config.ctrl_cols;
-			CCmd_Button.commc=commc;
-			CCmd_Button.send_cmd_str=send_cmd_str;
-			//初始化界面
-			state_dis_ini();
+			//加载默认配置文件
+			//string configfilename = AppDomain.CurrentDomain.BaseDirectory + "/config.txt";
+			ini_by_config(cfglist.cfgs[0].fname);
+			
 			timer10Hz = new Timer((TimerCallback)delegate (object state)
 			{
 				Dispatcher.Invoke((EventHandler)delegate (object sd, EventArgs ea)
@@ -132,6 +118,50 @@ namespace com_mc
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
 			Environment.Exit(0);
+		}
+		void ini_by_config(string fname) //从配置文件初始化程序，输入配置文件名
+		{
+			config = Config.load(fname);
+			//首先清除上一个配置
+			bt_open_datasrc.Content = "关闭端口";
+			btnConnCom_Click(bt_open_datasrc, null); //关闭数据源
+			DataSrc.dslist.Clear();
+			if(rpl_win.rplobj!=null) rpl_win.rplobj.close();
+			rpl_win.rplobj = null;
+			//开始配置
+			//把插件目录的位置变为绝对路径
+			if (config.plugin_path.IndexOf(":") <= 0 && (!config.plugin_path.StartsWith("/"))) //若不是绝对路径
+			{ //变为绝对路径
+				FileInfo fi = new FileInfo(fname);
+				config.plugin_path=fi.DirectoryName+"/"+ config.plugin_path;
+			}
+			//加载数据源
+			if (config.data_src != null)
+			{
+				foreach (var item in config.data_src) //对于每一种配置的数据源
+				{
+					var ds = DataSrc.factory(item, rx_fun);
+					DataSrc.dslist.Add(ds);
+				}
+			}
+			Dictionary<string, object> td = new Dictionary<string, object>();
+			td["type"] = "replay";
+			rpl_win.rplobj = DataSrc.factory(td, rx_fun) as DataSrc_replay; //记录回放对象
+			DataSrc.dslist.Add(rpl_win.rplobj);
+			rpl_win.rplobj.open_cb = () => bt_replay_dlg_Click(null, null);
+
+			Title = config.title_str;
+			// 获取COM口列表
+			bt_refresh_uart_Click(null, null);
+			if (config.mv_w != 0) Width = config.mv_w;
+			if (config.mv_h != 0) Height = config.mv_h;
+			//加入配置
+			CCmd_Button.bt_margin_len = config.bt_margin;
+			CCmd_Button.ctrl_cols = config.ctrl_cols;
+			CCmd_Button.commc = commc;
+			CCmd_Button.send_cmd_str = send_cmd_str;
+			//初始化界面
+			state_dis_ini();
 		}
 #region click
 		private void bt_save_curve_data_Click(object sender, RoutedEventArgs e) //保存曲线数据
@@ -272,6 +302,10 @@ namespace com_mc
 		private void bt_fitscreen_Click(object sender, RoutedEventArgs e) //适应屏幕
 		{
 			fit_screen();
+		}
+		private void cb_recdata_Click(object sender, RoutedEventArgs e) //存储日志的点击
+		{
+			rec_file.close(); //让日志从新记一个
 		}
 		private void Chart_CursorPositionChanged(object sender, System.Windows.Forms.DataVisualization.Charting.CursorEventArgs e)
 		{ //此函数不进，不知道为啥

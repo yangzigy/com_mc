@@ -80,6 +80,7 @@ namespace com_mc
 		public List<CmdDes> menu_cmd { get; set; } //在菜单栏的指令
 		public string menu_name { get; set; } //菜单名
 		public string encoding { get; set; } //编码名称（dft为默认编码）
+		public string plugin_path { get; set; } //插件路径，相对此配置文件
 		//数据输入
 		public List<Dictionary<string, object>> data_src { get; set; }
 	}

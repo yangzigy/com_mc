@@ -1,0 +1,8 @@
+{
+	"cfgs": //多种配置
+	[
+		{ "fname":"./config.txt","des":"测试配置1" },
+		{ "fname":"./config1.txt","des":"测试配置2" },
+		{ "fname":"C:/cur/proj/tools/iap/out/config.txt","des":"IAP" }
+	]
+}

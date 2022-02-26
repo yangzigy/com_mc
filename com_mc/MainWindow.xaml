@@ -16,9 +16,10 @@
 			<RowDefinition></RowDefinition>
 		</Grid.RowDefinitions>
 		<Menu Grid.Row="0" Grid.ColumnSpan="1" FontSize="16">
-			<MenuItem Header="文件">
+			<MenuItem Header="文件" Name="mi_file">
 				<MenuItem Header="保存曲线" Click="bt_save_curve_data_Click"></MenuItem>
 				<MenuItem Header="加载曲线" Click="bt_load_curve_data_Click"></MenuItem>
+				<Border BorderThickness="2" BorderBrush="Black" Width="50"></Border>
 			</MenuItem>
 			<MenuItem Header="显示">
 				<MenuItem Header="适应屏幕" Click="bt_fitscreen_Click"></MenuItem>
@@ -75,10 +76,10 @@
 						<RowDefinition></RowDefinition>
 						<RowDefinition></RowDefinition>
 					</Grid.RowDefinitions>
-					<ComboBox Grid.Column="0" Margin="54,245,91,0" Height="35" Name="cb_datasrc" VerticalAlignment="Top" VerticalContentAlignment="Center" Grid.ColumnSpan="2" Grid.Row="4"></ComboBox>
+					<ComboBox Grid.Column="0" Margin="5,5" Height="35" Name="cb_datasrc" VerticalAlignment="Center" VerticalContentAlignment="Center"></ComboBox>
 					<Button Grid.Column="1" Name="bt_open_datasrc" Click="btnConnCom_Click" Content="打开端口"></Button>
 					<Button Grid.Column="0" Grid.Row="1" Click="bt_refresh_uart_Click" Name="bt_refresh_uart" Content="刷新串口"></Button>
-					<CheckBox Grid.Column="1" Grid.Row="1" Name="checkb_rec_data" VerticalAlignment="Center">保存数据</CheckBox>
+					<CheckBox Grid.Column="1" Grid.Row="1" Name="checkb_rec_data" VerticalAlignment="Center" Click="cb_recdata_Click">保存数据</CheckBox>
 					<CheckBox Grid.Column="0" Grid.Row="2" Name="cb_fit_screen" IsChecked="True" VerticalAlignment="Center">适应屏幕</CheckBox>
 					<Button Grid.Column="1" Grid.Row="2" Name="bt_clear" Click="clear_Click">清曲线</Button>
 					<Border Name="bd_dft_and_cfg" Grid.Row="3" Grid.ColumnSpan="2" BorderThickness="2" BorderBrush="Black"></Border>

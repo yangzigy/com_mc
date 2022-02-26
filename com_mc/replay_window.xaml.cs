@@ -36,7 +36,6 @@ namespace com_mc
 		{
 			//FrameworkElement fe = sender as FrameworkElement;
 			Button fe=sender as Button;	
-			string scmd = "";
 			switch (fe.Tag)
 			{
 				case "home": //至首

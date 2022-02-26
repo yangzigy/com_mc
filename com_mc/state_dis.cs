@@ -33,7 +33,6 @@ namespace com_mc
 		long x_tick=0; //x轴数值
 		string x_axis_id=""; //x轴的索引变量名，空则使用时间
 		int is_first=1;
-		bool is_plugin = true; //是否有插件？
 		public Timer threadTimer = null; //ui线程定时器
 		void state_dis_ini()
 		{
@@ -44,6 +43,7 @@ namespace com_mc
 		}
 		public void mc_ini() //测控界面初始化
 		{
+			deinit(); //先去除初始化
 #region 传感参数部分
 			chart1 = mainFGrid.Child as Chart;
 			chart1.Legends[0].DockedToChartArea = "ChartArea1";
@@ -234,10 +234,14 @@ namespace com_mc
 			//_so_tx_cb = new CM_Plugin_Interface.DllcallBack(send_data); //构造不被回收的委托
 			try
 			{
-				Assembly assembly = Assembly.LoadFrom(AppDomain.CurrentDomain.BaseDirectory + "/cm_plugin.dll");
+				//Assembly assembly = Assembly.LoadFrom(AppDomain.CurrentDomain.BaseDirectory + "/cm_plugin.dll");
+				FileInfo fi = new FileInfo(config.plugin_path); //已经变成绝对路径了
+				Assembly assembly = Assembly.LoadFrom(fi.FullName); //重复加载没事
+				string fname = "com_mc." + fi.Name.Replace(fi.Extension, ""); //定义：插件dll中的类名是文件名
 				foreach (var t in assembly.GetExportedTypes())
 				{
-					if (t.FullName == "com_mc.CM_Plugin")
+					//if (t.FullName == "com_mc.CM_Plugin")
+					if (t.FullName == fname)
 					{
 						pro_obj = Activator.CreateInstance(t) as CM_Plugin_Interface;
 					}
@@ -258,25 +262,28 @@ namespace com_mc
 		}
 		public void deinit() //去除初始化
 		{
-			chart1.Series.Clear();
 			commc.dset.Clear();
 			commc.cmds.Clear();
 			checkb_map.Clear();
 			series_map.Clear();
 
-			sp_measure.Children.Clear(); //传感变量部分
+			sp_measure.Children.Clear(); //传感变量部分，不分行列，只需清除子节点
 
-			grid_ctrl_bts.ColumnDefinitions.Clear(); //默认控制按钮
+			grid_ctrl_bts.ColumnDefinitions.Clear(); //默认控制按钮，有3行，不用也不用删
 			grid_ctrl_bts.ColumnDefinitions.Add(new ColumnDefinition());
 			grid_ctrl_bts.ColumnDefinitions.Add(new ColumnDefinition()); //默认命令按钮列为2列
 
-			para_grid.ColumnDefinitions.Clear(); 
+			para_grid.ColumnDefinitions.Clear(); //控制按钮
 			para_grid.RowDefinitions.Clear();
 			para_grid.RowDefinitions.Add(new RowDefinition()); //本来有一行
+			para_grid.ColumnDefinitions.Add(new ColumnDefinition()); //本来有2列
+			para_grid.ColumnDefinitions.Add(new ColumnDefinition()); //本来有2列
 			para_grid.Children.Clear();
 
 			grid_menu_cmd.RowDefinitions.Clear(); //菜单控制部分
 			grid_menu_cmd.ColumnDefinitions.Clear();
+			grid_menu_cmd.RowDefinitions.Add(new RowDefinition()); //本来有1行
+			grid_menu_cmd.ColumnDefinitions.Add(new ColumnDefinition()); //本来有2列
 			grid_menu_cmd.Children.Clear();
 
 		}
@@ -285,7 +292,6 @@ namespace com_mc
 			pro_obj.so_poll_100();
 		}
 #region 串口
-		//CM_Plugin_Interface.DllcallBack _so_tx_cb; //构造不被回收的委托
 		CM_Plugin_Interface pro_obj=null; //无插件时的处理对象
 		public void send_cmd_str(string s) //向设备发送文本指令
 		{ //支持多条指令同时发送

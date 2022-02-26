@@ -3,7 +3,7 @@ using System;
 namespace com_mc
 {
 	//可通过MainWindow.mw取得所有访问权
-	public class CM_Plugin : CM_Plugin_Interface
+	public class cm_plugin : CM_Plugin_Interface
 	{
 		public override void send_cmd(string s)
 		{

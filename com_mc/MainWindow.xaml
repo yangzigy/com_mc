@@ -75,8 +75,8 @@
 						<RowDefinition></RowDefinition>
 						<RowDefinition></RowDefinition>
 					</Grid.RowDefinitions>
-					<ComboBox Grid.Column="0" Margin="5,5" Height="35" Name="cb_datasrc" VerticalAlignment="Center" VerticalContentAlignment="Center"></ComboBox>
-					<Button Grid.Column="1" Click="btnConnCom_Click" Content="打开端口"></Button>
+					<ComboBox Grid.Column="0" Margin="54,245,91,0" Height="35" Name="cb_datasrc" VerticalAlignment="Top" VerticalContentAlignment="Center" Grid.ColumnSpan="2" Grid.Row="4"></ComboBox>
+					<Button Grid.Column="1" Name="bt_open_datasrc" Click="btnConnCom_Click" Content="打开端口"></Button>
 					<Button Grid.Column="0" Grid.Row="1" Click="bt_refresh_uart_Click" Name="bt_refresh_uart" Content="刷新串口"></Button>
 					<CheckBox Grid.Column="1" Grid.Row="1" Name="checkb_rec_data" VerticalAlignment="Center">保存数据</CheckBox>
 					<CheckBox Grid.Column="0" Grid.Row="2" Name="cb_fit_screen" IsChecked="True" VerticalAlignment="Center">适应屏幕</CheckBox>

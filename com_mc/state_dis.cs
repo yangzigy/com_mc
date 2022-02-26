@@ -35,21 +35,26 @@ namespace com_mc
 		int is_first=1;
 		bool is_plugin = true; //是否有插件？
 		public Timer threadTimer = null; //ui线程定时器
-
 		void state_dis_ini()
 		{
 			mw = this;
+			mc_ini(); //测控界面初始化
+			mi_menu_cmd.Click += (s, e) => { mi_menu_cmd.IsSubmenuOpen = true; };
+			threadTimer = new Timer(OnTimedEvent, null, 0, 10); //100Hz
+		}
+		public void mc_ini() //测控界面初始化
+		{
 #region 传感参数部分
 			chart1 = mainFGrid.Child as Chart;
-			chart1.Legends[0].DockedToChartArea ="ChartArea1";
-			chart1.Legends[0].BackColor=System.Drawing.Color.Transparent;
+			chart1.Legends[0].DockedToChartArea = "ChartArea1";
+			chart1.Legends[0].BackColor = System.Drawing.Color.Transparent;
 			//从配置中加载参数
 			chart1.Series.Clear();
 			foreach (var item in config.dset)
 			{
 				commc.dset[item.name] = item;
 				item.update_cb = tn => { item.update_times = 10; };//数据更新回调函数
-				item.update_dis = tn => {if (item.update_times > 0) item.update_times--;};
+				item.update_dis = tn => { if (item.update_times > 0) item.update_times--; };
 				if (item.is_dis == false) continue;
 				CheckBox cb = new CheckBox();
 				cb.Content = item.name;
@@ -57,8 +62,8 @@ namespace com_mc
 				cb.Width = 150;
 				cb.Background = Brushes.LightCoral;
 				cb.Margin = new Thickness(2, 2, 2, 0);
-				Series tmpserial=null;
-				if (item.dtype==DestType.str) //字符型的，不让选择曲线
+				Series tmpserial = null;
+				if (item.dtype == DestType.str) //字符型的，不让选择曲线
 				{
 					//cb.IsEnabled = false;
 				}
@@ -78,7 +83,7 @@ namespace com_mc
 				}
 				checkb_map[item.name] = cb;
 				sp_measure.Children.Add(cb);
-				item.update_cb+=(delegate(string tn) //数据更新回调函数
+				item.update_cb += (delegate (string tn) //数据更新回调函数
 				{
 					try
 					{
@@ -93,12 +98,12 @@ namespace com_mc
 							}
 							double d = double.Parse(it.val);
 							if (Math.Abs(d) >= (double)Decimal.MaxValue) throw new Exception("");
-							if(x_axis_id != "" && commc.dset.ContainsKey(x_axis_id)) //若有索引列
+							if (x_axis_id != "" && commc.dset.ContainsKey(x_axis_id)) //若有索引列
 							{
-								if(tmpserial.Points.Count>0 && 
-									Math.Abs(tmpserial.Points[tmpserial.Points.Count-1].XValue-x_tick)<0.1f) //跟上次一样
+								if (tmpserial.Points.Count > 0 &&
+									Math.Abs(tmpserial.Points[tmpserial.Points.Count - 1].XValue - x_tick) < 0.1f) //跟上次一样
 								{
-									tmpserial.Points[tmpserial.Points.Count - 1].YValues[0]= d;
+									tmpserial.Points[tmpserial.Points.Count - 1].YValues[0] = d;
 								}
 								else tmpserial.Points.AddXY(x_tick, d);
 								if (tn == x_axis_id) x_tick++;
@@ -138,27 +143,32 @@ namespace com_mc
 			chart1.ChartAreas[0].Axes[1].Minimum = 20;
 			//chart1.Series[0].Points.Add(0);
 			//chart1.Series[0].Points.Add(0);
-			if(config.svar_ui_h!=0)
+			if (config.svar_ui_h != 0) //传感变量区域高度
 			{
 				row_para_dis.Height = new GridLength(config.svar_ui_h);
 			}
-			else row_para_dis.Height = new GridLength((sp_measure.Children.Count+4)/5*20+27);
+			else row_para_dis.Height = new GridLength((sp_measure.Children.Count + 4) / 5 * 20 + 27);
 			//sp_measure.Height = row_para_dis.Height.Value;
 #endregion
 #region 指令ui初始化
 			CCmd_para.i_on = new BitmapImage(new Uri("pack://application:,,,/pic/refresh_on.jpg"));
 			CCmd_para.i_off = new BitmapImage(new Uri("pack://application:,,,/pic/refresh_off.jpg"));
-			if(config.cmd_ui_w>0)
+			if (config.cmd_ui_w > 0) //指令区域宽度
 			{
 				colD_cmd_ui.Width = new GridLength(config.cmd_ui_w);
 			}
-			if (config.ctrl_cols==3) //若是3列排布的,把默认控制按钮的位置改一下
-			{ 
+			if (config.ctrl_cols == 3) //若是3列排布的,把默认控制按钮的位置改一下
+			{
 				//通用控制按钮加一列
 				grid_ctrl_bts.ColumnDefinitions.Add(new ColumnDefinition());
 				//通用控制按钮位置修改
+				System.Windows.Controls.Grid.SetRow(cb_datasrc, 0);
+				System.Windows.Controls.Grid.SetColumn(cb_datasrc, 0);
+				System.Windows.Controls.Grid.SetRow(bt_open_datasrc, 0);
+				System.Windows.Controls.Grid.SetColumn(bt_open_datasrc, 1);
 				System.Windows.Controls.Grid.SetRow(bt_refresh_uart, 0);
 				System.Windows.Controls.Grid.SetColumn(bt_refresh_uart, 2);
+
 				System.Windows.Controls.Grid.SetRow(checkb_rec_data, 1);
 				System.Windows.Controls.Grid.SetColumn(checkb_rec_data, 0);
 				System.Windows.Controls.Grid.SetRow(cb_fit_screen, 1);
@@ -170,25 +180,44 @@ namespace com_mc
 				//配置按钮面板加一列
 				para_grid.ColumnDefinitions.Add(new ColumnDefinition());
 			}
-			int i =0,j=0; //i行，j列
+			else //2列布局，也要从新写一遍
+			{
+				//通用控制按钮位置修改
+				System.Windows.Controls.Grid.SetRow(cb_datasrc, 0);
+				System.Windows.Controls.Grid.SetColumn(cb_datasrc, 0);
+				System.Windows.Controls.Grid.SetRow(bt_open_datasrc, 0);
+				System.Windows.Controls.Grid.SetColumn(bt_open_datasrc, 1);
+
+				System.Windows.Controls.Grid.SetRow(bt_refresh_uart, 1);
+				System.Windows.Controls.Grid.SetColumn(bt_refresh_uart, 0);
+				System.Windows.Controls.Grid.SetRow(checkb_rec_data, 1);
+				System.Windows.Controls.Grid.SetColumn(checkb_rec_data, 1);
+
+				System.Windows.Controls.Grid.SetRow(cb_fit_screen, 2);
+				System.Windows.Controls.Grid.SetColumn(cb_fit_screen, 0);
+				System.Windows.Controls.Grid.SetRow(bt_clear, 2);
+				System.Windows.Controls.Grid.SetColumn(bt_clear, 1);
+				//面板border
+				System.Windows.Controls.Grid.SetColumnSpan(bd_dft_and_cfg, 2);
+			}
+			int i = 0, j = 0; //i行，j列
 			foreach (var item in config.cmds)
 			{ //本来有一行
-				commc.cmds[item.name]=item; //加入指令列表
+				commc.cmds[item.name] = item; //加入指令列表
 				int rownu = para_grid.RowDefinitions.Count - 1; //添加一行
-				var v=CCmd_Button.bt_factory(item.type,item, para_grid);
+				var v = CCmd_Button.bt_factory(item.type, item, para_grid);
 				v.ini(ref i, ref j);
-				if(j>=config.ctrl_cols)
+				if (j >= config.ctrl_cols)
 				{
 					para_grid.RowDefinitions.Add(new RowDefinition());
-					i++;j=0;
+					i++; j = 0;
 				}
 				cmd_ctrl_dict[item.name] = v; //加入控件列表
 			}
 #endregion
 #region 菜单指令
-			i = 0;j = 0;
+			i = 0; j = 0;
 			mi_menu_cmd.Header = config.menu_name;
-			mi_menu_cmd.Click += (s, e) =>  { mi_menu_cmd.IsSubmenuOpen = true; };
 			foreach (var item in config.menu_cmd)
 			{ //本来有一行
 				commc.cmds[item.name] = item;
@@ -221,12 +250,35 @@ namespace com_mc
 			}
 			pro_obj.ini(send_data, rx_line); //无插件的情况，发送函数、接收函数
 			if (config.encoding == "utf8") pro_obj.cur_encoding = Encoding.UTF8; //根据配置变换编码
-			threadTimer = new Timer(OnTimedEvent,null,0,10); //100Hz
 			//配置初始化指令
 			foreach (var item in config.ctrl_cmds)
 			{
 				ctrl_cmd(item);
 			}
+		}
+		public void deinit() //去除初始化
+		{
+			chart1.Series.Clear();
+			commc.dset.Clear();
+			commc.cmds.Clear();
+			checkb_map.Clear();
+			series_map.Clear();
+
+			sp_measure.Children.Clear(); //传感变量部分
+
+			grid_ctrl_bts.ColumnDefinitions.Clear(); //默认控制按钮
+			grid_ctrl_bts.ColumnDefinitions.Add(new ColumnDefinition());
+			grid_ctrl_bts.ColumnDefinitions.Add(new ColumnDefinition()); //默认命令按钮列为2列
+
+			para_grid.ColumnDefinitions.Clear(); 
+			para_grid.RowDefinitions.Clear();
+			para_grid.RowDefinitions.Add(new RowDefinition()); //本来有一行
+			para_grid.Children.Clear();
+
+			grid_menu_cmd.RowDefinitions.Clear(); //菜单控制部分
+			grid_menu_cmd.ColumnDefinitions.Clear();
+			grid_menu_cmd.Children.Clear();
+
 		}
 		private void OnTimedEvent(object state) //100Hz
 		{

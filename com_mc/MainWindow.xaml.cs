@@ -24,6 +24,7 @@ namespace com_mc
 	/// </summary>
 	public partial class MainWindow : Window
 	{
+		public ConfigList cfglist = null;
 		public Config config = new Config();     // 存放系统设置
 		public string configfilename = AppDomain.CurrentDomain.BaseDirectory + "/config.txt";
 		System.Windows.Forms.DataVisualization.Charting.Chart chart1;
@@ -47,10 +48,13 @@ namespace com_mc
 				}
 			};
 			InitializeComponent();
-			if (File.Exists(configfilename)) //加载配置文件
-			{
-				config = Config.load(configfilename);
-			}
+		}
+		private void Window_Loaded(object sender, RoutedEventArgs e)
+		{
+			//加载配置文件列表
+			cfglist = ConfigList.load(AppDomain.CurrentDomain.BaseDirectory + "/cm_cfgs.txt");
+			//加载默认配置文件
+			config = Config.load(configfilename);
 			//加载数据源
 			if (config.data_src != null)
 			{
@@ -69,9 +73,6 @@ namespace com_mc
 			Title = config.title_str;
 			// 获取COM口列表
 			bt_refresh_uart_Click(null, null);
-		}
-		private void Window_Loaded(object sender, RoutedEventArgs e)
-		{
 			if (config.mv_w != 0) Width = config.mv_w;
 			if (config.mv_h != 0) Height = config.mv_h;
 			//加入配置

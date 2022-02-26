@@ -9,7 +9,6 @@ using System.Text.RegularExpressions;
 
 namespace com_mc
 {
-
 	public class Config
 	{
 		public Config()
@@ -83,5 +82,41 @@ namespace com_mc
 		public string encoding { get; set; } //编码名称（dft为默认编码）
 		//数据输入
 		public List<Dictionary<string, object>> data_src { get; set; }
+	}
+	public class ConfigList //配置列表
+	{
+		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
+
+		public List<Config_Prop> cfgs { get; set; }=new List<Config_Prop>() { new Config_Prop()}; //默认一个配置文件
+		public ConfigList()
+		{
+
+		}
+		public static ConfigList load(string s)
+		{
+			try
+			{
+				StreamReader sr = new StreamReader(s);
+				string sbuf = sr.ReadToEnd();
+				//先把注释去了
+				Regex r = new Regex("//.*");
+				sbuf = r.Replace(sbuf, "");
+				//反串行化
+				var t = json_ser.Deserialize<ConfigList>(sbuf);
+				sr.Close();
+				return t;
+			}
+			catch (Exception e)
+			{
+				//MessageBox.Show(e.ToString());
+			}
+			return new ConfigList(); //没有文件，就加载默认配置
+		}
+
+	}
+	public class Config_Prop //配置的属性
+	{
+		public string fname { get; set; } = "config.txt"; //配置文件名（相对路径）
+		public string des { get; set; } //配置说明
 	}
 }

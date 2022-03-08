@@ -1,0 +1,270 @@
+<Window x:Class="com_mc.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:wfi="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+		xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+		xmlns:Chr="clr-namespace:System.Windows.Forms.DataVisualization.Charting;assembly=System.Windows.Forms.DataVisualization"
+		Closing="Window_Closing"
+		xmlns:local="clr-namespace:com_mc" Title="通用上位机" Height="600" Width="925" Loaded="Window_Loaded" FontSize="16">
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition></ColumnDefinition>
+			<ColumnDefinition Name="colD_cmd_ui" Width="280"></ColumnDefinition>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="28"></RowDefinition>
+			<RowDefinition></RowDefinition>
+		</Grid.RowDefinitions>
+		<Menu Grid.Row="0" Grid.ColumnSpan="1" FontSize="16">
+			<MenuItem Header="文件" Name="mi_file">
+				<MenuItem Header="保存曲线" Click="bt_save_curve_data_Click"></MenuItem>
+				<MenuItem Header="加载曲线" Click="bt_load_curve_data_Click"></MenuItem>
+				<Border BorderThickness="2" BorderBrush="Black" Width="50"></Border>
+			</MenuItem>
+			<MenuItem Header="显示">
+				<MenuItem Header="适应屏幕" Click="bt_fitscreen_Click"></MenuItem>
+				<MenuItem Header="回放对话框" Click="bt_replay_dlg_Click"></MenuItem>
+				<!--<Grid>
+					<Button Margin="0,0,30,0">清空数据</Button>
+					<Image Source="pic/refresh_on.jpg" Width="30" HorizontalAlignment="Right"></Image>
+				</Grid>
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition></ColumnDefinition>
+						<ColumnDefinition></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Button Margin="0,0,30,0" Grid.Row="0">清空数据</Button>
+					<Image Source="pic/refresh_on.jpg" Width="30" HorizontalAlignment="Right" Grid.Row="0"></Image>
+					<TextBox Grid.Column="1">asdf</TextBox>
+					<Button Margin="0,0,30,0" Grid.Row="1">清空数据</Button>
+					<Image Source="pic/refresh_on.jpg" Width="30" HorizontalAlignment="Right" Grid.Row="1"></Image>
+				</Grid>-->
+			</MenuItem>
+			<MenuItem Header="参数" Name="mi_menu_cmd">
+				<Grid Name="grid_menu_cmd" Margin="1,1,1,1" Width="250">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"></ColumnDefinition>
+						<ColumnDefinition Width="*"></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition></RowDefinition>
+					</Grid.RowDefinitions>
+				</Grid>
+			</MenuItem>
+			<MenuItem Header="帮助" Click="mi_help_Click"></MenuItem>
+			<Label Name="lb_rx_Bps" FontSize="16" Margin="3,-4,0,0">接收:</Label>
+			<Label Name="lb_measure" FontSize="16" Margin="3,-4,0,0"></Label>
+		</Menu>
+		<ScrollViewer Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto" Margin="5">
+			<StackPanel>
+				<Grid Name="grid_ctrl_bts">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition></ColumnDefinition>
+						<ColumnDefinition></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+						<RowDefinition></RowDefinition>
+					</Grid.RowDefinitions>
+					<ComboBox Grid.Column="0" Margin="5,5" Height="35" Name="cb_datasrc" VerticalAlignment="Center" VerticalContentAlignment="Center"></ComboBox>
+					<Button Grid.Column="1" Name="bt_open_datasrc" Click="btnConnCom_Click" Content="打开端口"></Button>
+					<Button Grid.Column="0" Grid.Row="1" Click="bt_refresh_uart_Click" Name="bt_refresh_uart" Content="刷新串口"></Button>
+					<CheckBox Grid.Column="1" Grid.Row="1" Name="checkb_rec_data" VerticalAlignment="Center" Click="cb_recdata_Click">保存数据</CheckBox>
+					<CheckBox Grid.Column="0" Grid.Row="2" Name="cb_fit_screen" IsChecked="True" VerticalAlignment="Center">适应屏幕</CheckBox>
+					<Button Grid.Column="1" Grid.Row="2" Name="bt_clear" Click="clear_Click">清曲线</Button>
+					<Border Name="bd_dft_and_cfg" Grid.Row="3" Grid.ColumnSpan="2" BorderThickness="2" BorderBrush="Black"></Border>
+					<!--<Grid Grid.Column="0" Grid.Row="2">
+						<Label>开</Label>
+						<Label HorizontalAlignment="Right">关</Label>
+						<Button Margin="20,0,0,0" HorizontalContentAlignment="Left">清空数据</Button>
+						<Border CornerRadius="10" Background="Gray" BorderBrush="LightGreen" Width="20" Height="20"
+								BorderThickness="3" HorizontalAlignment="Right" VerticalAlignment="Center"></Border>
+						<Image Source="pic/refresh_on.jpg" Width="30"></Image>
+					</Grid>-->
+				</Grid>
+				<Grid Name="para_grid" Margin="1,1,1,1">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"></ColumnDefinition>
+						<ColumnDefinition Width="*"></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition></RowDefinition>
+					</Grid.RowDefinitions>
+				</Grid>
+			</StackPanel>
+		</ScrollViewer>
+		<Grid Grid.Column="0" Grid.Row="1">
+			<Grid.RowDefinitions>
+				<RowDefinition></RowDefinition>
+				<RowDefinition Height="80" Name="row_para_dis"></RowDefinition>
+			</Grid.RowDefinitions>
+			<WindowsFormsHost Grid.Row="0" Name="mainFGrid" Margin="0,0,0,0">
+				<Chr:Chart Name="myChart" CursorPositionChanged="Chart_CursorPositionChanged"
+						   MouseMove="Chart_MouseMove" MouseWheel="Chart_MouseWheel" MouseDown="Chart_MouseDown" MouseUp="Chart_MouseUp">
+					<Chr:Chart.Annotations>
+						<Chr:TextAnnotation/>
+					</Chr:Chart.Annotations>
+					<Chr:Chart.Legends>
+						<Chr:Legend />
+					</Chr:Chart.Legends>
+					<Chr:Chart.Series>
+						<Chr:Series BorderWidth="2" LegendText="温度1" ChartType="Line" Color="Yellow">
+							<Chr:Series.EmptyPointStyle>
+								<Chr:DataPointCustomProperties />
+							</Chr:Series.EmptyPointStyle>
+							<Chr:Series.SmartLabelStyle>
+								<Chr:SmartLabelStyle />
+							</Chr:Series.SmartLabelStyle>
+						</Chr:Series>
+						<Chr:Series ChartType="Line" LegendText="温度2"/>
+						<Chr:Series BorderWidth="2" LegendText="温度3" ChartType="Line" Color="Green">
+							<Chr:Series.EmptyPointStyle>
+								<Chr:DataPointCustomProperties />
+							</Chr:Series.EmptyPointStyle>
+							<Chr:Series.SmartLabelStyle>
+								<Chr:SmartLabelStyle />
+							</Chr:Series.SmartLabelStyle>
+						</Chr:Series>
+					</Chr:Chart.Series>
+					<Chr:Chart.ChartAreas>
+						<Chr:ChartArea>
+							<Chr:ChartArea.Area3DStyle>
+								<Chr:ChartArea3DStyle />
+							</Chr:ChartArea.Area3DStyle>
+							<Chr:ChartArea.AxisX>
+								<Chr:Axis>
+									<Chr:Axis.LabelStyle>
+										<Chr:LabelStyle />
+									</Chr:Axis.LabelStyle>
+									<Chr:Axis.MajorGrid>
+										<Chr:Grid />
+									</Chr:Axis.MajorGrid>
+									<Chr:Axis.MajorTickMark>
+										<Chr:TickMark />
+									</Chr:Axis.MajorTickMark>
+									<Chr:Axis.MinorGrid>
+										<Chr:Grid />
+									</Chr:Axis.MinorGrid>
+									<Chr:Axis.MinorTickMark>
+										<Chr:TickMark />
+									</Chr:Axis.MinorTickMark>
+									<Chr:Axis.ScaleBreakStyle>
+										<Chr:AxisScaleBreakStyle />
+									</Chr:Axis.ScaleBreakStyle>
+									<Chr:Axis.ScaleView>
+										<Chr:AxisScaleView />
+									</Chr:Axis.ScaleView>
+									<Chr:Axis.ScrollBar>
+										<Chr:AxisScrollBar />
+									</Chr:Axis.ScrollBar>
+								</Chr:Axis>
+							</Chr:ChartArea.AxisX>
+							<Chr:ChartArea.AxisX2>
+								<Chr:Axis>
+									<Chr:Axis.LabelStyle>
+										<Chr:LabelStyle />
+									</Chr:Axis.LabelStyle>
+									<Chr:Axis.MajorGrid>
+										<Chr:Grid />
+									</Chr:Axis.MajorGrid>
+									<Chr:Axis.MajorTickMark>
+										<Chr:TickMark />
+									</Chr:Axis.MajorTickMark>
+									<Chr:Axis.MinorGrid>
+										<Chr:Grid />
+									</Chr:Axis.MinorGrid>
+									<Chr:Axis.MinorTickMark>
+										<Chr:TickMark />
+									</Chr:Axis.MinorTickMark>
+									<Chr:Axis.ScaleBreakStyle>
+										<Chr:AxisScaleBreakStyle />
+									</Chr:Axis.ScaleBreakStyle>
+									<Chr:Axis.ScaleView>
+										<Chr:AxisScaleView />
+									</Chr:Axis.ScaleView>
+									<Chr:Axis.ScrollBar>
+										<Chr:AxisScrollBar />
+									</Chr:Axis.ScrollBar>
+								</Chr:Axis>
+							</Chr:ChartArea.AxisX2>
+							<Chr:ChartArea.AxisY>
+								<Chr:Axis>
+									<Chr:Axis.LabelStyle>
+										<Chr:LabelStyle />
+									</Chr:Axis.LabelStyle>
+									<Chr:Axis.MajorGrid>
+										<Chr:Grid />
+									</Chr:Axis.MajorGrid>
+									<Chr:Axis.MajorTickMark>
+										<Chr:TickMark />
+									</Chr:Axis.MajorTickMark>
+									<Chr:Axis.MinorGrid>
+										<Chr:Grid />
+									</Chr:Axis.MinorGrid>
+									<Chr:Axis.MinorTickMark>
+										<Chr:TickMark />
+									</Chr:Axis.MinorTickMark>
+									<Chr:Axis.ScaleBreakStyle>
+										<Chr:AxisScaleBreakStyle />
+									</Chr:Axis.ScaleBreakStyle>
+									<Chr:Axis.ScaleView>
+										<Chr:AxisScaleView />
+									</Chr:Axis.ScaleView>
+									<Chr:Axis.ScrollBar>
+										<Chr:AxisScrollBar />
+									</Chr:Axis.ScrollBar>
+								</Chr:Axis>
+							</Chr:ChartArea.AxisY>
+							<Chr:ChartArea.AxisY2>
+								<Chr:Axis>
+									<Chr:Axis.LabelStyle>
+										<Chr:LabelStyle />
+									</Chr:Axis.LabelStyle>
+									<Chr:Axis.MajorGrid>
+										<Chr:Grid />
+									</Chr:Axis.MajorGrid>
+									<Chr:Axis.MajorTickMark>
+										<Chr:TickMark />
+									</Chr:Axis.MajorTickMark>
+									<Chr:Axis.MinorGrid>
+										<Chr:Grid />
+									</Chr:Axis.MinorGrid>
+									<Chr:Axis.MinorTickMark>
+										<Chr:TickMark />
+									</Chr:Axis.MinorTickMark>
+									<Chr:Axis.ScaleBreakStyle>
+										<Chr:AxisScaleBreakStyle />
+									</Chr:Axis.ScaleBreakStyle>
+									<Chr:Axis.ScaleView>
+										<Chr:AxisScaleView />
+									</Chr:Axis.ScaleView>
+									<Chr:Axis.ScrollBar>
+										<Chr:AxisScrollBar />
+									</Chr:Axis.ScrollBar>
+								</Chr:Axis>
+							</Chr:ChartArea.AxisY2>
+							<Chr:ChartArea.CursorX>
+								<Chr:Cursor IsUserEnabled="True" IsUserSelectionEnabled="False" AutoScroll="True" IntervalType="Number" Interval="0.1" IntervalOffsetType="Auto" />
+							</Chr:ChartArea.CursorX>
+							<Chr:ChartArea.CursorY>
+								<Chr:Cursor IsUserEnabled="True" IsUserSelectionEnabled="False" AutoScroll="True" IntervalType="Number" Interval="0.1" />
+							</Chr:ChartArea.CursorY>
+						</Chr:ChartArea>
+					</Chr:Chart.ChartAreas>
+				</Chr:Chart>
+			</WindowsFormsHost>
+			<Border Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="Chocolate" BorderThickness="1"/>
+			<UniformGrid  Grid.Row="1" Name="sp_measure" Margin="0,7,0,0"></UniformGrid>
+		</Grid>
+	</Grid>
+</Window>

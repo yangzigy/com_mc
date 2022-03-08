@@ -78,21 +78,21 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="app\cm_plugin.cs" />
-    <Compile Include="app\com_mc_gui.cs" />
-    <Compile Include="app\config.cs" />
-    <Compile Include="app\DataSrc.cs" />
-    <Compile Include="app\textlog.cs" />
+    <Compile Include="cm_plugin.cs" />
+    <Compile Include="com_mc.cs" />
+    <Compile Include="com_mc_gui.cs" />
+    <Compile Include="config.cs" />
+    <Compile Include="DataSrc.cs" />
     <Compile Include="dlg\help.xaml.cs">
       <DependentUpon>help.xaml</DependentUpon>
     </Compile>
     <Compile Include="dlg\replay_window.xaml.cs">
       <DependentUpon>replay_window.xaml</DependentUpon>
     </Compile>
-    <Compile Include="mc\com_mc.cs" />
-    <Compile Include="mc\para.cs" />
-    <Compile Include="mc\prot.cs" />
+    <Compile Include="para.cs" />
+    <Compile Include="prot.cs" />
     <Compile Include="state_dis.cs" />
+    <Compile Include="textlog.cs" />
     <Page Include="dlg\help.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -159,7 +159,9 @@
     <Resource Include="pic\4.PNG" />
     <Resource Include="pic\5.PNG" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="NewFolder1\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

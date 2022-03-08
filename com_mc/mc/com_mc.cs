@@ -11,10 +11,6 @@ namespace com_mc
 	//UI通过数据名称唯一的访问
 	//上传的数据通过适配器转换为通用的数据协议（类NMEA）,查询所有数据项，符合条件的更新
 	//////////////////////////////////////////////////////////////////
-	public enum DestType //处理输出类型
-	{   //值，字符
-		val, str
-	}
 	public enum SrcType //源类型
 	{   //浮点，字符，hex，整数
 		df,str, hex,
@@ -208,16 +204,6 @@ namespace com_mc
 		public string toJson()
 		{
 			return json_ser.Serialize(this);
-		}
-		//////////////////////////////////////////////////////
-		//协议适配器
-		public string prot_adapter(byte[] b) //输入某种协议，输出通用协议
-		{
-			return "";
-		}
-		public string prot_adapter(string s) //输入某种字符协议，输出通用协议
-		{
-			return s;
 		}
 		///////////////////////////////////////////////////////
 		//刷新数据

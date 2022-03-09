@@ -8,24 +8,10 @@ using System.Windows;
 
 namespace com_mc
 {
-	//UI通过数据名称唯一的访问
-	//上传的数据通过适配器转换为通用的数据协议（类NMEA）,查询所有数据项，符合条件的更新
-	//////////////////////////////////////////////////////////////////
-	public enum SrcType //源类型
-	{   //浮点，字符，hex，整数
-		df,str, hex,
-		u32, s32,
-		u16, s16,
-		u8,  s8,
-	}
-	public enum PRO_METHOD //处理类型
-	{   //线性处理，按位处理
-		pro_val, pro_bit
-	}
-	public class DataDes //数据描述
+	public class DataDes //数据描述类，代表一个参数，实现显示
 	{
 		public string name { get; set; } //显示名称(唯一)
-		public DestType dtype {get;set;} //数据类型
+		public ParaValue val {get;set;} //数据类型
 		public string prot_name { get; set; } //协议名
 		public int prot_l { get; set; } //协议tab数量
 		public int prot_off { get; set; } //协议中的位置

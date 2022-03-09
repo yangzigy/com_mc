@@ -11,16 +11,12 @@ namespace com_mc
 	//UI通过数据名称唯一的访问
 	//上传的数据通过适配器转换为通用的数据协议（类NMEA）,查询所有数据项，符合条件的更新
 	//////////////////////////////////////////////////////////////////
-	public enum DestType //处理输出类型
-	{   //字符,无符号，有符号，浮点
-		str,u,s,f
-	}
 	public enum SrcType //源类型
-	{   //浮点，字符，hex，整数
-		df,str, hex,
-		u32, s32,
-		u16, s16,
-		u8,  s8,
+	{
+		undef, str, hex, //未定义、字符串、hex
+		u8, u16, u32, u64, //无符号整数
+		s8, s16, s32, s64, //有符号整数
+		f, df //float、double
 	}
 	public enum PRO_METHOD //处理类型
 	{   //线性处理，按位处理

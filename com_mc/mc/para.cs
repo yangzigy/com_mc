@@ -11,6 +11,7 @@ namespace com_mc
 	//参数定义，通过参数的唯一名称，或者唯一id实现访问
 	public class ParaValue //参数父类(无处理二进制块)
 	{
+		public int id { get; set; }=0; //参数的唯一id，在C程序中使用
 		public DestType type { get; set; } = 0; //数据类型: 0：字符串，1整数，2浮点
 		public int len { get; set; } = 0; //数据长度
 		public byte[] data { get; set; } = new byte[0];	//参数数据

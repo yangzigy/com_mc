@@ -8,8 +8,8 @@
     <ProjectGuid>{6190E610-FB6E-4ACF-93DF-8D4A972408BD}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>com_mc</RootNamespace>
-    <AssemblyName>com_mc</AssemblyName>
+    <RootNamespace>prot_edit</RootNamespace>
+    <AssemblyName>prot_edit</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -83,24 +83,9 @@
     <Compile Include="com_mc_gui.cs" />
     <Compile Include="config.cs" />
     <Compile Include="DataSrc.cs" />
-    <Compile Include="dlg\help.xaml.cs">
-      <DependentUpon>help.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="dlg\replay_window.xaml.cs">
-      <DependentUpon>replay_window.xaml</DependentUpon>
-    </Compile>
     <Compile Include="para.cs" />
     <Compile Include="prot.cs" />
     <Compile Include="state_dis.cs" />
-    <Compile Include="textlog.cs" />
-    <Page Include="dlg\help.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="dlg\replay_window.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

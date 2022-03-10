@@ -11,9 +11,9 @@ namespace com_mc
 	//UI通过数据名称唯一的访问
 	//上传的数据通过适配器转换为通用的数据协议（类NMEA）,查询所有数据项，符合条件的更新
 	//////////////////////////////////////////////////////////////////
-	public enum SrcType //源类型
+	public enum SrcType //协议域中数据类型
 	{
-		undef, str, hex, //未定义、字符串、hex
+		undef, str, hex, bit, //未定义、字符串、hex、按位取
 		u8, u16, u32, u64, //无符号整数
 		s8, s16, s32, s64, //有符号整数
 		f, df //float、double
@@ -22,10 +22,76 @@ namespace com_mc
 	{   //线性处理，按位处理
 		pro_val, pro_bit
 	}
-	public class DataDes //数据描述
+	public abstract class ProtDom //协议域纯虚父类
 	{
-		public string name { get; set; } //显示名称(唯一)
-		public DestType dtype {get;set;} //数据类型
+		public MC_Prot p_mcp=null; //协议系统的引用
+		public string name { get; set; } //名称(唯一)
+		public int id { get; set; } = 0; //参数的唯一id，在C程序中使用
+		public SrcType dtype { get; set; } //数据类型
+		public string ref_name { get; set; } //引用协议域或参数的名称
+		public ProtDom(Dictionary<string, object> v, SrcType t) //从json构造对象
+		{ //这里遇到错误就throw出去，不想throw的才判断
+			if (v.ContainsKey("id")) id = (int)v["id"];
+			name = (string)v["name"];
+			dtype = t;
+			ref_name = (string)v["ref_name"];
+		}
+		public virtual List<string> get_children() { return new List<string>(); } //获得本对象的所有子协议域id
+		public abstract void pro(byte[] b, int n, ref int off); //处理数据，输入对象首地址，对象长度和当前偏移位置。
+	}
+	public class PD_Node : ProtDom //协议域叶子节点
+	{
+		public DATA_UNION data = new DATA_UNION() { du8 = new byte[8] };
+		public double pro_k { get; set; } //处理变换kx+b
+		public double pro_b { get; set; } //处理变换kx+b
+		public PD_Node(Dictionary<string, object> v, SrcType t) : base(v, t)
+		{
+			if(v.ContainsKey("pro_k")) pro_k = (double)v["pro_k"];
+			if(v.ContainsKey("pro_b")) pro_b = (double)v["pro_b"];
+		}
+		//
+		public override void pro(byte[] b, int n, ref int off) //n：本次处理的长度，off：当前偏移位置
+		{
+			//先自己解析
+			for (int i = 0; i < 8 && i < n && off < b.Length; i++)
+			{
+				data.du8[i] = b[off]; off++;
+			}
+			//然后做运算
+			double d = data.get_double(dtype);
+			//最后给引用的参数
+			p_mcp.para_dict[ref_name].set_val(b, off, n); //
+		}
+	}
+	public class PD_Bit : PD_Node //按位取的叶子节点
+	{
+		public int bit_len { get; set; } //bit长度
+		public PD_Bit(Dictionary<string, object> v, SrcType t) : base(v, t)
+		{
+
+		}
+		public override void pro(byte[] b, int n, ref int off)
+		{
+			
+		}
+	}
+	public class PD_Array : PD_Node //数组型叶子节点
+	{
+		public PD_Array(Dictionary<string, object> v, SrcType t) : base(v, t)
+		{
+
+		}
+		public override void pro(byte[] b, int n, ref int off)
+		{
+
+		}
+	}
+	public class MC_Prot //测控参数体系的实现
+	{
+		public Dictionary<string, ParaValue> para_dict = new Dictionary<string, ParaValue>(); //参数字典
+		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议字典
+
+	}
 		public string prot_name { get; set; } //协议名
 		public int prot_l { get; set; } //协议tab数量
 		public int prot_off { get; set; } //协议中的位置
@@ -145,91 +211,6 @@ namespace com_mc
 		public void void_fun(string name){}
 		public CB update_cb; //数据接收回调
 		public CB update_dis; //定时显示回调
-	}
-	/////////////////////////////////////////////////////////////////////////
-	//命令部分
-	public enum CmdType //指令类型
-	{
-		bt, //按键
-		text, //文本框
-		sw, //开关
-		rpl_bool, //带回复的指令
-		label, //文本控件
-		para, //参数型
-	}
-	public class CmdDes //指令描述
-	{
-		public string name { get; set; } //命令显示名称(唯一)
-		public string refdname { get; set; } //关联的数据名称
-		public string suffixname { get; set; } //后缀参数名称
-		public string cmd { get; set; } //命令名称
-		public string cmdoff { get; set; } //关闭指令
-		public int c_span { get; set; } //列跨度
-		public CmdType type { get; set; } //命令名称
-		public int repeat_T { get; set; } = 0; //重复周期，若为0，则不是重复指令
-		public string dft { get; set; } //默认值
-		public CB_s_v get_stat= void_fun; //获取此指令对象状态的回调函数
-
-		public delegate string CB_s_v();
-		public static string void_fun() { return ""; }
-		public CmdDes()
-		{
-			name="";
-			refdname = "";
-			cmd="";
-			cmdoff = "";
-			c_span = 1;
-			suffixname = "";
-			type =CmdType.bt;
-			dft="";
-			refdname = "";
-		}
-	}
-	/////////////////////////////////////////////////////////////////////////
-	//测控总体
-	public class Com_MC //通用测控类
-	{
-		public Dictionary<string,DataDes> dset { get; set; } //数据列表,key为数据项的名称
-		public Dictionary<string,CmdDes> cmds { get; set; } //指令列表,key为数据项的名称
-		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
-		public Com_MC()
-		{
-			dset = new Dictionary<string, DataDes>();
-			cmds = new Dictionary<string, CmdDes>();
-		}
-		public static Com_MC fromJson(string s)
-		{
-			return json_ser.Deserialize<Com_MC>(s);
-		}
-		public string toJson()
-		{
-			return json_ser.Serialize(this);
-		}
-		///////////////////////////////////////////////////////
-		//刷新数据
-		public void update_data(string s) //输入通用协议的一行
-		{
-			string[] vs = s.Split(", \t".ToCharArray(), StringSplitOptions.None);
-			if(vs.Length>=1) //若有数据
-			{
-				//首先通过个数找
-				foreach (var item in dset)
-				{
-					if(item.Value.prot_l==vs.Length) //若数量对了
-					{
-						if(item.Value.prot_name!="") //有协议名称
-						{
-							if((!vs[0].StartsWith("$")) || //数据里没有协议
-								item.Value.prot_name!=vs[0]) //协议名称不等
-							{
-								continue;
-							}
-						}
-						item.Value.val = vs[item.Value.prot_off];
-					}
-				}
-			}
-		}
 	}
 }
 

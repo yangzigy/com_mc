@@ -55,7 +55,6 @@ namespace com_mc
 				default: throw new Exception("type err");
 			}
 		}
-		public static Dictionary<string, ParaValue> para_dict = new Dictionary<string, ParaValue>(); //参数字典
 	}
 	public class ParaValue_Str : ParaValue //字符型
 	{
@@ -202,6 +201,24 @@ namespace com_mc
 		public float f;
 		[FieldOffset(0)]
 		public double df;
+
+		public double get_double(ParaType t)
+		{
+			switch (t)
+			{
+				case ParaType.u8: return du8[0];
+				case ParaType.u16: return du16;
+				case ParaType.u32: return du32;
+				case ParaType.u64: return du64;
+				case ParaType.s8: return ds8;
+				case ParaType.s16: return ds16;
+				case ParaType.s32: return ds32;
+				case ParaType.s64: return ds64;
+				case ParaType.f: return f;
+				case ParaType.df: return df;
+				default: throw new Exception("type err");
+			}
+		}
 	}
 }
 

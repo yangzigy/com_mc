@@ -7,21 +7,22 @@ using System.Runtime.InteropServices;
 
 namespace com_mc
 {
-	public enum ParaType //参数类型
+	public enum DataType //协议域中数据类型
 	{
-		undef, str, //未定义、字符串
 		u8, u16, u32, u64, //无符号整数
 		s8, s16, s32, s64, //有符号整数
-		f, df //float、double
+		f, df, //float、double
+		undef, str, hex, bit, //未定义、字符串、hex、按位取 
+		//插件扩展的时候，可以用undef
 	}
 	//参数定义，通过参数的唯一名称，或者唯一id实现访问
 	public abstract class ParaValue //参数父类(无处理二进制块)
 	{
 		public string name { get; set; } = "";  //参数的唯一id，在C#程序中使用
 		public int id { get; set; }=0; //参数的唯一id，在C程序中使用
-		public ParaType type { get; set; } = 0; //参数类型
+		public DataType type { get; set; } = 0; //参数类型
 		public int len { get; set; } = 0; //数据长度
-		public ParaValue(Dictionary<string, object> v,ParaType t) //从json构造对象
+		public ParaValue(Dictionary<string, object> v, DataType t) //从json构造对象
 		{ //这里遇到错误就throw出去，不想throw的才判断
 			if(v.ContainsKey("id")) id = (int)v["id"];
 			name=(string)v["name"];
@@ -35,22 +36,22 @@ namespace com_mc
 		public static ParaValue factory(Dictionary<string, object> v) //构建工厂
 		{
 			string s = json_ser.Serialize(v["type"]);
-			ParaType t = json_ser.Deserialize<ParaType>(s); //取得参数类型
+			DataType t = json_ser.Deserialize<DataType>(s); //取得参数类型
 			switch (t)
 			{
-				case ParaType.undef: 
-				case ParaType.str:
+				case DataType.undef: 
+				case DataType.str:
 					return new ParaValue_Str(v, t);
-				case ParaType.u8:
-				case ParaType.u16:
-				case ParaType.u32:
-				case ParaType.u64:
-				case ParaType.s8:
-				case ParaType.s16:
-				case ParaType.s32:
-				case ParaType.s64:
-				case ParaType.f:
-				case ParaType.df:
+				case DataType.u8:
+				case DataType.u16:
+				case DataType.u32:
+				case DataType.u64:
+				case DataType.s8:
+				case DataType.s16:
+				case DataType.s32:
+				case DataType.s64:
+				case DataType.f:
+				case DataType.df:
 					return new ParaValue_Val(v, t);
 				default: throw new Exception("type err");
 			}
@@ -58,13 +59,13 @@ namespace com_mc
 	}
 	public class ParaValue_Str : ParaValue //字符型
 	{
-		public ParaValue_Str(Dictionary<string, object> v, ParaType t) :base(v,t) { }
+		public ParaValue_Str(Dictionary<string, object> v, DataType t) :base(v,t) { }
 		public byte[] data { get; set; } = new byte[0]; //参数数据
 		public override string ToString()
 		{
 			if (data.Length < len || len == 0) return "no data";
-			if (type == ParaType.str) return Encoding.UTF8.GetString(data);
-			else if (type == ParaType.undef)
+			if (type == DataType.str) return Encoding.UTF8.GetString(data);
+			else if (type == DataType.undef)
 			{
 				string s = "";
 				for (int i = 0; i < data.Length; i++)
@@ -94,7 +95,7 @@ namespace com_mc
 	}
 	public class ParaValue_Val : ParaValue //值类型
 	{
-		public ParaValue_Val(Dictionary<string, object> v, ParaType t) : base(v, t)
+		public ParaValue_Val(Dictionary<string, object> v, DataType t) : base(v, t)
 		{
 			point_n = (int)v["point_n"];
 		}
@@ -126,34 +127,34 @@ namespace com_mc
 			}
 			switch (type)
 			{
-				case ParaType.u8:
+				case DataType.u8:
 					s = String.Format("{0}", data.du8);
 					break;
-				case ParaType.u16:
+				case DataType.u16:
 					s = String.Format("{0}", data.du16);
 					break;
-				case ParaType.u32:
+				case DataType.u32:
 					s = String.Format("{0}", data.du32);
 					break;
-				case ParaType.u64:
+				case DataType.u64:
 					s = String.Format("{0}", data.du64);
 					break;
-				case ParaType.s8:
+				case DataType.s8:
 					s = String.Format("{0}", data.ds8);
 					break;
-				case ParaType.s16:
+				case DataType.s16:
 					s = String.Format("{0}", data.ds16);
 					break;
-				case ParaType.s32:
+				case DataType.s32:
 					s = String.Format("{0}", data.ds32);
 					break;
-				case ParaType.s64:
+				case DataType.s64:
 					s = String.Format("{0}", data.ds64);
 					break;
-				case ParaType.f:
+				case DataType.f:
 					s = String.Format(fmt_str[point_n], data.f);
 					break;
-				case ParaType.df:
+				case DataType.df:
 					s = String.Format(fmt_str[point_n], data.df);
 					break;
 				default: return "type err";
@@ -162,6 +163,7 @@ namespace com_mc
 		}
 		public override int set_val(byte[] b, int off, int n) //从数据设定值
 		{
+			data.du64 = 0;
 			for (int i = 0; i < len && i < 8 && i < n && off < b.Length; i++)
 			{
 				data.du8[i] = b[off]; off++;
@@ -202,20 +204,20 @@ namespace com_mc
 		[FieldOffset(0)]
 		public double df;
 
-		public double get_double(ParaType t)
+		public double get_double(DataType t)
 		{
 			switch (t)
 			{
-				case ParaType.u8: return du8[0];
-				case ParaType.u16: return du16;
-				case ParaType.u32: return du32;
-				case ParaType.u64: return du64;
-				case ParaType.s8: return ds8;
-				case ParaType.s16: return ds16;
-				case ParaType.s32: return ds32;
-				case ParaType.s64: return ds64;
-				case ParaType.f: return f;
-				case ParaType.df: return df;
+				case DataType.u8: return du8[0];
+				case DataType.u16: return du16;
+				case DataType.u32: return du32;
+				case DataType.u64: return du64;
+				case DataType.s8: return ds8;
+				case DataType.s16: return ds16;
+				case DataType.s32: return ds32;
+				case DataType.s64: return ds64;
+				case DataType.f: return f;
+				case DataType.df: return df;
 				default: throw new Exception("type err");
 			}
 		}

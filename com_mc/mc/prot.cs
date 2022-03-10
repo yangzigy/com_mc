@@ -11,13 +11,7 @@ namespace com_mc
 	//UI通过数据名称唯一的访问
 	//上传的数据通过适配器转换为通用的数据协议（类NMEA）,查询所有数据项，符合条件的更新
 	//////////////////////////////////////////////////////////////////
-	public enum SrcType //协议域中数据类型
-	{
-		undef, str, hex, bit, //未定义、字符串、hex、按位取
-		u8, u16, u32, u64, //无符号整数
-		s8, s16, s32, s64, //有符号整数
-		f, df //float、double
-	}
+
 	public enum PRO_METHOD //处理类型
 	{   //线性处理，按位处理
 		pro_val, pro_bit
@@ -27,9 +21,9 @@ namespace com_mc
 		public MC_Prot p_mcp=null; //协议系统的引用
 		public string name { get; set; } //名称(唯一)
 		public int id { get; set; } = 0; //参数的唯一id，在C程序中使用
-		public SrcType dtype { get; set; } //数据类型
+		public DataType dtype { get; set; } //数据类型
 		public string ref_name { get; set; } //引用协议域或参数的名称
-		public ProtDom(Dictionary<string, object> v, SrcType t) //从json构造对象
+		public ProtDom(Dictionary<string, object> v, DataType t) //从json构造对象
 		{ //这里遇到错误就throw出去，不想throw的才判断
 			if (v.ContainsKey("id")) id = (int)v["id"];
 			name = (string)v["name"];
@@ -38,35 +32,81 @@ namespace com_mc
 		}
 		public virtual List<string> get_children() { return new List<string>(); } //获得本对象的所有子协议域id
 		public abstract void pro(byte[] b, int n, ref int off); //处理数据，输入对象首地址，对象长度和当前偏移位置。
+		public static Int64 double_2_s64(double f)
+		{
+			if (f < 0) f -= 0.5;
+			else f += 0.5;
+			return (Int64)f;
+		}
 	}
 	public class PD_Node : ProtDom //协议域叶子节点
 	{
 		public DATA_UNION data = new DATA_UNION() { du8 = new byte[8] };
+		public int len = 0; //缓存本域的数据长度
 		public double pro_k { get; set; } //处理变换kx+b
 		public double pro_b { get; set; } //处理变换kx+b
-		public PD_Node(Dictionary<string, object> v, SrcType t) : base(v, t)
+		public PD_Node(Dictionary<string, object> v, DataType t) : base(v, t)
 		{
 			if(v.ContainsKey("pro_k")) pro_k = (double)v["pro_k"];
 			if(v.ContainsKey("pro_b")) pro_b = (double)v["pro_b"];
+			switch (dtype)
+			{
+				case DataType.u8: len = 1; break;
+				case DataType.u16: len = 2; break;
+				case DataType.u32: len = 4; break;
+				case DataType.u64: len = 8; break;
+				case DataType.s8: len = 1; break;
+				case DataType.s16: len = 2; break;
+				case DataType.s32: len = 4; break;
+				case DataType.s64: len = 8; break;
+				case DataType.f: len = 4; break;
+				case DataType.df: len = 8; break;
+				default: break;
+			}
 		}
-		//
+		//输入二进制值 处理成对应的类型后变换，然后根据输出类型，构造对应的二进制数，若有浮点变整型，需要四舍五入，通过set_val二进制接口传出  
 		public override void pro(byte[] b, int n, ref int off) //n：本次处理的长度，off：当前偏移位置
 		{
+			int rec_off = off; //记录此时的off
 			//先自己解析
-			for (int i = 0; i < 8 && i < n && off < b.Length; i++)
+			data.du64 = 0;
+			for (int i = 0; i < len && i < n && off < b.Length; i++)
 			{
 				data.du8[i] = b[off]; off++;
 			}
 			//然后做运算
 			double d = data.get_double(dtype);
+			d = d * pro_k + pro_b;
 			//最后给引用的参数
-			p_mcp.para_dict[ref_name].set_val(b, off, n); //
+			ParaValue_Val p = (ParaValue_Val)p_mcp.para_dict[ref_name]; //二进制为值类型，输出也必然是值类型
+			switch (p.type)
+			{
+				case DataType.u8:
+				case DataType.u16:
+				case DataType.u32:
+				case DataType.u64:
+				case DataType.s8:
+				case DataType.s16:
+				case DataType.s32:
+				case DataType.s64: 
+					p.data.ds64=ProtDom.double_2_s64(d); //转换成整数，四舍五入
+					break;
+				case DataType.f:
+					p.data.f = (float)d;
+					break;
+				case DataType.df:
+					p.data.df = d;
+					break;
+				default:
+					p.set_val(b, rec_off, n); //按字节直接给到参数上
+					break;
+			}
 		}
 	}
 	public class PD_Bit : PD_Node //按位取的叶子节点
 	{
 		public int bit_len { get; set; } //bit长度
-		public PD_Bit(Dictionary<string, object> v, SrcType t) : base(v, t)
+		public PD_Bit(Dictionary<string, object> v, DataType t) : base(v, t)
 		{
 
 		}
@@ -75,9 +115,20 @@ namespace com_mc
 			
 		}
 	}
-	public class PD_Array : PD_Node //数组型叶子节点
+	public class PD_Array : ProtDom //数组型叶子节点，包括未定义和字符串，输出类型只能是未定义或字符串
 	{
-		public PD_Array(Dictionary<string, object> v, SrcType t) : base(v, t)
+		public PD_Array(Dictionary<string, object> v, DataType t) : base(v, t)
+		{
+
+		}
+		public override void pro(byte[] b, int n, ref int off)
+		{
+
+		}
+	}
+	public class PD_Str : PD_Node //字符型叶子节点，分为十进制和hex，输出类型只能是值类型
+	{
+		public PD_Str(Dictionary<string, object> v, DataType t) : base(v, t)
 		{
 
 		}

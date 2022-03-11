@@ -12,7 +12,8 @@ namespace com_mc
 		u8, u16, u32, u64, //无符号整数
 		s8, s16, s32, s64, //有符号整数
 		f, df, //float、double
-		undef, str, hex, bit, //未定义、字符串、hex、按位取 
+		undef, str, //未定义、字符串、
+		hex, bit, //hex、按位取 此2类仅为协议域种类，参数无此种类
 		//插件扩展的时候，可以用undef
 	}
 	//参数定义，通过参数的唯一名称，或者唯一id实现访问
@@ -29,8 +30,8 @@ namespace com_mc
 			type = t;
 			len = (int)v["len"];
 		}
-		public abstract int set_val(byte[] b, int off, int n); //从数据设定值
-		public abstract int get_val(byte[] b, int off, int n); //向数据缓存中复制数据
+		public abstract int set_val(byte[] b, int off, int n); //从数据设定值,返回使用的字节数
+		public abstract int get_val(byte[] b, int off, int n); //向数据缓存中复制数据,返回使用的字节数
 
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 		public static ParaValue factory(Dictionary<string, object> v) //构建工厂
@@ -78,19 +79,21 @@ namespace com_mc
 		}
 		public override int set_val(byte[] b, int off, int n) //从数据设定值
 		{
-			for (int i = 0; i < len && i < data.Length && i < n && off < b.Length; i++)
+			int i = 0;
+			for (; i < len && i < data.Length && i < n && off < b.Length; i++)
 			{
 				data[i] = b[off]; off++;
 			}
-			return 0;
+			return i; //返回使用的字节数
 		}
 		public override int get_val(byte[] b, int off, int n) //向数据缓存中复制数据
 		{
-			for (int i = 0; i < len && i < data.Length && i < n && off < b.Length; i++)
+			int i = 0;
+			for (; i < len && i < data.Length && i < n && off < b.Length; i++)
 			{
 				b[off] = data[i]; off++;
 			}
-			return 0;
+			return i; //返回使用的字节数
 		}
 	}
 	public class ParaValue_Val : ParaValue //值类型
@@ -102,18 +105,6 @@ namespace com_mc
 		public DATA_UNION data=new DATA_UNION() { du8=new byte[8]};
 		public int point_n { get; set; } //小数位数
 		public string[] str_tab { get; set; } = new string[0];//显示字符串表
-		public string[] fmt_str = new string[]  //最多8位小数
-		{
-			"{0:0}",
-			"{0:0.0}",
-			"{0:0.00}",
-			"{0:0.000}",
-			"{0:0.0000}",
-			"{0:0.00000}",
-			"{0:0.0000000}",
-			"{0:0.00000000}",
-			"{0:0.000000000}",
-		};
 		public override string ToString() //默认显示函数
 		{
 			string s = "";
@@ -152,10 +143,10 @@ namespace com_mc
 					s = String.Format("{0}", data.ds64);
 					break;
 				case DataType.f:
-					s = String.Format(fmt_str[point_n], data.f);
+					s = data.f.ToString(string.Format("F{0}", point_n));
 					break;
 				case DataType.df:
-					s = String.Format(fmt_str[point_n], data.df);
+					s = data.df.ToString(string.Format("F{0}", point_n));
 					break;
 				default: return "type err";
 			}
@@ -164,19 +155,21 @@ namespace com_mc
 		public override int set_val(byte[] b, int off, int n) //从数据设定值
 		{
 			data.du64 = 0;
-			for (int i = 0; i < len && i < 8 && i < n && off < b.Length; i++)
+			int i = 0;
+			for (; i < len && i < 8 && i < n && off < b.Length; i++)
 			{
 				data.du8[i] = b[off]; off++;
 			}
-			return 0;
+			return i; //返回使用的字节数
 		}
 		public override int get_val(byte[] b, int off, int n) //向数据缓存中复制数据
 		{
-			for (int i = 0; i < len && i < 8 && i < n && off < b.Length; i++)
+			int i = 0;
+			for (; i < len && i < 8 && i < n && off < b.Length; i++)
 			{
 				b[off] = data.du8[i]; off++;
 			}
-			return 0;
+			return i; //返回使用的字节数
 		}
 	}
 	[StructLayout(LayoutKind.Explicit)]

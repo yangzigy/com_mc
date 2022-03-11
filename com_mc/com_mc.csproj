@@ -82,6 +82,7 @@
     <Compile Include="app\com_mc_gui.cs" />
     <Compile Include="app\config.cs" />
     <Compile Include="app\DataSrc.cs" />
+    <Compile Include="app\frame_sync.cs" />
     <Compile Include="app\textlog.cs" />
     <Compile Include="dlg\help.xaml.cs">
       <DependentUpon>help.xaml</DependentUpon>
@@ -92,6 +93,7 @@
     <Compile Include="mc\com_mc.cs" />
     <Compile Include="mc\para.cs" />
     <Compile Include="mc\prot.cs" />
+    <Compile Include="mc\sync.cs" />
     <Compile Include="state_dis.cs" />
     <Page Include="dlg\help.xaml">
       <SubType>Designer</SubType>

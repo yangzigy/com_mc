@@ -31,8 +31,8 @@ namespace com_mc
 			ref_name = (string)v["ref_name"];
 		}
 		public virtual List<string> get_children() { return new List<string>(); } //获得本对象的所有子协议域id
-		public abstract void pro(byte[] b, int n, ref int off); //处理数据，输入对象首地址，对象长度和当前偏移位置。
-		public static Int64 double_2_s64(double f)
+		public abstract void pro(byte[] b, ref int off, int n); //处理数据，输入对象首地址，off：数据起始位置，n:off之后还有多长。
+		public static Int64 double_2_s64(double f) //浮点转整型四舍五入
 		{
 			if (f < 0) f -= 0.5;
 			else f += 0.5;
@@ -65,7 +65,7 @@ namespace com_mc
 			}
 		}
 		//输入二进制值 处理成对应的类型后变换，然后根据输出类型，构造对应的二进制数，若有浮点变整型，需要四舍五入，通过set_val二进制接口传出  
-		public override void pro(byte[] b, int n, ref int off) //n：本次处理的长度，off：当前偏移位置
+		public override void pro(byte[] b, ref int off, int n)  //n:off之后还有多长，off：数据起始位置
 		{
 			int rec_off = off; //记录此时的off
 			//先自己解析
@@ -74,12 +74,16 @@ namespace com_mc
 			{
 				data.du8[i] = b[off]; off++;
 			}
-			//然后做运算
+			//然后做运算：根据不同的输入类型，都转换成double来做运算。
 			double d = data.get_double(dtype);
+			set_para_val(d);
+		}
+		public void set_para_val(double d) //设置参数值
+		{
 			d = d * pro_k + pro_b;
 			//最后给引用的参数
 			ParaValue_Val p = (ParaValue_Val)p_mcp.para_dict[ref_name]; //二进制为值类型，输出也必然是值类型
-			switch (p.type)
+			switch (p.type) //根据输出的类型给输出
 			{
 				case DataType.u8:
 				case DataType.u16:
@@ -88,8 +92,8 @@ namespace com_mc
 				case DataType.s8:
 				case DataType.s16:
 				case DataType.s32:
-				case DataType.s64: 
-					p.data.ds64=ProtDom.double_2_s64(d); //转换成整数，四舍五入
+				case DataType.s64:
+					p.data.ds64 = ProtDom.double_2_s64(d); //转换成整数，四舍五入
 					break;
 				case DataType.f:
 					p.data.f = (float)d;
@@ -98,32 +102,66 @@ namespace com_mc
 					p.data.df = d;
 					break;
 				default:
-					p.set_val(b, rec_off, n); //按字节直接给到参数上
-					break;
+					throw new Exception("type err");
 			}
 		}
 	}
 	public class PD_Bit : PD_Node //按位取的叶子节点
 	{
+		public int bit_st { get; set; } = 0; //起始bit
 		public int bit_len { get; set; } //bit长度
+		public int bit_singed { get; set; } = 0; //是否是有符号数
 		public PD_Bit(Dictionary<string, object> v, DataType t) : base(v, t)
 		{
-
+			if(v.ContainsKey("bit_st"))	bit_st = (int)v["bit_st"]; //默认从0bit开始
+			bit_len = (int)v["bit_len"];
+			if(v.ContainsKey("bit_singed"))	bit_st = (int)v["bit_singed"]; //默认从0bit开始
 		}
-		public override void pro(byte[] b, int n, ref int off)
+		static byte[] masktab = new byte[] { 0, 1, 3, 7, 0xf, 0x1f, 0x3f, 0x7f, 0xff };
+		public override void pro(byte[] b, ref int off, int n) //从当前字节开始
 		{
-			
+			int endB = (bit_st + bit_len) / 8; //结束字节偏移
+			if (endB >= n) return ; //不够长
+			data.du64 = 0; //清空数据
+			int stB = bit_st / 8; //开始字节偏移
+			int stbit = bit_st - stB * 8; //在第一个有效字节内的起始位置(0~7)
+			int bitoff = 0; //当前处理的bit位置，是有效数据的
+			for (int i = stB; i <= endB; i++) //按字节遍历
+			{ //取这个字节内的位，字节为：p[i]，起始位为stbit
+				int L = bit_len - bitoff; //总bit数减去当前bit数，当前要处理的bit数
+				int lleft = 8 - stbit; //本字节还剩几位
+				L = Math.Min(lleft, L); //本字节要处理的位长度
+				UInt64 t = (UInt64)((b[i+off] >> stbit) & masktab[L]); //取得此字节的位
+				data.du64 |= t << bitoff; //给到数据中
+				//更新变量
+				bitoff += L; //当前位位置增加
+				stbit = 0; //下一个字节的起始位置为0
+				off++;
+			}
+			if (bit_singed != 0) //若是有符号数，需要给符号位
+			{
+				int shift_n = 64 - bit_len;
+				data.du64 <<= shift_n;
+				data.ds64 >>= shift_n;
+				set_para_val(data.ds64);
+			}
+			else set_para_val(data.du64);
+
 		}
 	}
 	public class PD_Array : ProtDom //数组型叶子节点，包括未定义和字符串，输出类型只能是未定义或字符串
 	{
+		public int len = 0; //本域的数据长度
 		public PD_Array(Dictionary<string, object> v, DataType t) : base(v, t)
 		{
-
+			len = (int)v["len"];
 		}
-		public override void pro(byte[] b, int n, ref int off)
+		public override void pro(byte[] b, ref int off, int n) //n:off之后还有多长，off：数据起始位置
 		{
-
+			n = n >len ? len : n;
+			ParaValue p = p_mcp.para_dict[ref_name];  //取得引用的参数
+			n=p.set_val(b,off,n); //返回使用的字节数
+			off += n;
 		}
 	}
 	public class PD_Str : PD_Node //字符型叶子节点，分为十进制和hex，输出类型只能是值类型
@@ -132,7 +170,68 @@ namespace com_mc
 		{
 
 		}
-		public override void pro(byte[] b, int n, ref int off)
+		public override void pro(byte[] b, ref int off, int n) //字符型在二进制流中取得
+		{
+			int str_len = len;
+			if(str_len == 0) //若不定长度,就按0为分割，确定字符串长度
+			{
+				for(;str_len<n;str_len++)
+				{
+					if(b[str_len+off] == 0) break;
+				}
+			}
+			string s = Encoding.UTF8.GetString(b, off,str_len);
+			pro_str(s);
+		}
+		public void pro_str(string s) //处理字符串
+		{
+			ParaValue p = p_mcp.para_dict[ref_name];  //取得引用的参数
+			if(p.type == DataType.undef || p.type==DataType.str) //串型的输出
+			{
+				byte[] vs = Encoding.UTF8.GetBytes(s);
+				p.set_val(vs,0,vs.Length);
+			}
+			else //值类型
+			{
+				double d = 0;
+				if(dtype == DataType.hex) //若是hex型字符串
+				{
+					d= UInt64.Parse(s, System.Globalization.NumberStyles.HexNumber);
+				}
+				else d=double.Parse(s);
+				set_para_val(d);
+			}
+		}
+	}
+	public class PD_Switch : ProtDom //选择协议域方式
+	{
+		public PD_Switch(Dictionary<string, object> v, DataType t) : base(v, t)
+		{
+
+		}
+		public override void pro(byte[] b, ref int off, int n)
+		{
+
+		}
+	}
+	public class PD_Loop : ProtDom //重复协议域方式
+	{
+		public PD_Loop(Dictionary<string, object> v, DataType t) : base(v, t)
+		{
+
+		}
+		public override void pro(byte[] b, ref int off, int n)
+		{
+
+		}
+	}
+	public class PD_Obj : ProtDom //选择协议域方式
+	{
+		public PD_Obj(Dictionary<string, object> v, DataType t) : base(v, t)
+		{
+
+		}
+		public override void pro(byte[] b, ref int off, int n)
 		{
 
 		}
@@ -142,126 +241,6 @@ namespace com_mc
 		public Dictionary<string, ParaValue> para_dict = new Dictionary<string, ParaValue>(); //参数字典
 		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议字典
 
-	}
-		public string prot_name { get; set; } //协议名
-		public int prot_l { get; set; } //协议tab数量
-		public int prot_off { get; set; } //协议中的位置
-		public SrcType stype { get; set; } //源数据的类型
-		public PRO_METHOD pro_method{get;set; } //处理方法
-		public int pro_bit { get; set; } //处理bit的位数(起始)
-		public int end_bit { get; set; } //处理bit的位数（终止,包含）
-		public double pro_k { get; set; } //处理变换kx+b
-		public double pro_b { get; set; } //处理变换kx+b
-		public int point_n { get; set; } //小数位数
-		public string[] str_tab { get; set; } //显示字符串表
-		public bool is_cv { get; set; } //是否显示曲线
-		public bool is_dis { get; set; } //是否显示，若是按钮的从属，则可以不显示
-
-		public string cur_str; //当前值
-		public double cur_val; //当前值
-		public int cur_di; //当前整数值
-		public void set_i_val(int di) //直接设置整数值
-		{
-			cur_di = di;
-			set_f_val(di);
-		}
-		public void set_f_val(double df) //直接设置浮点值
-		{
-			if (pro_method == PRO_METHOD.pro_val) //若是值处理
-			{
-				cur_val = df * pro_k + pro_b;
-			}
-			else //若是bit处理
-			{
-				int i = pro_bit;
-				uint v = 0;
-				do
-				{
-					v |= (uint)(cur_di & (1 << i));
-					i++;
-				} while (i <= end_bit);
-				v >>= pro_bit;
-				cur_val = v;
-			}
-			if (dtype == DestType.str) //输出字符型
-			{
-				uint o = (uint)cur_val;
-				if (o < str_tab.Length) cur_str = str_tab[o];
-				else cur_str = "";
-			}
-			update_cb(name); //调用回调函数
-		}
-		public string val //以文本方式设置，或读取文本值时使用
-		{
-			get
-			{
-				if(dtype==DestType.str) return cur_str;
-				if(Math.Abs(cur_val-cur_di)<1e-9) return cur_di.ToString();
-				return cur_val.ToString(string.Format("F{0}",point_n));
-			}
-			set
-			{
-				double df = 0;
-				int di = 0;
-				//首先按输入类型区分
-				if(stype== SrcType.df) df = double.Parse(value);
-				else if(stype== SrcType.hex)
-				{
-					cur_di = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
-					df = cur_di;
-				}
-				else //若是整型
-				{
-					bool b=int.TryParse(value,out cur_di);
-					switch (stype) //若是值型的
-					{
-						case SrcType.u32: df = (uint)cur_di; break;
-						case SrcType.s32: df = cur_di; break;
-						case SrcType.u16: df = (ushort)cur_di; break;
-						case SrcType.s16: df = (short)cur_di; break;
-						case SrcType.u8: df = (byte)cur_di; break;
-						case SrcType.s8: df = (sbyte)cur_di; break;
-						case SrcType.str: //若源类型是字符
-							if (dtype == DestType.str) //且输出字符型
-							{
-								cur_str = value;
-								update_cb(name); //调用回调函数
-							}
-							return;
-						default:
-							return;
-					}
-					if (!b) throw new Exception("");
-				}
-				set_f_val(df);
-			}
-		}
-		public int update_times = 0; //刷新倒计时
-
-		public DataDes()
-		{
-			name="";
-			dtype=DestType.val;
-			prot_name="";
-			prot_l=0;
-			prot_off=0;
-			stype=SrcType.df;
-			pro_method=PRO_METHOD.pro_val;
-			pro_bit = 0;
-			pro_k =1;
-			pro_b=0;
-			point_n=2; //小数位数默认为2位
-			str_tab=new string[] { "关","开" };
-			is_cv = false;
-			is_dis = true;
-
-			update_cb =void_fun;
-			update_dis=void_fun;
-		}
-		public delegate void CB(string name);
-		public void void_fun(string name){}
-		public CB update_cb; //数据接收回调
-		public CB update_dis; //定时显示回调
 	}
 }
 

@@ -11,18 +11,10 @@ namespace com_mc
 	public class DataDes //数据描述类，代表一个参数，实现显示
 	{
 		public string name { get; set; } //显示名称(唯一)
-		public ParaValue val {get;set;} //数据类型
+		public ParaValue val {get;set;} //参数引用
 		public string prot_name { get; set; } //协议名
 		public int prot_l { get; set; } //协议tab数量
 		public int prot_off { get; set; } //协议中的位置
-		public SrcType stype { get; set; } //源数据的类型
-		public PRO_METHOD pro_method{get;set; } //处理方法
-		public int pro_bit { get; set; } //处理bit的位数(起始)
-		public int end_bit { get; set; } //处理bit的位数（终止,包含）
-		public double pro_k { get; set; } //处理变换kx+b
-		public double pro_b { get; set; } //处理变换kx+b
-		public int point_n { get; set; } //小数位数
-		public string[] str_tab { get; set; } //显示字符串表
 		public bool is_cv { get; set; } //是否显示曲线
 		public bool is_dis { get; set; } //是否显示，若是按钮的从属，则可以不显示
 

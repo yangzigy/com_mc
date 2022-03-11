@@ -8,29 +8,38 @@ using System.Windows;
 
 namespace com_mc
 {
-	//UI通过数据名称唯一的访问
-	//上传的数据通过适配器转换为通用的数据协议（类NMEA）,查询所有数据项，符合条件的更新
-	//////////////////////////////////////////////////////////////////
-
-	public enum PRO_METHOD //处理类型
-	{   //线性处理，按位处理
-		pro_val, pro_bit
-	}
+	//协议相当于结构体定义中的一个变量，协议名称是变量名称。
+	//由于每个变量都需要引用参数，所以不需要定义变量的类型。嵌套结构体通过全部展开定义基础数据结构的方式来定义，协议对象无法复用
 	public abstract class ProtDom //协议域纯虚父类
 	{
 		public MC_Prot p_mcp=null; //协议系统的引用
+		public PD_Obj father_Dom = null; //上级协议的引用
 		public string name { get; set; } //名称(唯一)
 		public int id { get; set; } = 0; //参数的唯一id，在C程序中使用
 		public DataType dtype { get; set; } //数据类型
-		public string ref_name { get; set; } //引用协议域或参数的名称
-		public ProtDom(Dictionary<string, object> v, DataType t) //从json构造对象
+		public string ref_name { get; set; } = "";//引用参数的名称
+		public ParaValue ref_para=null; //引用的参数
+		public ProtDom(Dictionary<string, object> v, DataType t, MC_Prot pd) //从json构造对象
 		{ //这里遇到错误就throw出去，不想throw的才判断
 			if (v.ContainsKey("id")) id = (int)v["id"];
 			name = (string)v["name"];
 			dtype = t;
-			ref_name = (string)v["ref_name"];
+			if (v.ContainsKey("ref_name"))
+			{
+				ref_name = (string)v["ref_name"];
+				ref_para = p_mcp.para_dict[ref_name]; //参数表先于协议加载
+			}
+			else //没有引用参数，说明是协议内部结构数据
+			{
+				var tv = new Dictionary<string, object>();
+				tv["type"] = "u64";
+				tv["name"] = "";
+				tv["len"] = 8;
+				ref_para = new ParaValue_Val(tv, DataType.u64); //创建一个内部参数对象
+			}
+			p_mcp = pd;
 		}
-		public virtual List<string> get_children() { return new List<string>(); } //获得本对象的所有子协议域id
+		public virtual string[] get_children() { return new string[0]; } //获得本对象的所有子协议域id
 		public abstract void pro(byte[] b, ref int off, int n); //处理数据，输入对象首地址，off：数据起始位置，n:off之后还有多长。
 		public static Int64 double_2_s64(double f) //浮点转整型四舍五入
 		{
@@ -41,11 +50,11 @@ namespace com_mc
 	}
 	public class PD_Node : ProtDom //协议域叶子节点
 	{
-		public DATA_UNION data = new DATA_UNION() { du8 = new byte[8] };
+		public DATA_UNION data = new DATA_UNION() { du8 = new byte[8] }; //被协议域引用的时候可以直接用
 		public int len = 0; //缓存本域的数据长度
 		public double pro_k { get; set; } //处理变换kx+b
 		public double pro_b { get; set; } //处理变换kx+b
-		public PD_Node(Dictionary<string, object> v, DataType t) : base(v, t)
+		public PD_Node(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
 			if(v.ContainsKey("pro_k")) pro_k = (double)v["pro_k"];
 			if(v.ContainsKey("pro_b")) pro_b = (double)v["pro_b"];
@@ -82,7 +91,7 @@ namespace com_mc
 		{
 			d = d * pro_k + pro_b;
 			//最后给引用的参数
-			ParaValue_Val p = (ParaValue_Val)p_mcp.para_dict[ref_name]; //二进制为值类型，输出也必然是值类型
+			ParaValue_Val p = (ParaValue_Val)ref_para; //二进制为值类型，输出也必然是值类型
 			switch (p.type) //根据输出的类型给输出
 			{
 				case DataType.u8:
@@ -111,7 +120,7 @@ namespace com_mc
 		public int bit_st { get; set; } = 0; //起始bit
 		public int bit_len { get; set; } //bit长度
 		public int bit_singed { get; set; } = 0; //是否是有符号数
-		public PD_Bit(Dictionary<string, object> v, DataType t) : base(v, t)
+		public PD_Bit(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
 			if(v.ContainsKey("bit_st"))	bit_st = (int)v["bit_st"]; //默认从0bit开始
 			bit_len = (int)v["bit_len"];
@@ -152,21 +161,20 @@ namespace com_mc
 	public class PD_Array : ProtDom //数组型叶子节点，包括未定义和字符串，输出类型只能是未定义或字符串
 	{
 		public int len = 0; //本域的数据长度
-		public PD_Array(Dictionary<string, object> v, DataType t) : base(v, t)
+		public PD_Array(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
 			len = (int)v["len"];
 		}
 		public override void pro(byte[] b, ref int off, int n) //n:off之后还有多长，off：数据起始位置
 		{
 			n = n >len ? len : n;
-			ParaValue p = p_mcp.para_dict[ref_name];  //取得引用的参数
-			n=p.set_val(b,off,n); //返回使用的字节数
+			n=ref_para.set_val(b,off,n); //返回使用的字节数
 			off += n;
 		}
 	}
 	public class PD_Str : PD_Node //字符型叶子节点，分为十进制和hex，输出类型只能是值类型
 	{
-		public PD_Str(Dictionary<string, object> v, DataType t) : base(v, t)
+		public PD_Str(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
 
 		}
@@ -185,11 +193,10 @@ namespace com_mc
 		}
 		public void pro_str(string s) //处理字符串
 		{
-			ParaValue p = p_mcp.para_dict[ref_name];  //取得引用的参数
-			if(p.type == DataType.undef || p.type==DataType.str) //串型的输出
+			if(ref_para.type == DataType.undef || ref_para.type==DataType.str) //串型的输出
 			{
 				byte[] vs = Encoding.UTF8.GetBytes(s);
-				p.set_val(vs,0,vs.Length);
+				ref_para.set_val(vs,0,vs.Length);
 			}
 			else //值类型
 			{
@@ -203,44 +210,163 @@ namespace com_mc
 			}
 		}
 	}
-	public class PD_Switch : ProtDom //选择协议域方式
+	public class PD_Switch : PD_Obj //选择协议域方式
 	{
-		public PD_Switch(Dictionary<string, object> v, DataType t) : base(v, t)
+		public string ref_type = ""; //引用的协议域，用于确定类型
+		public Dictionary<int,string> prot_map; //各协议描述符头部，由int对协议进行索引
+		public PD_Switch(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
-
+			ref_type=v["ref_type"] as string;
+			object[] list = v["prot_map"] as object[];
+			foreach (var item in list)
+			{
+				var tv = item as Dictionary<string, object>;
+				prot_map[(int)tv["ptype"]]=tv["name"] as string;
+			}
 		}
 		public override void pro(byte[] b, ref int off, int n)
 		{
-
+			PD_Node pn = father_Dom.prot_dict[ref_type] as PD_Node; //引用的一定是个值类型的协议域
+			var para = pn.ref_para as ParaValue_Val;
+			int ti = (int)para.data.du64; //此时是变换以后的
+			string sn = prot_map[ti];
+			prot_dict[sn].pro(b, ref off, n); //找到这个协议，调用
 		}
 	}
-	public class PD_Loop : ProtDom //重复协议域方式
+	public class PD_Loop : PD_Obj //重复协议域方式，与Obj域的区别在于仅第一个域有效，重复次数可配置可引用
 	{
-		public PD_Loop(Dictionary<string, object> v, DataType t) : base(v, t)
+		public string ref_len = ""; //引用的协议域，用于确定重复次数
+		public PD_Loop(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
-
+			if(v.ContainsKey("ref_len")) ref_len=v["ref_len"] as string;
+			else //需要直接指定
+			{
+				var para = ref_para as ParaValue_Val;
+				para.data.ds32 = (int)v["loop_n"];
+			}
 		}
 		public override void pro(byte[] b, ref int off, int n)
 		{
-
+			int ti = 0;
+			if (ref_len!="") //若是指定的
+			{
+				PD_Node pn = father_Dom.prot_dict[ref_len] as PD_Node; //引用的一定是个值类型的协议域
+				var para = pn.ref_para as ParaValue_Val;
+				ti= para.data.ds32; //此时是变换以后的
+			}
+			else
+			{
+				var para = ref_para as ParaValue_Val;
+				ti = para.data.ds32; //此时是变换以后的
+			}
+			var pr= prot_dict.ToArray()[0].Value; //取得第一个协议域
+			int pre_off = off; //上次偏移位置
+			for (int i = 0; i < ti; i++)
+			{
+				pr.pro(b,ref off, n);
+				n -= off - pre_off; //增加了多少字节，总字节数相应减掉
+				pre_off = off;
+			}
 		}
 	}
-	public class PD_Obj : ProtDom //选择协议域方式
+	public class PD_Obj : ProtDom //协议对象
 	{
-		public PD_Obj(Dictionary<string, object> v, DataType t) : base(v, t)
+		public List<string> prot_list=new List<string>(); //一系列顺序的协议域
+		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议字典
+		public PD_Obj(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
-
+			object[] list=v["prot_list"] as object[];
+			foreach (var item in list)
+			{
+				var tv = item as Dictionary<string, object>;
+				string s= tv["name"] as string;
+				prot_list.Add(s);
+				var p=MC_Prot.factory(tv,p_mcp); //递归创建自己的子协议域
+				p.father_Dom = this; //给上层引用赋值
+				prot_dict[s] = p;
+			}
+		}
+		public override string[] get_children()
+		{
+			return prot_list.ToArray();
 		}
 		public override void pro(byte[] b, ref int off, int n)
 		{
-
+			int pre_off=off; //上次偏移位置
+			for (int i = 0; i < prot_list.Count; i++)
+			{
+				ProtDom pd=prot_dict[prot_list[i]]; //当前子协议域
+				pd.pro(b,ref off, n); //递归调用
+				n -= off - pre_off; //增加了多少字节，总字节数相应减掉
+				pre_off = off;
+			}
 		}
 	}
 	public class MC_Prot //测控参数体系的实现
 	{
 		public Dictionary<string, ParaValue> para_dict = new Dictionary<string, ParaValue>(); //参数字典
-		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议字典
+		public ProtDom prot_root=null; //协议根节点
+		public void formJson(Dictionary<string, object> v) //初始化
+		{
+			object[] list = v["para_dict"] as object[];
+			foreach (var item in list)
+			{
+				var tv = item as Dictionary<string, object>;
+				string s = tv["name"] as string;
+				para_dict[s] = ParaValue.factory(tv); //构建参数
+				
+			}
+			prot_root = MC_Prot.factory(v["prot_root"] as Dictionary<string, object>,this); //递归创建自己的子协议域
+		}
 
+		public void pro(byte[] b,ref int off,int n) //缓存，偏移，长度（off之后）
+		{
+			prot_root.pro(b,ref off,n);
+		}
+
+		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
+		public static ProtDom factory(Dictionary<string, object> v, MC_Prot pd) //构建工厂，输入配置，测控协议对象
+		{
+			string s = json_ser.Serialize(v["type"]);
+			DataType t = DataType.u64; //默认类型
+			try
+			{
+				t = json_ser.Deserialize<DataType>(s); //取得参数类型
+			}
+			catch (Exception e) //若不是基础类型，则建立协议组织类型
+			{
+				switch (s)
+				{
+					case "obj": return new PD_Obj(v, t,pd);
+					case "switch": return new PD_Switch(v, t, pd);
+					case "loop": return new PD_Loop(v, t, pd);
+					default:
+						break;
+				}
+			}
+			switch (t) //若是基础类型
+			{
+				case DataType.undef:
+					return new PD_Array(v, t, pd);
+				case DataType.str:
+				case DataType.hex:
+					return new PD_Str(v, t, pd);
+				case DataType.u8:
+				case DataType.u16:
+				case DataType.u32:
+				case DataType.u64:
+				case DataType.s8:
+				case DataType.s16:
+				case DataType.s32:
+				case DataType.s64:
+				case DataType.f:
+				case DataType.df:
+					return new PD_Node(v, t, pd);
+				case DataType.bit:
+					return new PD_Bit(v, t, pd);
+				default: throw new Exception("type err");
+			}
+		}
 	}
 }
 

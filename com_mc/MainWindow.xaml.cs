@@ -51,6 +51,8 @@ namespace com_mc
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
 			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+			//初始化界面
+			state_dis_ini();
 			//加载配置文件列表
 			cfglist = ConfigList.load(AppDomain.CurrentDomain.BaseDirectory + "/cm_cfgs.txt");
 			for (int i=0;i< cfglist.cfgs.Count;i++)
@@ -72,7 +74,7 @@ namespace com_mc
 			{
 				Dispatcher.Invoke((EventHandler)delegate (object sd, EventArgs ea)
 				{
-					foreach (var item in commc.dset) //刷新每个参数
+					foreach (var item in dset) //刷新每个参数
 					{
 						item.Value.update_dis(item.Value.name); //周期刷新，输入名称给指令对象索引，本身只需更新刷新计数
 					}
@@ -95,7 +97,7 @@ namespace com_mc
 					{
 						foreach (var item in series_map) //遍历所有曲线，看是否添加到控件
 						{
-							var mco = commc.dset[item.Key];  //测控对象
+							var mco = dset[item.Key];  //测控对象
 							mco.is_cv = (bool)(checkb_map[item.Key].IsChecked); //设置曲线标志
 							bool is_display = chart1.Series.Contains(item.Value); //是否已经显示了曲线
 							if (mco.is_cv) //若要显示曲线
@@ -160,8 +162,8 @@ namespace com_mc
 			CCmd_Button.ctrl_cols = config.ctrl_cols;
 			CCmd_Button.commc = commc;
 			CCmd_Button.send_cmd_str = send_cmd_str;
-			//初始化界面
-			state_dis_ini();
+
+			mc_ini();
 		}
 #region click
 		private void bt_save_curve_data_Click(object sender, RoutedEventArgs e) //保存曲线数据

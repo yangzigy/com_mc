@@ -10,63 +10,15 @@ namespace com_mc
 {
 	public class DataDes //数据描述类，代表一个参数，实现显示
 	{
-		public string name { get; set; } //显示名称(唯一)
+		public string name { get; set; } = ""; //显示名称(唯一)
 		public ParaValue val {get;set;} //参数引用
-		public string prot_name { get; set; } //协议名
-		public int prot_l { get; set; } //协议tab数量
-		public int prot_off { get; set; } //协议中的位置
-		public bool is_cv { get; set; } //是否显示曲线
-		public bool is_dis { get; set; } //是否显示，若是按钮的从属，则可以不显示
+		public bool is_cv { get; set; } = false; //是否显示曲线
+		public bool is_dis { get; set; } = true; //是否显示，若是按钮的从属，则可以不显示
 
-		public string cur_str; //当前值
-		public double cur_val; //当前值
-		public int cur_di; //当前整数值
-		public void set_f_val(double df) //直接设置浮点值
-		{
-			if (pro_method == PRO_METHOD.pro_val) //若是值处理
-			{
-				cur_val = df * pro_k + pro_b;
-			}
-			else //若是bit处理
-			{
-				int i = pro_bit;
-				uint v = 0;
-				do
-				{
-					v |= (uint)(cur_di & (1 << i));
-					i++;
-				} while (i <= end_bit);
-				v >>= pro_bit;
-				cur_val = v;
-			}
-			if (dtype == DestType.str) //输出字符型
-			{
-				uint o = (uint)cur_val;
-				if (o < str_tab.Length) cur_str = str_tab[o];
-				else cur_str = "";
-			}
-			update_cb(name); //调用回调函数
-		}
-		public string val //以文本方式设置，或读取文本值时使用
-		{
-			get
-			{
-				if(dtype==DestType.str) return cur_str;
-				if(Math.Abs(cur_val-cur_di)<1e-9) return cur_di.ToString();
-				return cur_val.ToString(string.Format("F{0}",point_n));
-			}
-		}
 		public int update_times = 0; //刷新倒计时
 
 		public DataDes()
 		{
-			name="";
-			prot_name="";
-			prot_l=0;
-			prot_off=0;
-			is_cv = false;
-			is_dis = true;
-
 			update_cb =void_fun;
 			update_dis=void_fun;
 		}
@@ -112,54 +64,6 @@ namespace com_mc
 			type =CmdType.bt;
 			dft="";
 			refdname = "";
-		}
-	}
-	/////////////////////////////////////////////////////////////////////////
-	//测控总体
-	public class Com_MC //通用测控类
-	{
-		public Dictionary<string,DataDes> dset { get; set; } //数据列表,key为数据项的名称
-		public Dictionary<string,CmdDes> cmds { get; set; } //指令列表,key为数据项的名称
-		public MC_Prot mc_prot=new MC_Prot(); //测控架构
-
-		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
-		public Com_MC()
-		{
-			dset = new Dictionary<string, DataDes>();
-			cmds = new Dictionary<string, CmdDes>();
-		}
-		public static Com_MC fromJson(string s)
-		{
-			return json_ser.Deserialize<Com_MC>(s);
-		}
-		public string toJson()
-		{
-			return json_ser.Serialize(this);
-		}
-		///////////////////////////////////////////////////////
-		//刷新数据
-		public void update_data(string s) //输入通用协议的一行
-		{
-			string[] vs = s.Split(", \t".ToCharArray(), StringSplitOptions.None);
-			if(vs.Length>=1) //若有数据
-			{
-				//首先通过个数找
-				foreach (var item in dset)
-				{
-					if(item.Value.prot_l==vs.Length) //若数量对了
-					{
-						if(item.Value.prot_name!="") //有协议名称
-						{
-							if((!vs[0].StartsWith("$")) || //数据里没有协议
-								item.Value.prot_name!=vs[0]) //协议名称不等
-							{
-								continue;
-							}
-						}
-						item.Value.val = vs[item.Value.prot_off];
-					}
-				}
-			}
 		}
 	}
 }

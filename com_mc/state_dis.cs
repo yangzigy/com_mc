@@ -40,7 +40,6 @@ namespace com_mc
 		void state_dis_ini()
 		{
 			mw = this;
-			mc_ini(); //测控界面初始化
 			mi_menu_cmd.Click += (s, e) => { mi_menu_cmd.IsSubmenuOpen = true; };
 			threadTimer = new Timer(OnTimedEvent, null, 0, 10); //100Hz
 		}
@@ -265,8 +264,8 @@ namespace com_mc
 		}
 		public void deinit() //去除初始化
 		{
-			commc.dset.Clear();
-			commc.cmds.Clear();
+			dset.Clear();
+			cmds.Clear();
 			checkb_map.Clear();
 			series_map.Clear();
 
@@ -292,7 +291,7 @@ namespace com_mc
 		}
 		private void OnTimedEvent(object state) //100Hz
 		{
-			pro_obj.so_poll_100();
+			if(pro_obj!=null) pro_obj.so_poll_100();
 		}
 #region 串口
 		CM_Plugin_Interface pro_obj=null; //无插件时的处理对象

@@ -113,6 +113,7 @@ namespace com_mc
 				default:
 					throw new Exception("type err");
 			}
+			p.update_cb(p); //需要调参数的回调函数
 		}
 	}
 	public class PD_Bit : PD_Node //按位取的叶子节点
@@ -302,15 +303,46 @@ namespace com_mc
 			}
 		}
 	}
-	public class Protocol_TextLine //文本行协议
+	public class PD_LineObj : ProtDom //文本行协议对象
 	{
+		public List<PD_Str> prot_list = new List<PD_Str>(); //一系列顺序的协议域
+		public PD_LineObj(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t, pd)
+		{
+			object[] list = v["prot_list"] as object[];
+			foreach (var item in list)
+			{
+				var tv = item as Dictionary<string, object>;
+				string s = tv["name"] as string;
+				var p = new PD_Str(tv,DataType.str, p_mcp); //递归创建自己的子协议域
+				p.father_Dom = null; //给上层引用赋值
+				prot_list.Add(p);
+			}
+		}
+		public override string[] get_children()
+		{
+			List<string> ls = new List<string>();
+			for(int i=0;i< prot_list.Count;i++)
+			{
+				ls.Add(prot_list[i].name);
+			}
+			return ls.ToArray();
+		}
+		public override void pro(byte[] b, ref int off, int n)
+		{
+			
+		}
+		public void pro_cols(string[] ss) //输入列的列表，用于文本处理
+		{
+			if (ss.Length != prot_list.Count) return;
+			for (int i = 0; i < prot_list.Count; i++) prot_list[i].pro_str(ss[i]);
+		}
 	}
 	public class MC_Prot //测控参数体系的实现
 	{
 		public Dictionary<string, ParaValue> para_dict = new Dictionary<string, ParaValue>(); //参数字典
 		public ProtDom prot_root=null; //二进制协议根节点
 		//文本协议按行分隔，按列分隔，各协议之间按协议名称区分，协议名称为第一列文本，以$开头，加-列数。若第一列不是$开头，则名称仅为-列数
-		public Dictionary<string, PD_Str> textline_dict = new Dictionary<string, PD_Str>(); //文本协议字典
+		public Dictionary<string, PD_LineObj> textline_dict = new Dictionary<string, PD_LineObj>(); //文本协议字典
 		public void formJson(Dictionary<string, object> v) //初始化
 		{
 			object[] list = v["para_dict"] as object[];
@@ -332,10 +364,19 @@ namespace com_mc
 				foreach (var item in list)
 				{
 					var tv = item as Dictionary<string, object>;
-					string s = tv["name"] as string;
-					textline_dict[s] = new PD_Str(tv, DataType.str, this);
+					string s = "";
+					if(tv.ContainsKey("name"))	s = tv["name"] as string;
+					int col_n = (int)tv["col_n"]; //必须描述此协议的列数
+					s+="-"+col_n.ToString();
+					textline_dict[s] = new PD_LineObj(tv, DataType.str, this);
 				}
 			}
+		}
+		public void clear()
+		{
+			prot_root = null;
+			textline_dict.Clear();
+			para_dict.Clear();
 		}
 		public void pro(byte[] b,ref int off,int n) //处理二进制包，缓存，偏移，长度（off之后）
 		{
@@ -343,10 +384,17 @@ namespace com_mc
 		}
 		public void pro_line(string s) //处理一行文本
 		{
-			string[] vs = s.Split(", \t".ToCharArray(), StringSplitOptions.None);
+			string[] vs = s.Split(", \t".ToCharArray(), StringSplitOptions.None); //有分隔符没数据也算
 			if (vs.Length >= 1) //若有数据
 			{
-
+				//构造协议名
+				string pname="";
+				if(vs[0].StartsWith("$")) pname=vs[0].Substring(1);
+				pname+="-"+vs.Length.ToString();
+				if(textline_dict.ContainsKey(pname)) //若有这个名字的协议
+				{
+					textline_dict[pname].pro_cols(vs);
+				}
 			}
 		}
 

@@ -11,29 +11,16 @@ namespace com_mc
 	public class DataDes //数据描述类，代表一个参数，实现显示
 	{
 		public string name { get; set; } //显示名称(唯一)
-		public ParaValue val {get;set;} //数据类型
+		public ParaValue val {get;set;} //参数引用
 		public string prot_name { get; set; } //协议名
 		public int prot_l { get; set; } //协议tab数量
 		public int prot_off { get; set; } //协议中的位置
-		public SrcType stype { get; set; } //源数据的类型
-		public PRO_METHOD pro_method{get;set; } //处理方法
-		public int pro_bit { get; set; } //处理bit的位数(起始)
-		public int end_bit { get; set; } //处理bit的位数（终止,包含）
-		public double pro_k { get; set; } //处理变换kx+b
-		public double pro_b { get; set; } //处理变换kx+b
-		public int point_n { get; set; } //小数位数
-		public string[] str_tab { get; set; } //显示字符串表
 		public bool is_cv { get; set; } //是否显示曲线
 		public bool is_dis { get; set; } //是否显示，若是按钮的从属，则可以不显示
 
 		public string cur_str; //当前值
 		public double cur_val; //当前值
 		public int cur_di; //当前整数值
-		public void set_i_val(int di) //直接设置整数值
-		{
-			cur_di = di;
-			set_f_val(di);
-		}
 		public void set_f_val(double df) //直接设置浮点值
 		{
 			if (pro_method == PRO_METHOD.pro_val) //若是值处理
@@ -68,59 +55,15 @@ namespace com_mc
 				if(Math.Abs(cur_val-cur_di)<1e-9) return cur_di.ToString();
 				return cur_val.ToString(string.Format("F{0}",point_n));
 			}
-			set
-			{
-				double df = 0;
-				int di = 0;
-				//首先按输入类型区分
-				if(stype== SrcType.df) df = double.Parse(value);
-				else if(stype== SrcType.hex)
-				{
-					cur_di = int.Parse(value, System.Globalization.NumberStyles.HexNumber);
-					df = cur_di;
-				}
-				else //若是整型
-				{
-					bool b=int.TryParse(value,out cur_di);
-					switch (stype) //若是值型的
-					{
-						case SrcType.u32: df = (uint)cur_di; break;
-						case SrcType.s32: df = cur_di; break;
-						case SrcType.u16: df = (ushort)cur_di; break;
-						case SrcType.s16: df = (short)cur_di; break;
-						case SrcType.u8: df = (byte)cur_di; break;
-						case SrcType.s8: df = (sbyte)cur_di; break;
-						case SrcType.str: //若源类型是字符
-							if (dtype == DestType.str) //且输出字符型
-							{
-								cur_str = value;
-								update_cb(name); //调用回调函数
-							}
-							return;
-						default:
-							return;
-					}
-					if (!b) throw new Exception("");
-				}
-				set_f_val(df);
-			}
 		}
 		public int update_times = 0; //刷新倒计时
 
 		public DataDes()
 		{
 			name="";
-			dtype=DestType.val;
 			prot_name="";
 			prot_l=0;
 			prot_off=0;
-			stype=SrcType.df;
-			pro_method=PRO_METHOD.pro_val;
-			pro_bit = 0;
-			pro_k =1;
-			pro_b=0;
-			point_n=2; //小数位数默认为2位
-			str_tab=new string[] { "关","开" };
 			is_cv = false;
 			is_dis = true;
 
@@ -177,6 +120,8 @@ namespace com_mc
 	{
 		public Dictionary<string,DataDes> dset { get; set; } //数据列表,key为数据项的名称
 		public Dictionary<string,CmdDes> cmds { get; set; } //指令列表,key为数据项的名称
+		public MC_Prot mc_prot=new MC_Prot(); //测控架构
+
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 		public Com_MC()
 		{

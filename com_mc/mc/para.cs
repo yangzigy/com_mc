@@ -100,10 +100,10 @@ namespace com_mc
 	{
 		public ParaValue_Val(Dictionary<string, object> v, DataType t) : base(v, t)
 		{
-			point_n = (int)v["point_n"];
+			if(v.ContainsKey("point_n")) point_n = (int)v["point_n"];
 		}
 		public DATA_UNION data=new DATA_UNION() { du8=new byte[8]};
-		public int point_n { get; set; } //小数位数
+		public int point_n { get; set; } = 2;//小数位数
 		public string[] str_tab { get; set; } = new string[0];//显示字符串表
 		public override string ToString() //默认显示函数
 		{

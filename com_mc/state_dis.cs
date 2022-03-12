@@ -22,8 +22,11 @@ namespace com_mc
 	public partial class MainWindow : Window
 	{
 		static public MainWindow mw;
-		public Com_MC commc = new Com_MC(); //通用测控对象
-		public Dictionary<string, CCmd_Button> cmd_ctrl_dict = new Dictionary<string, CCmd_Button>(); //控制控件
+		public Dictionary<string, DataDes> dset { get; set; } = new Dictionary<string, DataDes>(); //用于显示参数的数据列表,key为数据项的名称
+		public Dictionary<string, CmdDes> cmds { get; set; } =new Dictionary<string, CmdDes>(); //指令列表,key为数据项的名称
+		public MC_Prot mc_prot = new MC_Prot(); //测控架构
+
+		public Dictionary<string, CCmd_Button> cmd_ctrl_dict = new Dictionary<string, CCmd_Button>(); //控制控件，用于轮询
 
 		TextDataFile rec_file = new TextDataFile();
 		object[] invokeobj=new object[2];
@@ -252,7 +255,7 @@ namespace com_mc
 			{
 				pro_obj = new CM_Plugin_Interface();
 			}
-			pro_obj.ini(send_data, rx_line); //无插件的情况，发送函数、接收函数
+			pro_obj.ini(send_data, rx_line, rx_pack); //无插件的情况，发送函数、接收函数
 			if (config.encoding == "utf8") pro_obj.cur_encoding = Encoding.UTF8; //根据配置变换编码
 			//配置初始化指令
 			foreach (var item in config.ctrl_cmds)
@@ -336,13 +339,17 @@ namespace com_mc
 					if (ctrl_cmd(s)) return;
 					//给传感变量刷新
 					ticks0 = DateTime.Now.Ticks / 10000;
-					commc.update_data(s);
+					mc_prot.pro_line(s);
 				}
 				catch (Exception ee)
 				{
 					//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
 				}
 			}, invokeobj);
+		}
+		void rx_pack(byte[] b, int off, int n) //接收一包数据
+		{
+
 		}
 		int rx_Byte_1_s = 0; //每秒接收的字节数
 		void rx_fun(byte[] buf) //数据源接收回调函数

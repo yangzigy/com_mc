@@ -72,7 +72,7 @@ namespace com_mc
 		public int mv_h { get; set; } //主窗体高
 		public int bt_margin { get; set; } //按钮的间距
 		//数据结构
-		public List<DataDes> dset { get; set; } //通用测控对象
+		public Dictionary<string,object> prot_cfg { get; set; } //通用测控对象
 		public List<CmdDes> cmds { get; set; } //指令列表
 		//菜单
 		public int menu_cols { get; set; } //菜单控制按钮的列数

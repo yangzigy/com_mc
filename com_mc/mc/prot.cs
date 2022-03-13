@@ -345,13 +345,15 @@ namespace com_mc
 		public Dictionary<string, PD_LineObj> textline_dict = new Dictionary<string, PD_LineObj>(); //文本协议字典
 		public void formJson(Dictionary<string, object> v) //初始化
 		{
-			object[] list = v["para_dict"] as object[];
-			foreach (var item in list)
+			if (v.ContainsKey("para_dict"))
 			{
-				var tv = item as Dictionary<string, object>;
-				string s = tv["name"] as string;
-				para_dict[s] = ParaValue.factory(tv); //构建参数
-				
+				object[] list = v["para_dict"] as object[];
+				foreach (var item in list)
+				{
+					var tv = item as Dictionary<string, object>;
+					string s = tv["name"] as string;
+					para_dict[s] = ParaValue.factory(tv); //构建参数
+				}
 			}
 			if (v.ContainsKey("prot_root"))
 			{
@@ -360,7 +362,7 @@ namespace com_mc
 			//文本行协议
 			if(v.ContainsKey("textline_dict"))
 			{
-				list = v["textline_dict"] as object[];
+				object[] list = v["textline_dict"] as object[];
 				foreach (var item in list)
 				{
 					var tv = item as Dictionary<string, object>;

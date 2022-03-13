@@ -46,31 +46,49 @@ namespace com_mc
 		public void mc_ini() //测控界面初始化
 		{
 			deinit(); //先去除初始化
+			//判断协议配置的方式
+			Dictionary<string, object> protv = config.prot_cfg["prot_cfg"] as Dictionary<string, object>; //协议部分配置
+			if(config.prot_cfg.ContainsKey("filename")) //若是从文件加载的
+			{
+
+			}
+			mc_prot.formJson(protv); //初始化测控体系
+			//将参数列表复制到显示参数表
+			foreach (var item in mc_prot.para_dict)
+			{
+				DataDes td=new DataDes(item.Value);
+				td.name = item.Key;
+				if (protv.ContainsKey("is_cv")) td.is_cv = ((int)protv["is_cv"])!=0;
+				if (protv.ContainsKey("is_dis")) td.is_dis = ((int)protv["is_dis"])!=0;
+				dset[item.Key] = td;
+			}
 #region 传感参数部分
 			chart1 = mainFGrid.Child as Chart;
 			chart1.Legends[0].DockedToChartArea = "ChartArea1";
 			chart1.Legends[0].BackColor = System.Drawing.Color.Transparent;
 			//从配置中加载参数
 			chart1.Series.Clear();
-			foreach (var item in config.dset)
+			foreach (var item in dset)
 			{
-				commc.dset[item.name] = item;
-				item.update_cb = tn => { item.update_times = 10; };//数据更新回调函数
-				item.update_dis = tn => { if (item.update_times > 0) item.update_times--; };
-				if (item.is_dis == false) continue;
+				var ds = item.Value;
+				ds.update_cb = tn => { ds.update_times = 10; };//数据更新回调函数
+				ds.update_dis = tn => { if (ds.update_times > 0) ds.update_times--; };
+				if (ds.is_dis == false) continue;
 				CheckBox cb = new CheckBox();
-				cb.Content = item.name;
-				cb.IsChecked = item.is_cv;
+				cb.Content = ds.name;
+				cb.IsChecked = ds.is_cv;
 				cb.Width = 150;
 				cb.Background = Brushes.LightCoral;
 				cb.Margin = new Thickness(2, 2, 2, 0);
 				Series tmpserial = null;
-				if (item.dtype == DestType.str) //字符型的，不让选择曲线
+				if (ds.val.type == DataType.str || ds.val.type == DataType.undef) //字符型的，不让选择曲线
 				{
+					ds.is_val = false;
 					//cb.IsEnabled = false;
 				}
 				else //曲线型的
 				{
+					ds.is_val = true;
 					tmpserial = new Series()
 					{
 						BorderWidth = 2,
@@ -78,29 +96,29 @@ namespace com_mc
 						ChartType = SeriesChartType.Line,
 						//Color = System.Drawing.Color.Red,
 						Legend = "Legend1",
-						Name = item.name,
+						Name = ds.name,
 					};
 					chart1.Series.Add(tmpserial);
-					series_map[item.name] = tmpserial;
+					series_map[ds.name] = tmpserial;
 				}
-				checkb_map[item.name] = cb;
+				checkb_map[ds.name] = cb;
 				sp_measure.Children.Add(cb);
-				item.update_cb += (delegate (string tn) //数据更新回调函数
+				ds.update_cb += (delegate (DataDes dd) //数据更新回调函数
 				{
 					try
 					{
-						var it = commc.dset[tn];
 						//it.update_times = 10;
-						if (it.dtype == DestType.val && (bool)cb.IsChecked) //若显示曲线
+						if (dd.is_val && (bool)cb.IsChecked) //若显示曲线
 						{
 							if (is_first == 1) //首次加入数据点，清除初始化点
 							{
 								clear_Click(null, null);
 								is_first = 0;
 							}
-							double d = double.Parse(it.val);
+							var pv = (ParaValue_Val)dd.val;
+							double d = pv.get_double();
 							if (Math.Abs(d) >= (double)Decimal.MaxValue) throw new Exception("");
-							if (x_axis_id != "" && commc.dset.ContainsKey(x_axis_id)) //若有索引列
+							if (x_axis_id != "" && dset.ContainsKey(x_axis_id)) //若有索引列
 							{
 								if (tmpserial.Points.Count > 0 &&
 									Math.Abs(tmpserial.Points[tmpserial.Points.Count - 1].XValue - x_tick) < 0.1f) //跟上次一样
@@ -108,7 +126,7 @@ namespace com_mc
 									tmpserial.Points[tmpserial.Points.Count - 1].YValues[0] = d;
 								}
 								else tmpserial.Points.AddXY(x_tick, d);
-								if (tn == x_axis_id) x_tick++;
+								if (dd.name == x_axis_id) x_tick++; //若是x轴的索引参数
 							}
 							else //没有索引列，就用时间ms数作为x轴
 							{
@@ -122,14 +140,13 @@ namespace com_mc
 					}
 					catch { }
 				});
-				item.update_dis += (delegate (string tn) //数据更新回调函数
+				ds.update_dis += (delegate (DataDes dd) //数据更新回调函数
 				{
-					var it = commc.dset[tn];
-					if (it.update_times > 0) //若有数据更新
+					if (dd.update_times > 0) //若有数据更新
 					{
 						//it.update_times--;
 						cb.Background = Brushes.LightGreen;
-						cb.Content = it.name + ":" + it.val;
+						cb.Content = dd.name + ":" + dd.val.ToString();
 					}
 					else cb.Background = Brushes.LightCoral;
 				});
@@ -205,7 +222,7 @@ namespace com_mc
 			int i = 0, j = 0; //i行，j列
 			foreach (var item in config.cmds)
 			{ //本来有一行
-				commc.cmds[item.name] = item; //加入指令列表
+				cmds[item.name] = item; //加入指令列表
 				int rownu = para_grid.RowDefinitions.Count - 1; //添加一行
 				var v = CCmd_Button.bt_factory(item.type, item, para_grid);
 				v.ini(ref i, ref j);
@@ -222,7 +239,7 @@ namespace com_mc
 			mi_menu_cmd.Header = config.menu_name;
 			foreach (var item in config.menu_cmd)
 			{ //本来有一行
-				commc.cmds[item.name] = item;
+				cmds[item.name] = item;
 				int rownu = grid_menu_cmd.RowDefinitions.Count - 1; //添加一行
 				var v = CCmd_Button.bt_factory(item.type, item, grid_menu_cmd);
 				v.ini(ref i, ref j);

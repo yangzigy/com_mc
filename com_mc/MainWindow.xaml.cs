@@ -163,7 +163,7 @@ namespace com_mc
 			CCmd_Button.commc = commc;
 			CCmd_Button.send_cmd_str = send_cmd_str;
 
-			mc_ini();
+			mc_ini(); //内部先清除上一个配置
 		}
 #region click
 		private void bt_save_curve_data_Click(object sender, RoutedEventArgs e) //保存曲线数据

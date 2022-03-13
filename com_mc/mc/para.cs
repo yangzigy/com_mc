@@ -174,6 +174,10 @@ namespace com_mc
 			}
 			return i; //返回使用的字节数
 		}
+		public double get_double()
+		{
+			return data.get_double(type);
+		}
 	}
 	[StructLayout(LayoutKind.Explicit)]
 	public struct DATA_UNION //各种值类型

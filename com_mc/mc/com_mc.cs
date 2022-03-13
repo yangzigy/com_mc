@@ -8,24 +8,32 @@ using System.Windows;
 
 namespace com_mc
 {
-	public class DataDes //数据描述类，代表一个参数，实现显示
+	public class DataDes //参数显示时的额外定义
 	{
 		public string name { get; set; } = ""; //显示名称(唯一)
 		public ParaValue val {get;set;} //参数引用
 		public bool is_cv { get; set; } = false; //是否显示曲线
 		public bool is_dis { get; set; } = true; //是否显示，若是按钮的从属，则可以不显示
 
+		public bool is_val=true; //是否能按值处理
+
 		public int update_times = 0; //刷新倒计时
 
-		public DataDes()
+		public DataDes(ParaValue v)
 		{
+			val = v;
+			val.update_cb = val_updated; //注册参数的回调函数
 			update_cb =void_fun;
 			update_dis=void_fun;
 		}
-		public delegate void CB(string name);
-		public void void_fun(string name){}
+		public void val_updated(ParaValue pv) //当此参数改变时
+		{
+			update_cb(this);
+		}
+		public delegate void CB(DataDes dd);
+		public void void_fun(DataDes dd){}
 		public CB update_cb; //数据接收回调
-		public CB update_dis; //定时显示回调
+		public CB update_dis; //定时显示回调:定时器直接调用，传递给注册者
 	}
 	/////////////////////////////////////////////////////////////////////////
 	//命令部分
@@ -63,7 +71,6 @@ namespace com_mc
 			suffixname = "";
 			type =CmdType.bt;
 			dft="";
-			refdname = "";
 		}
 	}
 }

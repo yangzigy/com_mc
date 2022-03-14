@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Collections;
 using System.Web.Script.Serialization;
 using System.IO;
 using System.Windows;
@@ -14,17 +15,17 @@ namespace com_mc
 	{
 		public MC_Prot p_mcp=null; //协议系统的引用
 		public PD_Obj father_Dom = null; //上级协议的引用
-		public string name { get; set; } //名称(唯一)
+		public string name { get; set; } = ""; //协议域名称(唯一，或没有)
 		public int id { get; set; } = 0; //参数的唯一id，在C程序中使用
-		public DataType dtype { get; set; } //数据类型
+		public DataType type { get; set; } = 0; //数据类型,默认是u8
 		public string ref_name { get; set; } = "";//引用参数的名称
 		public ParaValue ref_para=null; //引用的参数
 		public ProtDom(Dictionary<string, object> v, DataType t, MC_Prot pd) //从json构造对象
 		{ //这里遇到错误就throw出去，不想throw的才判断
 			p_mcp = pd;
 			if (v.ContainsKey("id")) id = (int)v["id"];
-			name = (string)v["name"];
-			dtype = t;
+			if (v.ContainsKey("name")) name = (string)v["name"];
+			type = t;
 			if (v.ContainsKey("ref_name"))
 			{
 				ref_name = (string)v["ref_name"];
@@ -50,15 +51,23 @@ namespace com_mc
 	}
 	public class PD_Node : ProtDom //协议域叶子节点
 	{
-		public DATA_UNION data = new DATA_UNION() { du8 = new byte[8] }; //被协议域引用的时候可以直接用
+		public DATA_UNION data = new DATA_UNION(); //被协议域引用的时候可以直接用
 		public int len = 0; //缓存本域的数据长度
+		public int skip_n = 0; //处理完此列后，额外向后跳的字节数（文本行协议是列数）。例如文本行的一列要处理出多个参数，此处可填0。或者需要跳过一列，此处可填2
 		public double pro_k { get; set; } //处理变换kx+b
 		public double pro_b { get; set; } //处理变换kx+b
+		public int bit_st { get; set; } = 0; //起始bit
+		public int bit_len { get; set; } = 0; //bit长度，用此配置表示此域为按bit处理
+		public int bit_singed { get; set; } = 0; //是否是有符号数
 		public PD_Node(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
 			if(v.ContainsKey("pro_k")) pro_k = (double)v["pro_k"];
 			if(v.ContainsKey("pro_b")) pro_b = (double)v["pro_b"];
-			switch (dtype)
+			if (v.ContainsKey("bit_st")) bit_st = (int)v["bit_st"]; //默认从0bit开始
+			if (v.ContainsKey("bit_len")) bit_len = (int)v["bit_len"];
+			if (v.ContainsKey("bit_singed")) bit_st = (int)v["bit_singed"]; //默认从0bit开始
+			if (v.ContainsKey("skip_n")) skip_n = (int)v["skip_n"];
+			switch (type)
 			{
 				case DataType.u8: len = 1; break;
 				case DataType.u16: len = 2; break;
@@ -76,88 +85,54 @@ namespace com_mc
 		//输入二进制值 处理成对应的类型后变换，然后根据输出类型，构造对应的二进制数，若有浮点变整型，需要四舍五入，通过set_val二进制接口传出  
 		public override void pro(byte[] b, ref int off, int n)  //n:off之后还有多长，off：数据起始位置
 		{
-			int rec_off = off; //记录此时的off
 			//先自己解析
-			data.du64 = 0;
-			for (int i = 0; i < len && i < n && off < b.Length; i++)
-			{
-				data.du8[i] = b[off]; off++;
-			}
-			//然后做运算：根据不同的输入类型，都转换成double来做运算。
-			double d = data.get_double(dtype);
-			set_para_val(d);
+			int i=data.set_val(b,off, n);
+			off += i + skip_n;
+			set_para_val(); //设置参数数值
 		}
-		public void set_para_val(double d) //设置参数值
+		public void set_para_val() //设置参数值
 		{
+			//做运算：根据不同的输入类型，都转换成double来做运算。
+			double d = 0;
+			if (bit_len > 0) //若配了bit长度，说明是按位处理
+			{
+				data.du64 >>= bit_st;
+				data.du64 &= masktab[bit_len];
+				if (bit_singed != 0) //若是有符号数，需要给符号位
+				{
+					int shift_n = 64 - bit_len;
+					data.du64 <<= shift_n;
+					data.ds64 >>= shift_n;
+					d = data.ds64;
+				}
+				d = data.du64;
+			}
+			else d = data.get_double(type); //整数或浮点都能兼容
 			d = d * pro_k + pro_b;
 			//最后给引用的参数
 			ParaValue_Val p = (ParaValue_Val)ref_para; //二进制为值类型，输出也必然是值类型
 			switch (p.type) //根据输出的类型给输出
 			{
-				case DataType.u8:
-				case DataType.u16:
-				case DataType.u32:
-				case DataType.u64:
-				case DataType.s8:
-				case DataType.s16:
-				case DataType.s32:
-				case DataType.s64:
+				case DataType.f: p.data.f = (float)d; break;
+				case DataType.df: p.data.df = d; break;
+				default:
 					p.data.ds64 = ProtDom.double_2_s64(d); //转换成整数，四舍五入
 					break;
-				case DataType.f:
-					p.data.f = (float)d;
-					break;
-				case DataType.df:
-					p.data.df = d;
-					break;
-				default:
-					throw new Exception("type err");
 			}
 			p.update_cb(p); //需要调参数的回调函数
 		}
-	}
-	public class PD_Bit : PD_Node //按位取的叶子节点
-	{
-		public int bit_st { get; set; } = 0; //起始bit
-		public int bit_len { get; set; } //bit长度
-		public int bit_singed { get; set; } = 0; //是否是有符号数
-		public PD_Bit(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
+		static UInt64[] masktab = new UInt64[] 
 		{
-			if(v.ContainsKey("bit_st"))	bit_st = (int)v["bit_st"]; //默认从0bit开始
-			bit_len = (int)v["bit_len"];
-			if(v.ContainsKey("bit_singed"))	bit_st = (int)v["bit_singed"]; //默认从0bit开始
-		}
-		static byte[] masktab = new byte[] { 0, 1, 3, 7, 0xf, 0x1f, 0x3f, 0x7f, 0xff };
-		public override void pro(byte[] b, ref int off, int n) //从当前字节开始
-		{
-			int endB = (bit_st + bit_len) / 8; //结束字节偏移
-			if (endB >= n) return ; //不够长
-			data.du64 = 0; //清空数据
-			int stB = bit_st / 8; //开始字节偏移
-			int stbit = bit_st - stB * 8; //在第一个有效字节内的起始位置(0~7)
-			int bitoff = 0; //当前处理的bit位置，是有效数据的
-			for (int i = stB; i <= endB; i++) //按字节遍历
-			{ //取这个字节内的位，字节为：p[i]，起始位为stbit
-				int L = bit_len - bitoff; //总bit数减去当前bit数，当前要处理的bit数
-				int lleft = 8 - stbit; //本字节还剩几位
-				L = Math.Min(lleft, L); //本字节要处理的位长度
-				UInt64 t = (UInt64)((b[i+off] >> stbit) & masktab[L]); //取得此字节的位
-				data.du64 |= t << bitoff; //给到数据中
-				//更新变量
-				bitoff += L; //当前位位置增加
-				stbit = 0; //下一个字节的起始位置为0
-				off++;
-			}
-			if (bit_singed != 0) //若是有符号数，需要给符号位
-			{
-				int shift_n = 64 - bit_len;
-				data.du64 <<= shift_n;
-				data.ds64 >>= shift_n;
-				set_para_val(data.ds64);
-			}
-			else set_para_val(data.du64);
-
-		}
+			0,
+			1, 3, 7, 0xf, 0x1f, 0x3f, 0x7f,0xff,
+			0x1ff,0x3ff,0x7ff,0xfff, 0x1fff,0x3fff,0x7fff,0xffff,
+			0x1ffff,0x3ffff,0x7ffff,0xfffff, 0x1fffff,0x3fffff,0x7fffff,0xffffff,
+			0x1ffffff,0x3ffffff,0x7ffffff,0xfffffff, 0x1fffffff,0x3fffffff,0x7fffffff,0xffffffff,
+			0x1ffffffff,0x3ffffffff,0x7ffffffff,0xfffffffff, 0x1fffffffff,0x3fffffffff,0x7fffffffff,0xffffffffff,
+			0x1ffffffffff,0x3ffffffffff,0x7ffffffffff,0xfffffffffff, 0x1fffffffffff,0x3fffffffffff,0x7fffffffffff,0xffffffffffff,
+			0x1ffffffffffff,0x3ffffffffffff,0x7ffffffffffff,0xfffffffffffff, 0x1fffffffffffff,0x3fffffffffffff,0x7fffffffffffff,0xffffffffffffff,
+			0x1ffffffffffffff,0x3ffffffffffffff,0x7ffffffffffffff,0xfffffffffffffff, 0x1fffffffffffffff,0x3fffffffffffffff,0x7fffffffffffffff,0xffffffffffffffff,
+		};
 	}
 	public class PD_Array : ProtDom //数组型叶子节点，包括未定义和字符串，输出类型只能是未定义或字符串
 	{
@@ -175,9 +150,10 @@ namespace com_mc
 	}
 	public class PD_Str : PD_Node //字符型叶子节点，分为十进制和hex，输出类型只能是值类型
 	{
+		public string str_type = ""; //空为10进制，hex：16进制
 		public PD_Str(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
-
+			if(v.ContainsKey("str_type")) str_type=v["str_type"] as string;
 		}
 		public override void pro(byte[] b, ref int off, int n) //字符型在二进制流中取得
 		{
@@ -190,6 +166,7 @@ namespace com_mc
 				}
 			}
 			string s = Encoding.UTF8.GetString(b, off,str_len);
+			off += str_len;
 			pro_str(s);
 		}
 		public void pro_str(string s) //处理字符串
@@ -201,13 +178,12 @@ namespace com_mc
 			}
 			else //值类型
 			{
-				double d = 0;
-				if(dtype == DataType.hex) //若是hex型字符串
+				if(str_type == "hex") //若是hex型字符串
 				{
-					d= UInt64.Parse(s, System.Globalization.NumberStyles.HexNumber);
+					data.du64= UInt64.Parse(s, System.Globalization.NumberStyles.HexNumber);
 				}
-				else d=double.Parse(s);
-				set_para_val(d);
+				else data.df=double.Parse(s);
+				set_para_val();
 			}
 		}
 	}
@@ -312,8 +288,13 @@ namespace com_mc
 			foreach (var item in list)
 			{
 				var tv = item as Dictionary<string, object>;
-				string s = tv["name"] as string;
-				var p = new PD_Str(tv,DataType.str, p_mcp); //递归创建自己的子协议域
+				DataType tp = DataType.df; //默认类型是double
+				if (tv.ContainsKey("type"))
+				{
+					string ts = MC_Prot.json_ser.Serialize(tv["type"]);
+					tp = MC_Prot.json_ser.Deserialize<DataType>(ts); //取得参数类型
+				}
+				var p = new PD_Str(tv,tp, p_mcp); //递归创建自己的子协议域
 				p.father_Dom = null; //给上层引用赋值
 				prot_list.Add(p);
 			}
@@ -334,7 +315,12 @@ namespace com_mc
 		public void pro_cols(string[] ss) //输入列的列表，用于文本处理
 		{
 			if (ss.Length != prot_list.Count) return;
-			for (int i = 0; i < prot_list.Count; i++) prot_list[i].pro_str(ss[i]);
+			int col = 0; //处理的列数
+			for (int i = 0; i < prot_list.Count && col<ss.Length; i++) //按协议域遍历
+			{
+				prot_list[i].pro_str(ss[col]);
+				col += prot_list[i].skip_n + 1; //处理下一个列
+			}
 		}
 	}
 	public class MC_Prot //测控参数体系的实现
@@ -347,7 +333,7 @@ namespace com_mc
 		{
 			if (v.ContainsKey("para_dict"))
 			{
-				object[] list = v["para_dict"] as object[];
+				ArrayList list = v["para_dict"] as ArrayList;
 				foreach (var item in list)
 				{
 					var tv = item as Dictionary<string, object>;
@@ -366,8 +352,9 @@ namespace com_mc
 				foreach (var item in list)
 				{
 					var tv = item as Dictionary<string, object>;
+				
 					string s = "";
-					if(tv.ContainsKey("name"))	s = tv["name"] as string;
+					if (tv.ContainsKey("name"))	s = tv["name"] as string;
 					int col_n = (int)tv["col_n"]; //必须描述此协议的列数
 					s+="-"+col_n.ToString();
 					textline_dict[s] = new PD_LineObj(tv, DataType.str, this);
@@ -391,7 +378,7 @@ namespace com_mc
 			{
 				//构造协议名
 				string pname="";
-				if(vs[0].StartsWith("$")) pname=vs[0].Substring(1);
+				if (vs[0].StartsWith("$")) pname = vs[0]; //.Substring(1);
 				pname+="-"+vs.Length.ToString();
 				if(textline_dict.ContainsKey(pname)) //若有这个名字的协议
 				{
@@ -422,11 +409,8 @@ namespace com_mc
 			}
 			switch (t) //若是基础类型
 			{
-				case DataType.undef:
-					return new PD_Array(v, t, pd);
-				case DataType.str:
-				case DataType.hex:
-					return new PD_Str(v, t, pd);
+				case DataType.undef: return new PD_Array(v, t, pd);
+				case DataType.str: return new PD_Str(v, t, pd);
 				case DataType.u8:
 				case DataType.u16:
 				case DataType.u32:
@@ -436,10 +420,7 @@ namespace com_mc
 				case DataType.s32:
 				case DataType.s64:
 				case DataType.f:
-				case DataType.df:
-					return new PD_Node(v, t, pd);
-				case DataType.bit:
-					return new PD_Bit(v, t, pd);
+				case DataType.df: return new PD_Node(v, t, pd);
 				default: throw new Exception("type err");
 			}
 		}

@@ -67,7 +67,7 @@ namespace com_mc
 		{
 			int off = len_dom_off;
 			len_dom.pro(b, ref off, len-off);
-			return (int)(len_dom.data.get_double(len_dom.dtype));
+			return (int)(len_dom.data.get_double(len_dom.type));
 		}
 		public override int pro_pack(byte[] b, int len)
 		{

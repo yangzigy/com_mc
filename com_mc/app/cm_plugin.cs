@@ -35,10 +35,10 @@ namespace com_mc
 				syn_head.fromJson(v["syn_bin"] as Dictionary<string, object>);
 				syn_head.rx_bin_cb = rx_bin_cb;
 			}
-			else if (v.ContainsKey("syn_lin")) //若有文本行
+			else if (v.ContainsKey("syn_line")) //若有文本行
 			{
 				syn_line = new Sync_Line();
-				syn_line.fromJson(v["syn_lin"] as Dictionary<string, object>);
+				syn_line.fromJson(v["syn_line"] as Dictionary<string, object>);
 				syn_line.rx_bin_cb = line_rx_from_bin;
 			}
 			else //若都没配置，使用默认的文本行模式

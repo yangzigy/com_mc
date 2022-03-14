@@ -47,19 +47,18 @@ namespace com_mc
 		{
 			deinit(); //先去除初始化
 			//判断协议配置的方式
-			Dictionary<string, object> protv = config.prot_cfg["prot_cfg"] as Dictionary<string, object>; //协议部分配置
 			if(config.prot_cfg.ContainsKey("filename")) //若是从文件加载的
 			{
 
 			}
-			mc_prot.formJson(protv); //初始化测控体系
+			mc_prot.formJson(config.prot_cfg); //初始化测控体系
 			//将参数列表复制到显示参数表
 			foreach (var item in mc_prot.para_dict)
 			{
 				DataDes td=new DataDes(item.Value);
 				td.name = item.Key;
-				if (protv.ContainsKey("is_cv")) td.is_cv = ((int)protv["is_cv"])!=0;
-				if (protv.ContainsKey("is_dis")) td.is_dis = ((int)protv["is_dis"])!=0;
+				if (config.prot_cfg.ContainsKey("is_cv")) td.is_cv = ((int)config.prot_cfg["is_cv"])!=0;
+				if (config.prot_cfg.ContainsKey("is_dis")) td.is_dis = ((int)config.prot_cfg["is_dis"])!=0;
 				dset[item.Key] = td;
 			}
 #region 传感参数部分
@@ -272,6 +271,7 @@ namespace com_mc
 				pro_obj = new CM_Plugin_Interface();
 			}
 			pro_obj.ini(send_data, rx_line, rx_pack); //无插件的情况，发送函数、接收函数
+			pro_obj.fromJson(config.syn_pro);
 			if (config.encoding == "utf8") pro_obj.cur_encoding = Encoding.UTF8; //根据配置变换编码
 			//配置初始化指令
 			foreach (var item in config.ctrl_cmds)

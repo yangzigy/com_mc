@@ -76,7 +76,7 @@ namespace com_mc
 				{
 					foreach (var item in dset) //刷新每个参数
 					{
-						item.Value.update_dis(item.Value.name); //周期刷新，输入名称给指令对象索引，本身只需更新刷新计数
+						item.Value.update_dis(item.Value); //周期刷新，输入名称给指令对象索引，本身只需更新刷新计数
 					}
 					foreach (var item in cmd_ctrl_dict) //对于每个控制控件，执行poll
 					{
@@ -160,7 +160,8 @@ namespace com_mc
 			//加入配置
 			CCmd_Button.bt_margin_len = config.bt_margin;
 			CCmd_Button.ctrl_cols = config.ctrl_cols;
-			CCmd_Button.commc = commc;
+			CCmd_Button.cmds = cmds;
+			CCmd_Button.dset = dset;
 			CCmd_Button.send_cmd_str = send_cmd_str;
 
 			mc_ini(); //内部先清除上一个配置
@@ -371,7 +372,7 @@ namespace com_mc
 			curv_x_min = int.MaxValue; curv_y_min = int.MaxValue;
 			foreach (var item in series_map) //遍历所有曲线，找极值
 			{
-				if (commc.dset[item.Key].is_cv == false) continue; //不显示的不管
+				if (dset[item.Key].is_cv == false) continue; //不显示的不管
 				foreach (var p in item.Value.Points)
 				{
 					if (p.XValue > curv_x_max) curv_x_max = p.XValue;
@@ -420,9 +421,9 @@ namespace com_mc
 						break;
 					}
 				}
-				var tm = commc.dset[item.Value.Name]; //测控数据对象
+				var tm = dset[item.Value.Name]; //测控数据对象
 				item.Value.LegendText = tm.name + ":" +
-					(double.IsNaN(d) ? "null" : d.ToString(string.Format("F{0}", tm.point_n)));
+					(double.IsNaN(d) ? "null" : d.ToString(string.Format("F{0}", (tm.val as ParaValue_Val).point_n)));
 			}
 		}
 		private void Chart_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e) //曲线控件的鼠标移动

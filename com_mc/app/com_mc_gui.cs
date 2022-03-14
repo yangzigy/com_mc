@@ -29,8 +29,10 @@ namespace com_mc
 		}
 		static public int bt_margin_len=1; //按钮的间距
 		static public int ctrl_cols=2; //控制按钮的列数
-		static public Com_MC commc; //通用测控对象
-		static public DataDes.CB send_cmd_str; //数据接收回调
+		public static Dictionary<string, DataDes> dset; //引用外部的参数列表
+		public static Dictionary<string, CmdDes> cmds; //引用外部的指令列表
+		public delegate void STR_CB(string s);
+		static public STR_CB send_cmd_str; //数据接收回调
 		//对象内容
 		public Grid grid;
 		public System.Windows.Controls.Primitives.ButtonBase tb=null;
@@ -98,9 +100,9 @@ namespace com_mc
 			try
 			{
 				string s = cmddes.cmd; //命令字符
-				if (commc.cmds.ContainsKey(cmddes.suffixname)) //若有后缀控件
+				if (cmds.ContainsKey(cmddes.suffixname)) //若有后缀控件
 				{
-					s += " " + commc.cmds[cmddes.suffixname].get_stat(); //从指令列表转了一圈，指令列表回调界面这边的函数得到界面状态
+					s += " " + cmds[cmddes.suffixname].get_stat(); //从指令列表转了一圈，指令列表回调界面这边的函数得到界面状态
 				}
 				send_cmd_str(s);
 			}
@@ -185,19 +187,18 @@ namespace com_mc
 			lb_off.HorizontalAlignment = HorizontalAlignment.Right;
 			sw_action(8);
 			//控件的接收配置
-			if (commc.dset.ContainsKey(cmddes.refdname)) //若有反馈值
+			if (dset.ContainsKey(cmddes.refdname)) //若有反馈值
 			{
-				var t = commc.dset[cmddes.refdname];
+				var t = dset[cmddes.refdname];
 				judge_out(cmddes.dft);
-				//t.update_cb = tn => { t.update_times = 10; };//数据更新回调函数
-				t.update_dis += delegate (string tn) //数据更新回调函数
+				t.update_dis += delegate (DataDes tn) //数据更新回调函数
 				{
-					if (t.update_times > 0)
+					if (tn.update_times > 0)
 					{
 						//t.update_times--;
 						tb.Background = Brushes.LightYellow;
 						if (Mouse.LeftButton == MouseButtonState.Pressed) return; //鼠标按下就先不刷
-						judge_out(t.val);
+						judge_out(tn.val.ToString());
 					}
 					else tb.Background = br_normal;
 				};
@@ -247,7 +248,7 @@ namespace com_mc
 			{
 				try
 				{
-					send_cmd_str(commc.cmds[(string)((Button)sender).Tag].cmd);
+					send_cmd_str(cmds[(string)((Button)sender).Tag].cmd);
 					sent_times = 10;
 				}
 				catch { }
@@ -274,18 +275,18 @@ namespace com_mc
 			bd.VerticalAlignment = VerticalAlignment.Center;
 			bd.Margin = new Thickness(0,0,10,0);
 			//控件的接收配置
-			if (commc.dset.ContainsKey(cmddes.refdname)) //若有反馈值
+			if (dset.ContainsKey(cmddes.refdname)) //若有反馈值
 			{
-				var t = commc.dset[cmddes.refdname];
+				var t = dset[cmddes.refdname];
 				judge_out(t, cmddes.dft);
-				t.update_dis += delegate (string tn) //数据更新回调函数
+				t.update_dis += delegate (DataDes tn) //数据更新回调函数
 				{
 					if (sent_times > 0)
 					{
 						sent_times--; //发送后的计时
 						if (t.update_times > 0) //若有刷新
 						{
-							judge_out(t, t.val); //显示核心和外环
+							judge_out(t, tn.val.ToString()); //显示核心和外环
 						}
 						else //若无刷新
 						{
@@ -301,7 +302,7 @@ namespace com_mc
 		}
 		public void judge_out(DataDes t, string s) //判断当前输出，设置到显示
 		{
-			if (t.val == t.str_tab[1]) result=true; //若是成功
+			if (t.val.ToString() == t.val.str_tab[1]) result=true; //若是成功
 			else result = false;
 			bd.Background = result ? Brushes.Green : Brushes.Red;
 			bd.BorderBrush = result ? Brushes.LightGreen : Brushes.LightPink;
@@ -335,15 +336,15 @@ namespace com_mc
 			img_refresh.HorizontalAlignment = HorizontalAlignment.Right;
 
 			//控件的接收配置
-			if (commc.dset.ContainsKey(cmddes.refdname)) //若有反馈值
+			if (dset.ContainsKey(cmddes.refdname)) //若有反馈值
 			{
-				var t = commc.dset[cmddes.refdname];
-				t.update_dis += delegate (string tn) //数据更新回调函数
+				var t = dset[cmddes.refdname];
+				t.update_dis += delegate (DataDes tn) //数据更新回调函数
 				{
-					if (t.update_times > 0) //若有刷新
+					if (tn.update_times > 0) //若有刷新
 					{
 						img_refresh.Source = i_on;
-						tt1.Text = t.val;
+						tt1.Text = tn.val.ToString();
 					}
 					else img_refresh.Source = i_off; //若无刷新
 				};

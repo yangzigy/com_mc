@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using cslib;
 using System.Text;
 using System.Web.Script.Serialization;
-using System.IO;
+using System.Collections;
 using System.Windows;
 
 namespace com_mc
@@ -38,9 +38,9 @@ namespace com_mc
 			}
 			if(v.ContainsKey("syn")) //配置同步字
 			{
-				object[] list = v["syn"] as object[];
-				SYNC=new byte[list.Length];
-				for(int i=0;i< list.Length;i++)
+				ArrayList list = v["syn"] as ArrayList;
+				SYNC=new byte[list.Count];
+				for(int i=0;i< list.Count; i++)
 				{
 					SYNC[i]=(byte)list[i];
 				}

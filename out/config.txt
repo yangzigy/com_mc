@@ -49,18 +49,18 @@
 			{"name":"i_off","is_dis":0}
 		],
 		//"prot_root": //二进制协议根
-		"text_line": //文本协议列表
+		"textline_dict": //文本协议列表
 		[
-			{"col_n":9,"prot_list": //状态上传协议
+			{"col_n":8,"prot_list": //状态上传协议
 				[
 					{"ref_name":"电压","skip_n":1}, //0，第一列空，跳过
 					{"ref_name":"电流"}, //2
 					{"ref_name":"强度"}, //3
 					{"ref_name":"期望温度"}, //4
 					{"ref_name":"温度","skip_n":1}, //5，第六列空，跳过
-					{"ref_name":"模式","type":"hex","bit_st":9,"bit_len":10,"skip_n":-1}, //7
-					{"ref_name":"调制输出","type":"hex","bit_st":6,"bit_len":1,"skip_n":-1}, //7
-					{"ref_name":"温控","type":"hex","bit_st":15,"bit_len":1} //7
+					{"ref_name":"模式","str_type":"hex","bit_st":9,"bit_len":2,"skip_n":-1}, //7
+					{"ref_name":"输出","str_type":"hex","bit_st":6,"bit_len":1,"skip_n":-1}, //7
+					{"ref_name":"温控","str_type":"hex","bit_st":15,"bit_len":1} //7
 				]
 			},
 			{"col_n":2,"name":"$r","prot_list": //指令结果
@@ -81,15 +81,15 @@
 	[
 		{"name":"开数据","cmd":"s 1\n^x_axis","type":"bt"},
 		{"name":"关数据","cmd":"s 0","type":"bt"},
+		{"name":"","type":"label"},
 		{"name":"温度期望","cmd":"st","type":"bt","suffixname":"tb_exp_T","repeat_T":5},
 		{"name":"tb_exp_T","type":"text","dft":"25"},
 		{"name":"0~35℃","type":"label"},
 		{"name":"标0","refdname":"指令结果","cmd":"cali 0","type":"rpl_bool"},
 		{"name":"","type":"label"},
-		{"name":"","type":"label"},
 		{"name":"温控","refdname":"温控","dft":"开",
 			"cmd":"outc 1","cmdoff":"outc 0","type":"sw","c_span":2},
-		{"name":"调制输出","refdname":"调制输出","dft":"开",
+		{"name":"输出","refdname":"输出","dft":"开",
 			"cmd":"isw 1","cmdoff":"isw 0","type":"sw","c_span":2}
 	],
 	"menu_cmd":

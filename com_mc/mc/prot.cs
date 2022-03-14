@@ -26,19 +26,19 @@ namespace com_mc
 			if (v.ContainsKey("id")) id = (int)v["id"];
 			if (v.ContainsKey("name")) name = (string)v["name"];
 			type = t;
-			if (v.ContainsKey("ref_name"))
+			while(v.ContainsKey("ref_name"))
 			{
 				ref_name = (string)v["ref_name"];
+				if (!p_mcp.para_dict.ContainsKey(ref_name)) break; //引用的参数不对，按没有算
 				ref_para = p_mcp.para_dict[ref_name]; //参数表先于协议加载
+				return;
 			}
-			else //没有引用参数，说明是协议内部结构数据
-			{
-				var tv = new Dictionary<string, object>();
-				tv["type"] = "u64";
-				tv["name"] = "";
-				tv["len"] = 8;
-				ref_para = new ParaValue_Val(tv, DataType.u64); //创建一个内部参数对象
-			}
+			//没有引用参数，说明是协议内部结构数据
+			var tv = new Dictionary<string, object>();
+			tv["type"] = "u64";
+			tv["name"] = "";
+			tv["len"] = 8;
+			ref_para = new ParaValue_Val(tv, DataType.u64); //创建一个内部参数对象
 		}
 		public virtual string[] get_children() { return new string[0]; } //获得本对象的所有子协议域id
 		public abstract void pro(byte[] b, ref int off, int n); //处理数据，输入对象首地址，off：数据起始位置，n:off之后还有多长。
@@ -54,33 +54,20 @@ namespace com_mc
 		public DATA_UNION data = new DATA_UNION(); //被协议域引用的时候可以直接用
 		public int len = 0; //缓存本域的数据长度
 		public int skip_n = 0; //处理完此列后，额外向后跳的字节数（文本行协议是列数）。例如文本行的一列要处理出多个参数，此处可填0。或者需要跳过一列，此处可填2
-		public double pro_k { get; set; } //处理变换kx+b
-		public double pro_b { get; set; } //处理变换kx+b
+		public double pro_k { get; set; } = 1; //处理变换kx+b
+		public double pro_b { get; set; } = 0;//处理变换kx+b
 		public int bit_st { get; set; } = 0; //起始bit
 		public int bit_len { get; set; } = 0; //bit长度，用此配置表示此域为按bit处理
 		public int bit_singed { get; set; } = 0; //是否是有符号数
 		public PD_Node(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
-			if(v.ContainsKey("pro_k")) pro_k = (double)v["pro_k"];
-			if(v.ContainsKey("pro_b")) pro_b = (double)v["pro_b"];
+			if(v.ContainsKey("pro_k")) pro_k = (double)(decimal)v["pro_k"];
+			if(v.ContainsKey("pro_b")) pro_b = (double)(decimal)v["pro_b"];
 			if (v.ContainsKey("bit_st")) bit_st = (int)v["bit_st"]; //默认从0bit开始
 			if (v.ContainsKey("bit_len")) bit_len = (int)v["bit_len"];
 			if (v.ContainsKey("bit_singed")) bit_st = (int)v["bit_singed"]; //默认从0bit开始
 			if (v.ContainsKey("skip_n")) skip_n = (int)v["skip_n"];
-			switch (type)
-			{
-				case DataType.u8: len = 1; break;
-				case DataType.u16: len = 2; break;
-				case DataType.u32: len = 4; break;
-				case DataType.u64: len = 8; break;
-				case DataType.s8: len = 1; break;
-				case DataType.s16: len = 2; break;
-				case DataType.s32: len = 4; break;
-				case DataType.s64: len = 8; break;
-				case DataType.f: len = 4; break;
-				case DataType.df: len = 8; break;
-				default: break;
-			}
+			len = DATA_UNION.get_type_len(type);
 		}
 		//输入二进制值 处理成对应的类型后变换，然后根据输出类型，构造对应的二进制数，若有浮点变整型，需要四舍五入，通过set_val二进制接口传出  
 		public override void pro(byte[] b, ref int off, int n)  //n:off之后还有多长，off：数据起始位置
@@ -194,7 +181,7 @@ namespace com_mc
 		public PD_Switch(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
 			ref_type=v["ref_type"] as string;
-			object[] list = v["prot_map"] as object[];
+			ArrayList list = v["prot_map"] as ArrayList;
 			foreach (var item in list)
 			{
 				var tv = item as Dictionary<string, object>;
@@ -252,7 +239,7 @@ namespace com_mc
 		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议字典
 		public PD_Obj(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
-			object[] list=v["prot_list"] as object[];
+			ArrayList list =v["prot_list"] as ArrayList;
 			foreach (var item in list)
 			{
 				var tv = item as Dictionary<string, object>;
@@ -284,7 +271,7 @@ namespace com_mc
 		public List<PD_Str> prot_list = new List<PD_Str>(); //一系列顺序的协议域
 		public PD_LineObj(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t, pd)
 		{
-			object[] list = v["prot_list"] as object[];
+			ArrayList list = v["prot_list"] as ArrayList;
 			foreach (var item in list)
 			{
 				var tv = item as Dictionary<string, object>;
@@ -348,7 +335,7 @@ namespace com_mc
 			//文本行协议
 			if(v.ContainsKey("textline_dict"))
 			{
-				object[] list = v["textline_dict"] as object[];
+				ArrayList list = v["textline_dict"] as ArrayList;
 				foreach (var item in list)
 				{
 					var tv = item as Dictionary<string, object>;
@@ -367,7 +354,7 @@ namespace com_mc
 			textline_dict.Clear();
 			para_dict.Clear();
 		}
-		public void pro(byte[] b,ref int off,int n) //处理二进制包，缓存，偏移，长度（off之后）
+		public void pro(byte[] b,int off,int n) //处理二进制包，缓存，偏移，长度（off之后）
 		{
 			prot_root.pro(b,ref off,n);
 		}

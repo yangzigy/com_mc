@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -52,14 +52,23 @@ namespace com_mc
 
 			}
 			mc_prot.formJson(config.prot_cfg); //初始化测控体系
-			//将参数列表复制到显示参数表
-			foreach (var item in mc_prot.para_dict)
+			foreach (var item in mc_prot.para_dict) //将参数列表复制到显示参数表
 			{
 				DataDes td=new DataDes(item.Value);
 				td.name = item.Key;
-				if (config.prot_cfg.ContainsKey("is_cv")) td.is_cv = ((int)config.prot_cfg["is_cv"])!=0;
-				if (config.prot_cfg.ContainsKey("is_dis")) td.is_dis = ((int)config.prot_cfg["is_dis"])!=0;
 				dset[item.Key] = td;
+			}
+			if (config.prot_cfg.ContainsKey("para_dict")) //重新解析参数字典的配置，拿出显示的配置
+			{
+				ArrayList list = config.prot_cfg["para_dict"] as ArrayList;
+				foreach (var item in list)
+				{
+					var tv = item as Dictionary<string, object>;
+					string s = tv["name"] as string;
+					DataDes td = dset[s];
+					if (tv.ContainsKey("is_cv")) td.is_cv = ((int)tv["is_cv"]) != 0;
+					if (tv.ContainsKey("is_dis")) td.is_dis = ((int)tv["is_dis"]) != 0;
+				}
 			}
 #region 传感参数部分
 			chart1 = mainFGrid.Child as Chart;
@@ -365,7 +374,7 @@ namespace com_mc
 		}
 		void rx_pack(byte[] b, int off, int n) //接收一包数据
 		{
-
+			mc_prot.pro(b, off, n);
 		}
 		int rx_Byte_1_s = 0; //每秒接收的字节数
 		void rx_fun(byte[] buf) //数据源接收回调函数

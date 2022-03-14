@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Web.Script.Serialization;
-using System.Windows;
+using System.Collections;
 using System.Runtime.InteropServices;
 
 namespace com_mc
@@ -22,13 +22,14 @@ namespace com_mc
 		public int id { get; set; }=0; //参数的唯一id，在C程序中使用
 		public DataType type { get; set; } = DataType.df; //参数类型,默认是double
 		public int len { get; set; } = 0; //数据长度
-		public string[] str_tab { get; set; } = new string[0];//显示字符串表。可用于bool型指令，0为失败字符，1为成果字符
+		public List<string> str_tab { get; set; } = new List<string>();//显示字符串表。可用于bool型指令，0为失败字符，1为成果字符
 		public ParaValue(Dictionary<string, object> v, DataType t) //从json构造对象
 		{ //这里遇到错误就throw出去，不想throw的才判断
 			if(v.ContainsKey("id")) id = (int)v["id"];
 			name=(string)v["name"];
 			type = t;
-			len = (int)v["len"];
+			if (v.ContainsKey("len")) len = (int)v["len"];
+			else len = DATA_UNION.get_type_len(type);
 		}
 		public abstract int set_val(byte[] b, int off, int n); //从数据设定值,返回使用的字节数
 		public abstract int get_val(byte[] b, int off, int n); //向数据缓存中复制数据,返回使用的字节数
@@ -108,16 +109,21 @@ namespace com_mc
 		public ParaValue_Val(Dictionary<string, object> v, DataType t) : base(v, t)
 		{
 			if(v.ContainsKey("point_n")) point_n = (int)v["point_n"];
-			if(v.ContainsKey("str_tab")) str_tab = v["str_tab"] as string[];
+			if (v.ContainsKey("str_tab"))
+			{
+				var ar = v["str_tab"] as ArrayList;
+				for(int i=0;i<ar.Count;i++) str_tab.Add(ar[i] as string);
+				//str_tab = v["str_tab"] as string[];
+			}
 		}
 		public DATA_UNION data=new DATA_UNION();
 		public int point_n { get; set; } = 2;//小数位数
 		public override string ToString() //默认显示函数
 		{
 			string s = "";
-			if(str_tab.Length > 0) //若有字符表，要用字符显示。要求数据类型是整数
+			if(str_tab.Count > 0) //若有字符表，要用字符显示。要求数据类型是整数
 			{
-				if(data.ds32<str_tab.Length)
+				if(data.ds32<str_tab.Count)
 				{
 					return str_tab[data.ds32];
 				}
@@ -155,7 +161,6 @@ namespace com_mc
 	[StructLayout(LayoutKind.Explicit)]
 	public struct DATA_UNION //各种值类型
 	{
-		
 		//[MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
 		[FieldOffset(0)] public byte du8; 
 		[FieldOffset(1)] public byte du8_1; 
@@ -227,7 +232,23 @@ namespace com_mc
 			}
 			return i; //返回使用的字节数
 		}
-
+		static public int get_type_len(DataType t)
+		{
+			switch (t)
+			{
+				case DataType.u8: return 1;
+				case DataType.u16: return 2;
+				case DataType.u32: return 4;
+				case DataType.u64: return 8;
+				case DataType.s8: return 1;
+				case DataType.s16: return 2;
+				case DataType.s32: return 4;
+				case DataType.s64: return 8;
+				case DataType.f: return 4;
+				case DataType.df: return 8;
+				default: return 0;
+			}
+		}
 		public double get_double(DataType t)
 		{
 			switch (t)

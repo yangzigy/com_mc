@@ -25,7 +25,6 @@ namespace com_mc
 	public partial class MainWindow : Window
 	{
 		public ConfigList cfglist = null;
-		public Config config = new Config();     // 存放系统设置
 		System.Windows.Forms.DataVisualization.Charting.Chart chart1;
 		public Timer timer10Hz;
 		public Replay_Window rpl_win = new Replay_Window(); //回放对话框
@@ -38,7 +37,7 @@ namespace com_mc
 			var domain = AppDomain.CurrentDomain;
 			domain.UnhandledException += (sender, targs) =>
 			{
-				Console.WriteLine(config.ToString());
+				Console.WriteLine(Config.config.ToString());
 				var ex = targs.ExceptionObject as Exception;
 				if (ex != null)
 				{
@@ -74,7 +73,7 @@ namespace com_mc
 			{
 				Dispatcher.Invoke((EventHandler)delegate (object sd, EventArgs ea)
 				{
-					foreach (var item in com_mc.dset) //刷新每个参数
+					foreach (var item in commc.dset) //刷新每个参数
 					{
 						item.Value.update_dis(item.Value); //周期刷新，输入名称给指令对象索引，本身只需更新刷新计数
 					}
@@ -97,7 +96,7 @@ namespace com_mc
 					{
 						foreach (var item in series_map) //遍历所有曲线，看是否添加到控件
 						{
-							var mco = com_mc.dset[item.Key];  //测控对象
+							var mco = commc.dset[item.Key];  //测控对象
 							mco.is_cv = (bool)(checkb_map[item.Key].IsChecked); //设置曲线标志
 							bool is_display = chart1.Series.Contains(item.Value); //是否已经显示了曲线
 							if (mco.is_cv) //若要显示曲线
@@ -123,7 +122,7 @@ namespace com_mc
 		}
 		void ini_by_config(string fname) //从配置文件初始化程序，输入配置文件名
 		{
-			config = Config.load(fname);
+			Config.config = Config.load(fname);
 			//首先清除上一个配置
 			bt_open_datasrc.Content = "关闭端口";
 			btnConnCom_Click(bt_open_datasrc, null); //关闭数据源
@@ -131,16 +130,12 @@ namespace com_mc
 			if(rpl_win.rplobj!=null) rpl_win.rplobj.close();
 			rpl_win.rplobj = null;
 			//开始配置
-			//把插件目录的位置变为绝对路径
-			if (config.plugin_path.IndexOf(":") <= 0 && (!config.plugin_path.StartsWith("/"))) //若不是绝对路径
-			{ //变为绝对路径
-				FileInfo fi = new FileInfo(fname);
-				config.plugin_path=fi.DirectoryName+"/"+ config.plugin_path;
-			}
+			Config.configPath = fname; //记录配置文件名
+			Config.config.plugin_path=Tool.relPath_2_abs(fname, Config.config.plugin_path);//把插件目录的位置变为绝对路径
 			//加载数据源
-			if (config.data_src != null)
+			if (Config.config.data_src != null)
 			{
-				foreach (var item in config.data_src) //对于每一种配置的数据源
+				foreach (var item in Config.config.data_src) //对于每一种配置的数据源
 				{
 					var ds = DataSrc.factory(item, rx_fun);
 					DataSrc.dslist.Add(ds);
@@ -151,17 +146,20 @@ namespace com_mc
 			rpl_win.rplobj = DataSrc.factory(td, rx_fun) as DataSrc_replay; //记录回放对象
 			DataSrc.dslist.Add(rpl_win.rplobj);
 			rpl_win.rplobj.open_cb = () => bt_replay_dlg_Click(null, null);
+			td["type"] = "file";
+			var fo = DataSrc.factory(td, rx_fun) as DataSrc_file; //文件输入对象
+			DataSrc.dslist.Add(fo);
 
-			Title = config.title_str;
+			Title = Config.config.title_str;
 			// 获取COM口列表
 			bt_refresh_uart_Click(null, null);
-			if (config.mv_w != 0) Width = config.mv_w;
-			if (config.mv_h != 0) Height = config.mv_h;
+			if (Config.config.mv_w != 0) Width = Config.config.mv_w;
+			if (Config.config.mv_h != 0) Height = Config.config.mv_h;
 			//加入配置
-			CCmd_Button.bt_margin_len = config.bt_margin;
-			CCmd_Button.ctrl_cols = config.ctrl_cols;
-			CCmd_Button.cmds = com_mc.cmds;
-			CCmd_Button.dset = com_mc.dset;
+			CCmd_Button.bt_margin_len = Config.config.bt_margin;
+			CCmd_Button.ctrl_cols = Config.config.ctrl_cols;
+			CCmd_Button.cmds = commc.cmds;
+			CCmd_Button.dset = commc.dset;
 			CCmd_Button.send_cmd_str = send_cmd_str;
 
 			mc_ini(); //内部先清除上一个配置
@@ -247,7 +245,7 @@ namespace com_mc
 				}
 			}
 			clear_data(); //首先清空数据
-			Title= config.title_str+":"+ ofd.FileName;
+			Title= Config.config.title_str+":"+ ofd.FileName;
 			for (int i = 1; i < lines.Length; i++)
 			{
 				tags = lines[i].Split(",".ToCharArray(), StringSplitOptions.None); //要带着空位
@@ -286,13 +284,13 @@ namespace com_mc
 					string ds_name = cb_datasrc.Text;
 					DataSrc.cur_ds = ds_tab[ds_name];
 					DataSrc.cur_ds.open(ds_name);
-					Title = config.title_str + ":" + cb_datasrc.Text;
+					Title = Config.config.title_str + ":" + cb_datasrc.Text;
 					btn.Content = "关闭端口";
 				}
 				else
 				{
 					btn.Content = "打开端口";
-					DataSrc.cur_ds.close();
+					if(DataSrc.cur_ds!=null) DataSrc.cur_ds.close();
 				}
 			}
 			catch
@@ -372,7 +370,7 @@ namespace com_mc
 			curv_x_min = int.MaxValue; curv_y_min = int.MaxValue;
 			foreach (var item in series_map) //遍历所有曲线，找极值
 			{
-				if (com_mc.dset[item.Key].is_cv == false) continue; //不显示的不管
+				if (commc.dset[item.Key].is_cv == false) continue; //不显示的不管
 				foreach (var p in item.Value.Points)
 				{
 					if (p.XValue > curv_x_max) curv_x_max = p.XValue;
@@ -421,7 +419,7 @@ namespace com_mc
 						break;
 					}
 				}
-				var tm = com_mc.dset[item.Value.Name]; //测控数据对象
+				var tm = commc.dset[item.Value.Name]; //测控数据对象
 				item.Value.LegendText = tm.name + ":" +
 					(double.IsNaN(d) ? "null" : d.ToString(string.Format("F{0}", (tm.val as ParaValue_Val).point_n)));
 			}

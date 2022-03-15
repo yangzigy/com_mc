@@ -35,7 +35,8 @@ namespace com_mc
 		public abstract int get_val(byte[] b, int off, int n); //向数据缓存中复制数据,返回使用的字节数
 
 		public delegate void CB(ParaValue pv);
-		public CB update_cb=null; //数据接收回调
+		static public void void_cb(ParaValue pv) { }
+		public CB update_cb= void_cb; //数据接收回调
 
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 		public static ParaValue factory(Dictionary<string, object> v) //构建工厂

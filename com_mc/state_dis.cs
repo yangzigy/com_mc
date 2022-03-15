@@ -26,18 +26,18 @@ namespace com_mc
 		static public MainWindow mw;
 		public Dictionary<string, CCmd_Button> cmd_ctrl_dict = new Dictionary<string, CCmd_Button>(); //控制控件，用于轮询
 		
-		public Com_MC com_mc=new Com_MC(); //本程序的测控总体
-
-		LogFile rec_file = new LogFile();
-		object[] invokeobj=new object[2];
-		Dictionary<string, Series> series_map=new Dictionary<string, Series>();
-		Dictionary<string, CheckBox> checkb_map = new Dictionary<string, CheckBox>();
-		long st_ms= DateTime.Now.Ticks/10000; //曲线起始ms
-		long x_tick=0; //x轴数值
-		string x_axis_id=""; //x轴的索引变量名，空则使用时间
-		int is_first=1;
+		public Com_MC commc=new Com_MC(); //本程序的测控总体
+		
+		public LogFile rec_file = new LogFile();
+		public object[] invokeobj=new object[2];
+		public Dictionary<string, Series> series_map=new Dictionary<string, Series>();
+		public Dictionary<string, CheckBox> checkb_map = new Dictionary<string, CheckBox>();
+		public long st_ms= DateTime.Now.Ticks/10000; //曲线起始ms
+		public long x_tick=0; //x轴数值
+		public string x_axis_id=""; //x轴的索引变量名，空则使用时间
+		public int is_first =1;
 		public Timer threadTimer = null; //ui线程定时器
-		void state_dis_ini()
+		public void state_dis_ini()
 		{
 			rec_file.ts_fmt="mmss.fff	"; //用于时间戳的时间格式，回放约定的格式
 			mw = this;
@@ -47,14 +47,14 @@ namespace com_mc
 		public void mc_ini() //测控界面初始化
 		{
 			deinit(); //先去除初始化
-			com_mc.ini(config.prot_cfg); //测控后台初始化
+			commc.ini(Config.config.prot_cfg); //测控后台初始化
 #region 传感参数部分
 			chart1 = mainFGrid.Child as Chart;
 			chart1.Legends[0].DockedToChartArea = "ChartArea1";
 			chart1.Legends[0].BackColor = System.Drawing.Color.Transparent;
 			//从配置中加载参数
 			chart1.Series.Clear();
-			foreach (var item in com_mc.dset)
+			foreach (var item in commc.dset)
 			{
 				var ds = item.Value;
 				ds.update_cb = tn => { ds.update_times = 10; };//数据更新回调函数
@@ -104,7 +104,7 @@ namespace com_mc
 							var pv = (ParaValue_Val)dd.val;
 							double d = pv.get_double();
 							if (Math.Abs(d) >= (double)Decimal.MaxValue) throw new Exception("");
-							if (x_axis_id != "" && com_mc.dset.ContainsKey(x_axis_id)) //若有索引列
+							if (x_axis_id != "" && commc.dset.ContainsKey(x_axis_id)) //若有索引列
 							{
 								if (tmpserial.Points.Count > 0 &&
 									Math.Abs(tmpserial.Points[tmpserial.Points.Count - 1].XValue - x_tick) < 0.1f) //跟上次一样
@@ -118,7 +118,7 @@ namespace com_mc
 							{
 								tmpserial.Points.AddXY(ticks0 - st_ms, d);
 							}
-							if (tmpserial.Points.Count >= config.dis_data_len)
+							if (tmpserial.Points.Count >= Config.config.dis_data_len)
 							{
 								tmpserial.Points.RemoveAt(0);
 							}
@@ -148,9 +148,9 @@ namespace com_mc
 			chart1.ChartAreas[0].Axes[1].Minimum = 20;
 			//chart1.Series[0].Points.Add(0);
 			//chart1.Series[0].Points.Add(0);
-			if (config.svar_ui_h != 0) //传感变量区域高度
+			if (Config.config.svar_ui_h != 0) //传感变量区域高度
 			{
-				row_para_dis.Height = new GridLength(config.svar_ui_h);
+				row_para_dis.Height = new GridLength(Config.config.svar_ui_h);
 			}
 			else row_para_dis.Height = new GridLength((sp_measure.Children.Count + 4) / 5 * 20 + 27);
 			//sp_measure.Height = row_para_dis.Height.Value;
@@ -158,11 +158,11 @@ namespace com_mc
 #region 指令ui初始化
 			CCmd_para.i_on = new BitmapImage(new Uri("pack://application:,,,/pic/refresh_on.jpg"));
 			CCmd_para.i_off = new BitmapImage(new Uri("pack://application:,,,/pic/refresh_off.jpg"));
-			if (config.cmd_ui_w > 0) //指令区域宽度
+			if (Config.config.cmd_ui_w > 0) //指令区域宽度
 			{
-				colD_cmd_ui.Width = new GridLength(config.cmd_ui_w);
+				colD_cmd_ui.Width = new GridLength(Config.config.cmd_ui_w);
 			}
-			if (config.ctrl_cols == 3) //若是3列排布的,把默认控制按钮的位置改一下
+			if (Config.config.ctrl_cols == 3) //若是3列排布的,把默认控制按钮的位置改一下
 			{
 				//通用控制按钮加一列
 				grid_ctrl_bts.ColumnDefinitions.Add(new ColumnDefinition());
@@ -206,13 +206,13 @@ namespace com_mc
 				System.Windows.Controls.Grid.SetColumnSpan(bd_dft_and_cfg, 2);
 			}
 			int i = 0, j = 0; //i行，j列
-			foreach (var item in config.cmds)
+			foreach (var item in Config.config.cmds)
 			{ //本来有一行
-				com_mc.cmds[item.name] = item; //加入指令列表
+				commc.cmds[item.name] = item; //加入指令列表
 				int rownu = para_grid.RowDefinitions.Count - 1; //添加一行
 				var v = CCmd_Button.bt_factory(item.type, item, para_grid);
 				v.ini(ref i, ref j);
-				if (j >= config.ctrl_cols)
+				if (j >= Config.config.ctrl_cols)
 				{
 					para_grid.RowDefinitions.Add(new RowDefinition());
 					i++; j = 0;
@@ -222,51 +222,24 @@ namespace com_mc
 #endregion
 #region 菜单指令
 			i = 0; j = 0;
-			mi_menu_cmd.Header = config.menu_name;
-			foreach (var item in config.menu_cmd)
+			mi_menu_cmd.Header = Config.config.menu_name;
+			foreach (var item in Config.config.menu_cmd)
 			{ //本来有一行
-				com_mc.cmds[item.name] = item;
+				commc.cmds[item.name] = item;
 				int rownu = grid_menu_cmd.RowDefinitions.Count - 1; //添加一行
 				var v = CCmd_Button.bt_factory(item.type, item, grid_menu_cmd);
 				v.ini(ref i, ref j);
-				if (j >= config.menu_cols)
+				if (j >= Config.config.menu_cols)
 				{
 					grid_menu_cmd.RowDefinitions.Add(new RowDefinition());
 					i++; j = 0;
 				}
 			}
 #endregion
-			//_so_tx_cb = new CM_Plugin_Interface.DllcallBack(send_data); //构造不被回收的委托
-			try
-			{
-				FileInfo fi = new FileInfo(config.plugin_path); //已经变成绝对路径了
-				Assembly assembly = Assembly.LoadFrom(fi.FullName); //重复加载没事
-				string fname = "com_mc." + fi.Name.Replace(fi.Extension, ""); //定义：插件dll中的类名是文件名
-				foreach (var t in assembly.GetExportedTypes())
-				{
-					if (t.FullName == fname)
-					{
-						pro_obj = Activator.CreateInstance(t) as CM_Plugin_Interface;
-					}
-				}
-				if (pro_obj == null) throw new Exception();
-			}
-			catch
-			{
-				pro_obj = new CM_Plugin_Interface();
-			}
-			pro_obj.ini(send_data, rx_line, rx_pack); //无插件的情况，发送函数、接收函数
-			pro_obj.fromJson(config.syn_pro);
-			if (config.encoding == "utf8") pro_obj.cur_encoding = Encoding.UTF8; //根据配置变换编码
-			//配置初始化指令
-			foreach (var item in config.ctrl_cmds)
-			{
-				ctrl_cmd(item);
-			}
 		}
 		public void deinit() //去除初始化
 		{
-			com_mc.clear();
+			commc.clear();
 			checkb_map.Clear();
 			series_map.Clear();
 
@@ -290,12 +263,11 @@ namespace com_mc
 			grid_menu_cmd.Children.Clear();
 
 		}
-		private void OnTimedEvent(object state) //100Hz
+		public void OnTimedEvent(object state) //100Hz
 		{
-			if(pro_obj!=null) pro_obj.so_poll_100();
+			if(commc.pro_obj!=null) commc.pro_obj.so_poll_100();
 		}
 #region 串口
-		CM_Plugin_Interface pro_obj=null; //无插件时的处理对象
 		public void send_cmd_str(string s) //向设备发送文本指令
 		{ //支持多条指令同时发送
 			string[] vs = s.Split("\n".ToCharArray(), StringSplitOptions.None);
@@ -304,15 +276,15 @@ namespace com_mc
 				//首先看看是不是软件指令
 				if(ctrl_cmd(vs[i])) continue;
 				//发送
-				pro_obj.send_cmd(vs[i]);
+				commc.pro_obj.send_cmd(vs[i]);
 			}
 		}
-		void send_data(string s) //字符串版的发送函数
+		public void send_data(string s) //字符串版的发送函数
 		{
 			var b=Encoding.UTF8.GetBytes(s+"\n");
 			send_data(b);
 		}
-		void send_data(byte[] b) //向设备发送数据
+		public void send_data(byte[] b) //向设备发送数据
 		{
 			try
 			{
@@ -323,7 +295,7 @@ namespace com_mc
 				//MessageBox.Show(ee.Message);
 			}
 		}
-		void rx_line(string s) //接收一行数据，必是符合通用文本行协议的
+		public void rx_line(string s) //接收一行数据，必是符合通用文本行协议的
 		{
 			s = s.Trim();
 			if (s == "") return;
@@ -339,7 +311,7 @@ namespace com_mc
 					if (ctrl_cmd(s)) return;
 					//给传感变量刷新
 					ticks0 = DateTime.Now.Ticks / 10000;
-					com_mc.mc_prot.pro_line(s);
+					commc.mc_prot.pro_line(s);
 				}
 				catch (Exception ee)
 				{
@@ -347,19 +319,19 @@ namespace com_mc
 				}
 			}, invokeobj);
 		}
-		void rx_pack(byte[] b, int off, int n) //接收一包数据
+		public void rx_pack(byte[] b, int off, int n) //接收一包数据
 		{
-			com_mc.mc_prot.pro(b, off, n);
+			commc.mc_prot.pro(b, off, n);
 		}
 		int rx_Byte_1_s = 0; //每秒接收的字节数
-		void rx_fun(byte[] buf) //数据源接收回调函数
+		public void rx_fun(byte[] buf) //数据源接收回调函数
 		{
 			rx_Byte_1_s += buf.Length;
-			pro_obj.rx_fun(buf);
+			commc.pro_obj.rx_fun(buf);
 		}
-		long ticks0= DateTime.Now.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
+		public long ticks0 = DateTime.Now.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
 #endregion
-		bool ctrl_cmd(string s) //返回是否是控制指令
+		public bool ctrl_cmd(string s) //返回是否是控制指令
 		{
 			bool r=false;
 			if(s.Length<=0 || s[0]!='^') return r;

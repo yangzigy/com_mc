@@ -12,21 +12,8 @@ namespace com_mc
 {
 	public class Config
 	{
-		public Config()
-		{
-			title_str = "通用上位机";
-			dis_data_len = 1000;
-			ctrl_cols = 2; //控制按钮默认2列
-			svar_ui_h = 0; //传感变量显示区高度，为0则为自动
-			cmd_ui_w = 0; //指令区域宽度
-			mv_w = 0;
-			mv_h = 0;
-			bt_margin=2; //按钮间距
-			cmds = new List<CmdDes>();
-			menu_cols = 2;
-			ctrl_cmds = new List<string>();
-			menu_cmd = new List<CmdDes>();
-		}
+		public static Config config = new Config();     // 存放系统设置
+		public static string configPath =AppDomain.CurrentDomain.BaseDirectory;
 		public static Config load(string s)
 		{
 			try
@@ -54,27 +41,27 @@ namespace com_mc
 		}
 //配置内容
 		//显示控制
-		public string title_str { get; set; } //软件标题
-		public int dis_data_len { get; set; } //显示数据长度
-		public int ctrl_cols { get; set; } //控制按钮的列数
-		public int svar_ui_h { get; set; } //传感变量区域高度
-		public int cmd_ui_w { get; set; } //指令区域宽度
-		public int mv_w { get; set; } //主窗体宽
-		public int mv_h { get; set; } //主窗体高
-		public int bt_margin { get; set; } //按钮的间距
+		public string title_str { get; set; } = "通用上位机"; //软件标题
+		public int dis_data_len { get; set; } = 1000; //显示数据长度
+		public int ctrl_cols { get; set; } = 2; //控制按钮默认2列
+		public int svar_ui_h { get; set; } = 0; //传感变量显示区高度，为0则为自动
+		public int cmd_ui_w { get; set; } = 0; //指令区域宽度
+		public int mv_w { get; set; } = 0; //主窗体宽
+		public int mv_h { get; set; } = 0;//主窗体高
+		public int bt_margin { get; set; } = 2; //按钮间距
 		public Dictionary<string, object> syn_pro { get; set; } = new Dictionary<string, object>(); //帧同步处理
 																									//数据结构
 		public Dictionary<string, object> prot_cfg { get; set; } = new Dictionary<string, object>(); //通用测控对象
-		public List<CmdDes> cmds { get; set; } //指令列表
+		public List<CmdDes> cmds { get; set; } = new List<CmdDes>(); //指令列表
 		//菜单
-		public int menu_cols { get; set; } //菜单控制按钮的列数
-		public List<string> ctrl_cmds { get; set; } //界面控制的指令,程序初始化的时候直接执行
-		public List<CmdDes> menu_cmd { get; set; } //在菜单栏的指令
-		public string menu_name { get; set; } //菜单名
-		public string encoding { get; set; } //编码名称（dft为默认编码）
-		public string plugin_path { get; set; } //插件路径，相对此配置文件
+		public int menu_cols { get; set; } = 2;//菜单控制按钮的列数
+		public List<string> ctrl_cmds { get; set; } = new List<string>();//界面控制的指令,程序初始化的时候直接执行
+		public List<CmdDes> menu_cmd { get; set; } = new List<CmdDes>();//在菜单栏的指令
+		public string menu_name { get; set; } = "";//菜单名
+		public string encoding { get; set; } = "utf-8";//编码名称（dft为默认编码）
+		public string plugin_path { get; set; } = "";//插件路径，相对此配置文件
 		//数据输入
-		public List<Dictionary<string, object>> data_src { get; set; }
+		public List<Dictionary<string, object>> data_src { get; set; }=new List<Dictionary<string, object>>();
 	}
 	public class ConfigList //配置列表
 	{

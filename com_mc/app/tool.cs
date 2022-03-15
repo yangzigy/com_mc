@@ -252,7 +252,7 @@ namespace cslib
 			return (sbyte)(d * a);
 		}
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
-		static public T load_json_from_file<T>(string fn)
+		static public T load_json_from_file<T>(string fn) //从文件中加载json
 		{
 			StreamReader sr = new StreamReader(fn);
 			string sbuf = sr.ReadToEnd();
@@ -301,6 +301,15 @@ namespace cslib
 			{
 				arrold.AddRange(arrv);
 			}
+		}
+		static public string relPath_2_abs(string basefn,string fn) //相对路径转绝对路径,输入基准路径、待转换路径
+		{
+			if (fn.IndexOf(":") <= 0 && (!fn.StartsWith("/"))) //若不是绝对路径
+			{ //变为绝对路径
+				FileInfo fi = new FileInfo(basefn);
+				fn = fi.DirectoryName + "/" + fn;
+			}
+			return fn;
 		}
 		static public uint get_UTC() //获取当前utc时间
 		{
@@ -467,7 +476,10 @@ namespace cslib
 		abstract public void open(string s); //打开数据源，输入以什么名称打开的
 		virtual public void close()
 		{ }
-		abstract public string[] get_names(); //获取本数据源的名称，串口号等
+		virtual public string[] get_names() //获取本数据源的名称，串口号等
+		{
+			return new string[] { name };
+		}
 		virtual public void send_data(byte[] b) //向设备发送数据
 		{ }
 	}
@@ -554,10 +566,6 @@ namespace cslib
 			is_open = false;
 			if (udp!=null) udp.Close();
 			udp = null;
-		}
-		public override string[] get_names()
-		{
-			return new string[] { name };
 		}
 		public void send_data(string ip, int port, byte[] b)
 		{

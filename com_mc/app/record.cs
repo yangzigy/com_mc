@@ -116,10 +116,6 @@ namespace cslib
 			stop();
 			if (close_cb != null) close_cb(); //调用事件
 		}
-		public override string[] get_names()
-		{
-			return new string[] { name };
-		}
 		public void resume() //恢复
 		{
 			if(state==1) //若暂停了
@@ -135,6 +131,21 @@ namespace cslib
 		public void stop() //终止
 		{
 			state = 0;
+		}
+	}
+	public class DataSrc_file : DataSrc //回放模式
+	{
+		public DataSrc_file(RX_CB cb) : base(cb) { name = "文件"; }
+		public override void open(string s)
+		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.txt|*.txt";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			FileStream sw = new FileStream(ofd.FileName,FileMode.Open);
+			byte[] buf = new byte[sw.Length];
+			sw.Read(buf,0,buf.Length);
+			sw.Close();
+			rx_event(buf);
 		}
 	}
 }

@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Web.Script.Serialization;
 using System.IO;
-using System.Windows;
+using cslib;
+using System.Collections;
 
 namespace com_mc
 {
@@ -71,6 +72,57 @@ namespace com_mc
 			suffixname = "";
 			type =CmdType.bt;
 			dft="";
+		}
+	}
+	//测控总体
+	public class Com_MC //通用测控类
+	{
+		public Dictionary<string, DataDes> dset { get; set; } = new Dictionary<string, DataDes>(); //用于显示参数的数据列表,key为数据项的名称
+		public Dictionary<string, CmdDes> cmds { get; set; } = new Dictionary<string, CmdDes>(); //指令列表,key为数据项的名称
+		public MC_Prot mc_prot = new MC_Prot(); //测控架构
+		public void ini(Dictionary<string, object> v) //初始化
+		{
+			//判断协议配置的方式
+			if (v.ContainsKey("filename")) //若是从文件加载的
+			{
+				try
+				{
+					string s = v["filename"] as string;
+					object t = Tool.load_json_from_file<Dictionary<string, object>>(s);
+					Tool.dictinary_update(ref t, v); //用软件配置更新协议配置文件里加载的配置
+					v = t as Dictionary<string, object>;
+				}
+				catch (Exception e)
+				{
+					//MessageBox.Show(e.ToString());
+				}
+			}
+			mc_prot.formJson(v); //初始化测控体系
+			foreach (var item in mc_prot.para_dict) //将参数列表复制到显示参数表
+			{
+				DataDes td = new DataDes(item.Value);
+				td.name = item.Key;
+				dset[item.Key] = td;
+			}
+			if (v.ContainsKey("para_dict")) //重新解析参数字典的配置，拿出显示的配置
+			{
+				ArrayList list = v["para_dict"] as ArrayList;
+				foreach (var item in list)
+				{
+					var tv = item as Dictionary<string, object>;
+					string s = tv["name"] as string;
+					DataDes td = dset[s];
+					if (tv.ContainsKey("is_cv")) td.is_cv = ((int)tv["is_cv"]) != 0;
+					if (tv.ContainsKey("is_dis")) td.is_dis = ((int)tv["is_dis"]) != 0;
+				}
+			}
+			/////////////////////////////////////////////////////////////////////
+			
+		}
+		public void clear()
+		{
+			dset.Clear();
+			cmds.Clear();
 		}
 	}
 }

@@ -20,30 +20,34 @@
 	"mv_h":760, //主窗体默认高度
 	"bt_margin":6, //按钮间距
 	"ctrl_cmds":["^x_axis"], //软件开启后的显示指令
-	"plugin_path":"./CM_Plugin.dll",
-	"dset":
-	[
-		{ "name":"浓度","prot_l":9,"prot_off":0, "is_cv":"true"},
-		{ "name":"信噪比","prot_l":9,"prot_off":2},
-		{ "name":"信号强度","prot_l":9,"prot_off":3},
-		{ "name":"期望温度","prot_l":9,"prot_off":4},
-		//{ "name":"温度","prot_l":9,"prot_off":5, "is_cv":"true"},
-		{ "name":"板温","prot_l":9,"prot_off":6},
-		{ "name":"采样值","prot_l":1,"prot_off":0, "is_cv":"true"},
-		{ "name":"模式","dtype":"str","prot_l":9,"prot_off":8,
-			"stype":"hex","pro_method":"pro_bit","pro_bit":9,"end_bit":10,
-			"str_tab":["控温","找峰","测量","调试"]},
-		{ "name":"温控","dtype":"str","prot_l":9,"prot_off":8,"is_dis":"false",
-			"stype":"hex","pro_method":"pro_bit","pro_bit":15},
-		{ "name":"调制输出","dtype":"str","prot_l":9,"prot_off":8,"is_dis":"false",
-			"stype":"hex","pro_method":"pro_bit","pro_bit":6},
-		{ "name":"指令结果","dtype":"str","prot_name":"$r","prot_l":2,"prot_off":1,
-			"stype":"str","str_tab":["err","OK"]},
-		{"name":"i_off","prot_l":2,"prot_name":"$@:3:1:0:16","prot_off":1,"pro_k":0.1,"is_dis":"false"},
-		//参数
-		{"name":"uid","prot_l":2,"prot_name":"$@:3:2:0:0","prot_off":1,"is_dis":"false"},
-		{"name":"tpid_p","prot_l":2,"prot_name":"$@:3:2:6:0","prot_off":1,"is_dis":"false"}
-	],
+	"plugin_path":"./cm_plugin.dll",
+	"syn_pro": //帧同步配置,不配置默认文本
+	{
+		"syn_bin":
+		{
+			"syn":["0xaa"], "check_type":"crc16", //同步字0xaa,尾部crc16校验
+			"pre_offset":1, "len_dom_off":1, //第2个字节能够确定包长
+			"len_dom": { "type":"u8" }, //确定包长的数据域为u8型
+		},
+		"syn_line": {} //定义了文本协议，则文本、二进制兼容
+	},
+	"prot_cfg": //协议配置
+	{
+		"filename":"./prot_aa.txt", //协议配置文件，相对本文件的位置
+		"para_dict": //增量配置
+		[
+			{ "name":"指令结果","type":"u8","str_tab":["err","OK"]} //覆盖文件中的配置
+		],
+		"textline_dict": //新增 文本协议
+		[
+			{"col_n":2,"name":"$@:3:1:0:16","prot_list": //电流偏置
+				[
+					{"ref_name":"空"},
+					{"ref_name":"i_off","pro_k":0.1}
+				]
+			}
+		]
+	},
 	"cmds":
 	[
 		{"name":"开数据","cmd":"s 1\n^x_axis","type":"bt"},
@@ -62,11 +66,5 @@
 			"cmd":"outc 1","cmdoff":"outc 0","type":"sw","c_span":2},
 		{"name":"调制输出","refdname":"调制输出","dft":"开",
 			"cmd":"isw 1","cmdoff":"isw 0","type":"sw","c_span":2}
-	],
-	"menu_cmd":
-	[
-		{"name":"tpid_p","cmd":"@ 1,2,0,0,","type":"bt","suffixname":"tb_uid"},
-		{"name":"tb_tpid_p","type":"para","dft":"80","cmd":"@ 0,2,0,6,0","refdname":"tpid_p"}
-	],
-	"menu_name":"参数"
+	]
 }

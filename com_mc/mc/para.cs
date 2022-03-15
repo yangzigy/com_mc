@@ -92,6 +92,7 @@ namespace com_mc
 			{
 				data[i] = b[off]; off++;
 			}
+			update_cb(this);
 			return i; //返回使用的字节数
 		}
 		public override int get_val(byte[] b, int off, int n) //向数据缓存中复制数据
@@ -147,11 +148,37 @@ namespace com_mc
 		}
 		public override int set_val(byte[] b, int off, int n) //从数据设定值
 		{
-			return data.set_val(b, off, n);
+			int r = data.set_val(b, off, n);
+			update_cb(this);
+			return r;
 		}
 		public override int get_val(byte[] b, int off, int n) //向数据缓存中复制数据
 		{
 			return data.get_val(b, off, n);
+		}
+		public void set_val(double d)
+		{
+			switch (type) //根据输出的类型给输出
+			{
+				case DataType.f: data.f = (float)d; break;
+				case DataType.df: data.df = d; break;
+				default:
+					data.ds64 = ProtDom.double_2_s64(d); //转换成整数，四舍五入
+					break;
+			}
+			update_cb(this); //需要调参数的回调函数
+		}
+		public void set_val(int i)
+		{
+			switch (type) //根据输出的类型给输出
+			{
+				case DataType.f: data.f = i; break;
+				case DataType.df: data.df = i; break;
+				default:
+					data.ds32 = i; //转换成整数，四舍五入
+					break;
+			}
+			update_cb(this); //需要调参数的回调函数
 		}
 		public double get_double()
 		{

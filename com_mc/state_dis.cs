@@ -16,19 +16,19 @@ using System.Windows.Forms.Integration;
 using System.Threading;
 using System.Windows.Threading;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using cslib;
 
 namespace com_mc
 {
 	public partial class MainWindow : Window
 	{
 		static public MainWindow mw;
-		public Dictionary<string, DataDes> dset { get; set; } = new Dictionary<string, DataDes>(); //用于显示参数的数据列表,key为数据项的名称
-		public Dictionary<string, CmdDes> cmds { get; set; } =new Dictionary<string, CmdDes>(); //指令列表,key为数据项的名称
-		public MC_Prot mc_prot = new MC_Prot(); //测控架构
-
 		public Dictionary<string, CCmd_Button> cmd_ctrl_dict = new Dictionary<string, CCmd_Button>(); //控制控件，用于轮询
+		
+		public Com_MC com_mc=new Com_MC(); //本程序的测控总体
 
-		TextDataFile rec_file = new TextDataFile();
+		LogFile rec_file = new LogFile();
 		object[] invokeobj=new object[2];
 		Dictionary<string, Series> series_map=new Dictionary<string, Series>();
 		Dictionary<string, CheckBox> checkb_map = new Dictionary<string, CheckBox>();
@@ -39,6 +39,7 @@ namespace com_mc
 		public Timer threadTimer = null; //ui线程定时器
 		void state_dis_ini()
 		{
+			rec_file.ts_fmt="mmss.fff	"; //用于时间戳的时间格式，回放约定的格式
 			mw = this;
 			mi_menu_cmd.Click += (s, e) => { mi_menu_cmd.IsSubmenuOpen = true; };
 			threadTimer = new Timer(OnTimedEvent, null, 0, 10); //100Hz
@@ -46,37 +47,14 @@ namespace com_mc
 		public void mc_ini() //测控界面初始化
 		{
 			deinit(); //先去除初始化
-			//判断协议配置的方式
-			if(config.prot_cfg.ContainsKey("filename")) //若是从文件加载的
-			{
-
-			}
-			mc_prot.formJson(config.prot_cfg); //初始化测控体系
-			foreach (var item in mc_prot.para_dict) //将参数列表复制到显示参数表
-			{
-				DataDes td=new DataDes(item.Value);
-				td.name = item.Key;
-				dset[item.Key] = td;
-			}
-			if (config.prot_cfg.ContainsKey("para_dict")) //重新解析参数字典的配置，拿出显示的配置
-			{
-				ArrayList list = config.prot_cfg["para_dict"] as ArrayList;
-				foreach (var item in list)
-				{
-					var tv = item as Dictionary<string, object>;
-					string s = tv["name"] as string;
-					DataDes td = dset[s];
-					if (tv.ContainsKey("is_cv")) td.is_cv = ((int)tv["is_cv"]) != 0;
-					if (tv.ContainsKey("is_dis")) td.is_dis = ((int)tv["is_dis"]) != 0;
-				}
-			}
+			com_mc.ini(config.prot_cfg); //测控后台初始化
 #region 传感参数部分
 			chart1 = mainFGrid.Child as Chart;
 			chart1.Legends[0].DockedToChartArea = "ChartArea1";
 			chart1.Legends[0].BackColor = System.Drawing.Color.Transparent;
 			//从配置中加载参数
 			chart1.Series.Clear();
-			foreach (var item in dset)
+			foreach (var item in com_mc.dset)
 			{
 				var ds = item.Value;
 				ds.update_cb = tn => { ds.update_times = 10; };//数据更新回调函数
@@ -126,7 +104,7 @@ namespace com_mc
 							var pv = (ParaValue_Val)dd.val;
 							double d = pv.get_double();
 							if (Math.Abs(d) >= (double)Decimal.MaxValue) throw new Exception("");
-							if (x_axis_id != "" && dset.ContainsKey(x_axis_id)) //若有索引列
+							if (x_axis_id != "" && com_mc.dset.ContainsKey(x_axis_id)) //若有索引列
 							{
 								if (tmpserial.Points.Count > 0 &&
 									Math.Abs(tmpserial.Points[tmpserial.Points.Count - 1].XValue - x_tick) < 0.1f) //跟上次一样
@@ -230,7 +208,7 @@ namespace com_mc
 			int i = 0, j = 0; //i行，j列
 			foreach (var item in config.cmds)
 			{ //本来有一行
-				cmds[item.name] = item; //加入指令列表
+				com_mc.cmds[item.name] = item; //加入指令列表
 				int rownu = para_grid.RowDefinitions.Count - 1; //添加一行
 				var v = CCmd_Button.bt_factory(item.type, item, para_grid);
 				v.ini(ref i, ref j);
@@ -247,7 +225,7 @@ namespace com_mc
 			mi_menu_cmd.Header = config.menu_name;
 			foreach (var item in config.menu_cmd)
 			{ //本来有一行
-				cmds[item.name] = item;
+				com_mc.cmds[item.name] = item;
 				int rownu = grid_menu_cmd.RowDefinitions.Count - 1; //添加一行
 				var v = CCmd_Button.bt_factory(item.type, item, grid_menu_cmd);
 				v.ini(ref i, ref j);
@@ -261,13 +239,11 @@ namespace com_mc
 			//_so_tx_cb = new CM_Plugin_Interface.DllcallBack(send_data); //构造不被回收的委托
 			try
 			{
-				//Assembly assembly = Assembly.LoadFrom(AppDomain.CurrentDomain.BaseDirectory + "/cm_plugin.dll");
 				FileInfo fi = new FileInfo(config.plugin_path); //已经变成绝对路径了
 				Assembly assembly = Assembly.LoadFrom(fi.FullName); //重复加载没事
 				string fname = "com_mc." + fi.Name.Replace(fi.Extension, ""); //定义：插件dll中的类名是文件名
 				foreach (var t in assembly.GetExportedTypes())
 				{
-					//if (t.FullName == "com_mc.CM_Plugin")
 					if (t.FullName == fname)
 					{
 						pro_obj = Activator.CreateInstance(t) as CM_Plugin_Interface;
@@ -290,8 +266,7 @@ namespace com_mc
 		}
 		public void deinit() //去除初始化
 		{
-			dset.Clear();
-			cmds.Clear();
+			com_mc.clear();
 			checkb_map.Clear();
 			series_map.Clear();
 
@@ -356,7 +331,7 @@ namespace com_mc
 			{
 				if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
 				{
-					rec_file.write(s);
+					rec_file.log(s);
 				}
 				try
 				{
@@ -364,7 +339,7 @@ namespace com_mc
 					if (ctrl_cmd(s)) return;
 					//给传感变量刷新
 					ticks0 = DateTime.Now.Ticks / 10000;
-					mc_prot.pro_line(s);
+					com_mc.mc_prot.pro_line(s);
 				}
 				catch (Exception ee)
 				{
@@ -374,7 +349,7 @@ namespace com_mc
 		}
 		void rx_pack(byte[] b, int off, int n) //接收一包数据
 		{
-			mc_prot.pro(b, off, n);
+			com_mc.mc_prot.pro(b, off, n);
 		}
 		int rx_Byte_1_s = 0; //每秒接收的字节数
 		void rx_fun(byte[] buf) //数据源接收回调函数

@@ -81,9 +81,9 @@
     <Compile Include="app\cm_plugin.cs" />
     <Compile Include="app\com_mc_gui.cs" />
     <Compile Include="app\config.cs" />
-    <Compile Include="app\DataSrc.cs" />
     <Compile Include="app\frame_sync.cs" />
-    <Compile Include="app\textlog.cs" />
+    <Compile Include="app\record.cs" />
+    <Compile Include="app\tool.cs" />
     <Compile Include="dlg\help.xaml.cs">
       <DependentUpon>help.xaml</DependentUpon>
     </Compile>

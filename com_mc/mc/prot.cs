@@ -98,15 +98,7 @@ namespace com_mc
 			d = d * pro_k + pro_b;
 			//最后给引用的参数
 			ParaValue_Val p = (ParaValue_Val)ref_para; //二进制为值类型，输出也必然是值类型
-			switch (p.type) //根据输出的类型给输出
-			{
-				case DataType.f: p.data.f = (float)d; break;
-				case DataType.df: p.data.df = d; break;
-				default:
-					p.data.ds64 = ProtDom.double_2_s64(d); //转换成整数，四舍五入
-					break;
-			}
-			p.update_cb(p); //需要调参数的回调函数
+			p.set_val(d);
 		}
 		static UInt64[] masktab = new UInt64[] 
 		{
@@ -176,16 +168,26 @@ namespace com_mc
 	}
 	public class PD_Switch : PD_Obj //选择协议域方式
 	{
-		public string ref_type = ""; //引用的协议域，用于确定类型
-		public Dictionary<int,string> prot_map; //各协议描述符头部，由int对协议进行索引
+		public string ref_type = ""; //引用的协议域，用于确定包类型
+		public string cfg_str_type = ""; //配置中，协议索引的字符串类型。空为10进制，hex为10进制
+		public Dictionary<int, ProtDom> prot_map=new Dictionary<int, ProtDom>(); //各协议描述符头部，由int对协议进行索引
 		public PD_Switch(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
-			ref_type=v["ref_type"] as string;
-			ArrayList list = v["prot_map"] as ArrayList;
-			foreach (var item in list)
+			ref_type = v["ref_type"] as string;
+			if(v.ContainsKey("cfg_str_type")) cfg_str_type = v["cfg_str_type"] as string; //
+			var dict = v["prot_map"] as Dictionary<string, object>; //各协议由字典组织
+			foreach (var item in dict)
 			{
-				var tv = item as Dictionary<string, object>;
-				prot_map[(int)tv["ptype"]]=tv["name"] as string;
+				int k = 0;
+				if(cfg_str_type=="hex")
+				{
+					k= int.Parse(item.Key, System.Globalization.NumberStyles.HexNumber);
+				}
+				else int.TryParse(item.Key, out k);
+				var tv = item.Value as Dictionary<string, object>;
+				var p = MC_Prot.factory(tv, p_mcp); //递归创建自己的子协议域
+				p.father_Dom = this; //给上层引用赋值
+				prot_map[k] = p;
 			}
 		}
 		public override void pro(byte[] b, ref int off, int n)
@@ -193,8 +195,7 @@ namespace com_mc
 			PD_Node pn = father_Dom.prot_dict[ref_type] as PD_Node; //引用的一定是个值类型的协议域
 			var para = pn.ref_para as ParaValue_Val;
 			int ti = (int)para.data.du64; //此时是变换以后的
-			string sn = prot_map[ti];
-			prot_dict[sn].pro(b, ref off, n); //找到这个协议，调用
+			prot_map[ti].pro(b, ref off, n); //找到这个协议，调用
 		}
 	}
 	public class PD_Loop : PD_Obj //重复协议域方式，与Obj域的区别在于仅第一个域有效，重复次数可配置可引用

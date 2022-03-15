@@ -14,7 +14,7 @@ using System.Windows.Shapes;
 using System.IO;
 using System.IO.Ports;
 using System.Windows.Forms.DataVisualization;
-using System.Windows.Forms.Integration;
+using cslib;
 using System.Threading;
 
 namespace com_mc
@@ -74,7 +74,7 @@ namespace com_mc
 			{
 				Dispatcher.Invoke((EventHandler)delegate (object sd, EventArgs ea)
 				{
-					foreach (var item in dset) //刷新每个参数
+					foreach (var item in com_mc.dset) //刷新每个参数
 					{
 						item.Value.update_dis(item.Value); //周期刷新，输入名称给指令对象索引，本身只需更新刷新计数
 					}
@@ -97,7 +97,7 @@ namespace com_mc
 					{
 						foreach (var item in series_map) //遍历所有曲线，看是否添加到控件
 						{
-							var mco = dset[item.Key];  //测控对象
+							var mco = com_mc.dset[item.Key];  //测控对象
 							mco.is_cv = (bool)(checkb_map[item.Key].IsChecked); //设置曲线标志
 							bool is_display = chart1.Series.Contains(item.Value); //是否已经显示了曲线
 							if (mco.is_cv) //若要显示曲线
@@ -160,8 +160,8 @@ namespace com_mc
 			//加入配置
 			CCmd_Button.bt_margin_len = config.bt_margin;
 			CCmd_Button.ctrl_cols = config.ctrl_cols;
-			CCmd_Button.cmds = cmds;
-			CCmd_Button.dset = dset;
+			CCmd_Button.cmds = com_mc.cmds;
+			CCmd_Button.dset = com_mc.dset;
 			CCmd_Button.send_cmd_str = send_cmd_str;
 
 			mc_ini(); //内部先清除上一个配置
@@ -372,7 +372,7 @@ namespace com_mc
 			curv_x_min = int.MaxValue; curv_y_min = int.MaxValue;
 			foreach (var item in series_map) //遍历所有曲线，找极值
 			{
-				if (dset[item.Key].is_cv == false) continue; //不显示的不管
+				if (com_mc.dset[item.Key].is_cv == false) continue; //不显示的不管
 				foreach (var p in item.Value.Points)
 				{
 					if (p.XValue > curv_x_max) curv_x_max = p.XValue;
@@ -421,7 +421,7 @@ namespace com_mc
 						break;
 					}
 				}
-				var tm = dset[item.Value.Name]; //测控数据对象
+				var tm = com_mc.dset[item.Value.Name]; //测控数据对象
 				item.Value.LegendText = tm.name + ":" +
 					(double.IsNaN(d) ? "null" : d.ToString(string.Format("F{0}", (tm.val as ParaValue_Val).point_n)));
 			}

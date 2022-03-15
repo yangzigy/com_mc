@@ -47,13 +47,14 @@ namespace com_mc
 			}
 			if(v.ContainsKey("pre_offset")) pre_offset = (byte)v["pre_offset"]; //配置确定包长的偏移位置
 			if (v.ContainsKey("pack_len")) pack_len = (byte)v["pack_len"]; //配置包长
+			else pack_len = pre_offset+1;
 			if (v.ContainsKey("len_dom_off")) len_dom_off = (byte)v["len_dom_off"]; //
 			if(v.ContainsKey("len_dom"))
 			{
 				var vt = v["len_dom"] as Dictionary<string, object>;
 				string s = json_ser.Serialize(vt["type"]);
 				DataType t = json_ser.Deserialize<DataType>(s); //取得参数类型
-				len_dom = new PD_Node(v["len_dom"] as Dictionary<string, object>, t,null); //一定没有引用参数，所以不使用测控架构对象
+				len_dom = new PD_Node(vt, t,null); //一定没有引用参数，所以不使用测控架构对象
 			}
 		}
 		public void pro(byte[] b, int off, int n)

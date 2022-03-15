@@ -6,6 +6,7 @@ using System.Web.Script.Serialization;
 using System.IO;
 using System.Windows;
 using System.Text.RegularExpressions;
+using cslib;
 
 namespace com_mc
 {
@@ -30,15 +31,7 @@ namespace com_mc
 		{
 			try
 			{
-				StreamReader sr = new StreamReader(s);
-				string sbuf = sr.ReadToEnd();
-				//先把注释去了
-				Regex r = new Regex("//.*");
-				sbuf=r.Replace(sbuf, "");
-				//反串行化
-				var t = json_ser.Deserialize<Config>(sbuf);
-				sr.Close();
-				return t;
+				return Tool.load_json_from_file<Config>(s);
 			}
 			catch (Exception e)
 			{
@@ -48,7 +41,7 @@ namespace com_mc
 		}
 		public void save(string s)
 		{
-			string jsonString = json_ser.Serialize(this);
+			string jsonString = Tool.json_ser.Serialize(this);
 			try
 			{
 				StreamWriter file = new StreamWriter(s);
@@ -59,7 +52,6 @@ namespace com_mc
 			{
 			}
 		}
-		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 //配置内容
 		//显示控制
 		public string title_str { get; set; } //软件标题
@@ -86,26 +78,12 @@ namespace com_mc
 	}
 	public class ConfigList //配置列表
 	{
-		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
-
 		public List<Config_Prop> cfgs { get; set; }=new List<Config_Prop>() { new Config_Prop()}; //默认一个配置文件
-		public ConfigList()
-		{
-
-		}
 		public static ConfigList load(string s)
 		{
 			try
 			{
-				StreamReader sr = new StreamReader(s);
-				string sbuf = sr.ReadToEnd();
-				//先把注释去了
-				Regex r = new Regex("//.*");
-				sbuf = r.Replace(sbuf, "");
-				//反串行化
-				var t = json_ser.Deserialize<ConfigList>(sbuf);
-				sr.Close();
-				return t;
+				return Tool.load_json_from_file<ConfigList>(s);
 			}
 			catch (Exception e)
 			{
@@ -113,7 +91,6 @@ namespace com_mc
 			}
 			return new ConfigList(); //没有文件，就加载默认配置
 		}
-
 	}
 	public class Config_Prop //配置的属性
 	{

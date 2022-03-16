@@ -307,6 +307,7 @@ namespace com_mc
 		private void cb_recdata_Click(object sender, RoutedEventArgs e) //存储日志的点击
 		{
 			rec_file.close(); //让日志从新记一个
+			rec_bin_file.close();
 		}
 		private void Chart_CursorPositionChanged(object sender, System.Windows.Forms.DataVisualization.Charting.CursorEventArgs e)
 		{ //此函数不进，不知道为啥

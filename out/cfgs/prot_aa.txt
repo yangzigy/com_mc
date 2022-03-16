@@ -23,11 +23,11 @@
 			{
 				"1":{"type":"obj","prot_list":
 				[
-					{"type":"u16","ref_name":"电压","pro_k":0.1,"skip_n":2},
-					{"type":"u16","ref_name":"电流","pro_k":0.1,"skip_n":2},
+					{"type":"s16","ref_name":"电压","pro_k":0.1,"skip_n":2},
+					{"type":"s16","ref_name":"电流","pro_k":0.1},
 					{"type":"u16","ref_name":"强度","pro_k":0.1},
-					{"type":"u16","ref_name":"期望温度","pro_k":0.1},
-					{"type":"u16","ref_name":"温度","pro_k":0.1,"skip_n":1},
+					{"type":"s16","ref_name":"期望温度","pro_k":0.1},
+					{"type":"s16","ref_name":"温度","pro_k":0.1,"skip_n":1},
 					{"type":"u32","ref_name":"模式","bit_st":9,"bit_len":2,"skip_n":-4},
 					{"type":"u32","ref_name":"输出","bit_st":6,"bit_len":1,"skip_n":-4},
 					{"type":"u32","ref_name":"温控","bit_st":15,"bit_len":1}

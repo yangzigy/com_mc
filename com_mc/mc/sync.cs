@@ -98,10 +98,15 @@ namespace com_mc
 			switch(check_type) //按校验类型进行校验
 			{
 				case CHECK_TYPE.sum:
-					//byte sum=
-					//if (sum != b[len - 1]) return 1;
+					byte sum=Tool.check_sum(b, len-1);
+					if (sum != b[len - 1]) return 1;
 					break;
 				case CHECK_TYPE.crc16:
+					UInt16 crc=Tool.crc_ccitt(b, len-2);
+					DATA_UNION d=new DATA_UNION();
+					d.du8=b[len-2];
+					d.du8_1=b[len - 1];
+					if (crc != d.du16) return 1;
 					break;
 				case CHECK_TYPE.modbuscrc:
 					break;

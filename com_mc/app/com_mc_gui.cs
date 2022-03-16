@@ -220,7 +220,7 @@ namespace com_mc
 		}
 		public void judge_out(string s) //判断当前输出，设置到显示
 		{
-			if (s == cmddes.dft) sw_action(8);
+			if (s == cmddes.dft || s=="1") sw_action(8);
 			else sw_action(-8); //若是关
 		}
 		public void sw_action(int a)

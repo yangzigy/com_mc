@@ -73,7 +73,7 @@ namespace com_mc
 		public override void pro(byte[] b, ref int off, int n)  //n:off之后还有多长，off：数据起始位置
 		{
 			//先自己解析
-			int i=data.set_val(b,off, n);
+			int i=data.set_val(b,off,len);
 			off += i + skip_n;
 			set_para_val(); //设置参数数值
 		}
@@ -240,14 +240,18 @@ namespace com_mc
 		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议字典
 		public PD_Obj(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
+			if (!v.ContainsKey("prot_list")) return;
 			ArrayList list =v["prot_list"] as ArrayList;
 			foreach (var item in list)
 			{
 				var tv = item as Dictionary<string, object>;
-				string s= tv["name"] as string;
+				string s;
+				if(tv.ContainsKey("name")) s = tv["name"] as string;
+				else s = name + "._" + prot_list.Count.ToString(); //若没有显式指明名称，分配自动名称
 				prot_list.Add(s);
 				var p=MC_Prot.factory(tv,p_mcp); //递归创建自己的子协议域
 				p.father_Dom = this; //给上层引用赋值
+				p.name = s; //覆盖子节点的名称
 				prot_dict[s] = p;
 			}
 		}
@@ -378,14 +382,15 @@ namespace com_mc
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 		public static ProtDom factory(Dictionary<string, object> v, MC_Prot pd) //构建工厂，输入配置，测控协议对象
 		{
-			string s = json_ser.Serialize(v["type"]);
+			string s = json_ser.Serialize(v["type"]); //这样取得的字符串带"
 			DataType t = DataType.u64; //默认类型
 			try
 			{
-				t = json_ser.Deserialize<DataType>(s); //取得参数类型
+				t = json_ser.Deserialize<DataType>(s); //取得参数类型，enum类型的反串行化需要字符串带"
 			}
 			catch (Exception e) //若不是基础类型，则建立协议组织类型
 			{
+				s=s.Replace("\"", ""); //去掉"
 				switch (s)
 				{
 					case "obj": return new PD_Obj(v, t,pd);

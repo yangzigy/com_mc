@@ -65,7 +65,7 @@
 		{"name":"","type":"label"},
 		{"name":"温控","refdname":"温控","dft":"开",
 			"cmd":"outc 1","cmdoff":"outc 0","type":"sw","c_span":2},
-		{"name":"调制输出","refdname":"调制输出","dft":"开",
+		{"name":"输出","refdname":"输出","dft":"开",
 			"cmd":"isw 1","cmdoff":"isw 0","type":"sw","c_span":2}
 	]
 }

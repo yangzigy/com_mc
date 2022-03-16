@@ -58,7 +58,7 @@ namespace com_mc
 		public List<string> ctrl_cmds { get; set; } = new List<string>();//界面控制的指令,程序初始化的时候直接执行
 		public List<CmdDes> menu_cmd { get; set; } = new List<CmdDes>();//在菜单栏的指令
 		public string menu_name { get; set; } = "";//菜单名
-		public string encoding { get; set; } = "utf-8";//编码名称（dft为默认编码）
+		public string encoding { get; set; } = "utf8";//编码名称（dft为默认编码）
 		public string plugin_path { get; set; } = "";//插件路径，相对此配置文件
 		//数据输入
 		public List<Dictionary<string, object>> data_src { get; set; }=new List<Dictionary<string, object>>();

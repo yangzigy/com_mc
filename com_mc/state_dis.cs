@@ -28,7 +28,8 @@ namespace com_mc
 		
 		public Com_MC commc=new Com_MC(); //本程序的测控总体
 		
-		public LogFile rec_file = new LogFile();
+		public LogFile rec_file = new LogFile(); //文本记录文件
+		public BinDataFile rec_bin_file = new BinDataFile(); //二进制记录文件
 		public object[] invokeobj=new object[2];
 		public Dictionary<string, Series> series_map=new Dictionary<string, Series>();
 		public Dictionary<string, CheckBox> checkb_map = new Dictionary<string, CheckBox>();
@@ -307,10 +308,8 @@ namespace com_mc
 				}
 				try
 				{
-					//首先看看是不是软件指令
-					if (ctrl_cmd(s)) return;
-					//给传感变量刷新
-					ticks0 = DateTime.Now.Ticks / 10000;
+					if (ctrl_cmd(s)) return;//首先看看是不是软件指令
+					ticks0 = DateTime.Now.Ticks / 10000;	//给传感变量刷新
 					commc.mc_prot.pro_line(s);
 				}
 				catch (Exception ee)
@@ -321,7 +320,22 @@ namespace com_mc
 		}
 		public void rx_pack(byte[] b, int off, int n) //接收一包数据
 		{
-			commc.mc_prot.pro(b, off, n);
+			Dispatcher.BeginInvoke((Action)(() =>
+			{
+				if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
+				{
+					rec_bin_file.write(b,off,n);
+				}
+				try
+				{
+					ticks0 = DateTime.Now.Ticks / 10000;//给传感变量刷新
+					commc.mc_prot.pro(b, off, n);
+				}
+				catch (Exception ee)
+				{
+					//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
+				}
+			}));
 		}
 		int rx_Byte_1_s = 0; //每秒接收的字节数
 		public void rx_fun(byte[] buf) //数据源接收回调函数

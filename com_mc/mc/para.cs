@@ -20,7 +20,7 @@ namespace com_mc
 	{
 		public string name { get; set; } = "";  //参数的唯一id，在C#程序中使用
 		public int id { get; set; }=0; //参数的唯一id，在C程序中使用
-		public DataType type { get; set; } = DataType.df; //参数类型,默认是double
+		public DataType type { get; set; } = DataType.df; //参数类型,默认是double(在factory处设置)
 		public int len { get; set; } = 0; //数据长度
 		public List<string> str_tab { get; set; } = new List<string>();//显示字符串表。可用于bool型指令，0为失败字符，1为成果字符
 		public ParaValue(Dictionary<string, object> v, DataType t) //从json构造对象

@@ -17,7 +17,7 @@ namespace com_mc
 		public PD_Obj father_Dom = null; //上级协议的引用
 		public string name { get; set; } = ""; //协议域名称(唯一，或没有)
 		public int id { get; set; } = 0; //参数的唯一id，在C程序中使用
-		public DataType type { get; set; } = 0; //数据类型,默认是u8
+		public DataType type { get; set; } = 0; //数据类型,默认是u8（此处无效，在factory处设置为u64）
 		public string ref_name { get; set; } = "";//引用参数的名称
 		public ParaValue ref_para=null; //引用的参数
 		public ProtDom(Dictionary<string, object> v, DataType t, MC_Prot pd) //从json构造对象
@@ -161,7 +161,7 @@ namespace com_mc
 				{
 					data.du64= UInt64.Parse(s, System.Globalization.NumberStyles.HexNumber);
 				}
-				else data.df=double.Parse(s);
+				else double.TryParse(s,out data.df);
 				set_para_val();
 			}
 		}

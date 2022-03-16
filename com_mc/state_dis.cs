@@ -261,6 +261,7 @@ namespace com_mc
 			grid_menu_cmd.ColumnDefinitions.Clear();
 			grid_menu_cmd.RowDefinitions.Add(new RowDefinition()); //本来有1行
 			grid_menu_cmd.ColumnDefinitions.Add(new ColumnDefinition()); //本来有2列
+			grid_menu_cmd.ColumnDefinitions.Add(new ColumnDefinition()); //本来有2列
 			grid_menu_cmd.Children.Clear();
 
 		}

@@ -71,7 +71,7 @@
 			},
 			{"col_n":2,"name":"$@:3:1:0:16","prot_list": //电流偏置
 				[
-					{"ref_name":"空"},
+					{},
 					{"ref_name":"i_off","pro_k":0.1}
 				]
 			}

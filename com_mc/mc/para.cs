@@ -33,6 +33,10 @@ namespace com_mc
 		}
 		public abstract int set_val(byte[] b, int off, int n); //从数据设定值,返回使用的字节数
 		public abstract int get_val(byte[] b, int off, int n); //向数据缓存中复制数据,返回使用的字节数
+		public virtual void set_val(double d) { } //设置double值
+		public virtual void set_val(int d) { } //设置int值
+		public virtual double get_val() { return 0; }
+		public virtual int get_int() { return 0; }
 
 		public delegate void CB(ParaValue pv);
 		static public void void_cb(ParaValue pv) { }
@@ -157,7 +161,7 @@ namespace com_mc
 		{
 			return data.get_val(b, off, n);
 		}
-		public void set_val(double d)
+		public override void set_val(double d)
 		{
 			switch (type) //根据输出的类型给输出
 			{
@@ -169,7 +173,7 @@ namespace com_mc
 			}
 			update_cb(this); //需要调参数的回调函数
 		}
-		public void set_val(int i)
+		public override void set_val(int i)
 		{
 			switch (type) //根据输出的类型给输出
 			{
@@ -181,9 +185,13 @@ namespace com_mc
 			}
 			update_cb(this); //需要调参数的回调函数
 		}
-		public double get_double()
+		public override double get_val()
 		{
 			return data.get_double(type);
+		}
+		public override int get_int()
+		{
+			return data.ds32;
 		}
 	}
 	[StructLayout(LayoutKind.Explicit)]
@@ -292,6 +300,23 @@ namespace com_mc
 				case DataType.f: return f;
 				case DataType.df: return df;
 				default: throw new Exception("type err");
+			}
+		}
+		public int get_int(DataType t)
+		{
+			switch (t)
+			{
+				case DataType.u8: return du8;
+				case DataType.u16: return du16;
+				case DataType.u32: return (int)du32;
+				case DataType.u64: return (int)du64;
+				case DataType.s8: return ds8;
+				case DataType.s16: return ds16;
+				case DataType.s32: return ds32;
+				case DataType.s64: return (int)ds64;
+				case DataType.f: return (int)f;
+				case DataType.df: return (int)df;
+				default: return 0;
 			}
 		}
 	}

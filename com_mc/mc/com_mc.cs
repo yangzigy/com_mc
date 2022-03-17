@@ -32,6 +32,10 @@ namespace com_mc
 		{
 			update_cb(this);
 		}
+		public override string ToString()
+		{
+			return val.ToString();
+		}
 		public delegate void CB(DataDes dd);
 		public void void_fun(DataDes dd){}
 		public CB update_cb; //数据接收回调
@@ -85,6 +89,38 @@ namespace com_mc
 		public CM_Plugin_Interface pro_obj = null; //无插件时的处理对象
 		public void ini(Dictionary<string, object> v) //初始化
 		{
+			ini_mc(v);
+			/////////////////////////////////////////////////////////////////////
+			//_so_tx_cb = new CM_Plugin_Interface.DllcallBack(send_data); //构造不被回收的委托
+			try
+			{
+				FileInfo fi = new FileInfo(Config.config.plugin_path); //已经变成绝对路径了
+				Assembly assembly = Assembly.LoadFrom(fi.FullName); //重复加载没事
+				string fname = "com_mc." + fi.Name.Replace(fi.Extension, ""); //定义：插件dll中的类名是文件名
+				foreach (var t in assembly.GetExportedTypes())
+				{
+					if (t.FullName == fname)
+					{
+						pro_obj = Activator.CreateInstance(t) as CM_Plugin_Interface;
+					}
+				}
+				if (pro_obj == null) throw new Exception();
+			}
+			catch
+			{
+				pro_obj = new CM_Plugin_Interface();
+			}
+			pro_obj.ini(MainWindow.mw.send_data, MainWindow.mw.rx_line, MainWindow.mw.rx_pack); //无插件的情况，发送函数、接收函数
+			pro_obj.fromJson(Config.config.syn_pro); //帧同步部分初始化
+			if (Config.config.encoding == "utf8") pro_obj.cur_encoding = Encoding.UTF8; //根据配置变换编码
+			//配置初始化指令
+			foreach (var item in Config.config.ctrl_cmds)
+			{
+				MainWindow.mw.ctrl_cmd(item);
+			}
+		}
+		public void ini_mc(Dictionary<string, object> v) //初始化测控体系，并对参数的显示进行额外配置
+		{
 			//判断协议配置的方式
 			if (v.ContainsKey("filename")) //若是从文件加载的
 			{
@@ -119,34 +155,6 @@ namespace com_mc
 					if (tv.ContainsKey("is_cv")) td.is_cv = ((int)tv["is_cv"]) != 0;
 					if (tv.ContainsKey("is_dis")) td.is_dis = ((int)tv["is_dis"]) != 0;
 				}
-			}
-			/////////////////////////////////////////////////////////////////////
-			//_so_tx_cb = new CM_Plugin_Interface.DllcallBack(send_data); //构造不被回收的委托
-			try
-			{
-				FileInfo fi = new FileInfo(Config.config.plugin_path); //已经变成绝对路径了
-				Assembly assembly = Assembly.LoadFrom(fi.FullName); //重复加载没事
-				string fname = "com_mc." + fi.Name.Replace(fi.Extension, ""); //定义：插件dll中的类名是文件名
-				foreach (var t in assembly.GetExportedTypes())
-				{
-					if (t.FullName == fname)
-					{
-						pro_obj = Activator.CreateInstance(t) as CM_Plugin_Interface;
-					}
-				}
-				if (pro_obj == null) throw new Exception();
-			}
-			catch
-			{
-				pro_obj = new CM_Plugin_Interface();
-			}
-			pro_obj.ini(MainWindow.mw.send_data, MainWindow.mw.rx_line, MainWindow.mw.rx_pack); //无插件的情况，发送函数、接收函数
-			pro_obj.fromJson(Config.config.syn_pro); //帧同步部分初始化
-			if (Config.config.encoding == "utf8") pro_obj.cur_encoding = Encoding.UTF8; //根据配置变换编码
-			//配置初始化指令
-			foreach (var item in Config.config.ctrl_cmds)
-			{
-				MainWindow.mw.ctrl_cmd(item);
 			}
 		}
 		public void clear()

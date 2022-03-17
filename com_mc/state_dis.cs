@@ -102,8 +102,7 @@ namespace com_mc
 								clear_Click(null, null);
 								is_first = 0;
 							}
-							var pv = (ParaValue_Val)dd.val;
-							double d = pv.get_double();
+							double d = dd.val.get_val();
 							if (Math.Abs(d) >= (double)Decimal.MaxValue) throw new Exception("");
 							if (x_axis_id != "" && commc.dset.ContainsKey(x_axis_id)) //若有索引列
 							{

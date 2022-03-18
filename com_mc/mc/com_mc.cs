@@ -161,6 +161,7 @@ namespace com_mc
 		{
 			dset.Clear();
 			cmds.Clear();
+			mc_prot.clear();
 		}
 	}
 }

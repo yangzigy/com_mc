@@ -75,9 +75,10 @@ namespace com_mc
 	{
 		public ParaValue_Str(Dictionary<string, object> v, DataType t) :base(v,t) { }
 		public byte[] data { get; set; } = new byte[0]; //参数数据
+		public string str_val=""; //参数值(若是字符类型)
 		public override string ToString()
 		{
-			if (data.Length < len || len == 0) return "no data";
+			if (data.Length <= 0) return "no data";
 			if (type == DataType.str) return Encoding.UTF8.GetString(data);
 			else if (type == DataType.undef)
 			{
@@ -86,14 +87,16 @@ namespace com_mc
 				{
 					s += string.Format("{0:X00} ", data[i]);
 				}
-				return Encoding.UTF8.GetString(data);
+				return s;
 			}
 			else return "type err";
 		}
 		public override int set_val(byte[] b, int off, int n) //从数据设定值
 		{
 			int i = 0;
-			for (; i < len && i < data.Length && i < n && off < b.Length; i++)
+			if (len == 0) data = new byte[n]; //若没有指定长度，则使用外部长度
+			else n = len > n ? n : len; //若指定了长度，需按比较小的那个长度来
+			for (; i < data.Length && i < n && off < b.Length; i++)
 			{
 				data[i] = b[off]; off++;
 			}

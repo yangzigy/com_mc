@@ -45,6 +45,7 @@ namespace com_mc
 		public int dis_data_len { get; set; } = 1000; //显示数据长度
 		public int ctrl_cols { get; set; } = 2; //控制按钮默认2列
 		public int svar_ui_h { get; set; } = 0; //传感变量显示区高度，为0则为自动
+		//public int svar_ui_w { get; set; } = 150; //传感变量显示区宽度
 		public int cmd_ui_w { get; set; } = 0; //指令区域宽度
 		public int mv_w { get; set; } = 0; //主窗体宽
 		public int mv_h { get; set; } = 0;//主窗体高

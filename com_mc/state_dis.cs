@@ -65,6 +65,7 @@ namespace com_mc
 				cb.Content = ds.name;
 				cb.IsChecked = ds.is_cv;
 				cb.Width = 150;
+				//cb.MinWidth = Config.config.svar_ui_w;
 				cb.Background = Brushes.LightCoral;
 				cb.Margin = new Thickness(2, 2, 2, 0);
 				Series tmpserial = null;
@@ -152,7 +153,7 @@ namespace com_mc
 			{
 				row_para_dis.Height = new GridLength(Config.config.svar_ui_h);
 			}
-			else row_para_dis.Height = new GridLength((sp_measure.Children.Count + 4) / 5 * 20 + 27);
+			else row_para_dis.Height = new GridLength((sp_measure.Children.Count + 4) / 5 * 20 + 27); //认为他分5列，每列高20
 			//sp_measure.Height = row_para_dis.Height.Value;
 #endregion
 #region 指令ui初始化

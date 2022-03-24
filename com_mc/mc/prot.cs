@@ -306,7 +306,6 @@ namespace com_mc
 		}
 		public void pro_cols(string[] ss) //输入列的列表，用于文本处理
 		{
-			//if (ss.Length != prot_list.Count) return;
 			int col = 0; //处理的列数
 			for (int i = 0; i < prot_list.Count && col<ss.Length; i++) //按协议域遍历
 			{

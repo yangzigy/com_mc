@@ -149,11 +149,13 @@ namespace com_mc
 			chart1.ChartAreas[0].Axes[1].Minimum = 20;
 			//chart1.Series[0].Points.Add(0);
 			//chart1.Series[0].Points.Add(0);
+			sp_measure.Columns = Config.config.svar_cols;
 			if (Config.config.svar_ui_h != 0) //传感变量区域高度
 			{
 				row_para_dis.Height = new GridLength(Config.config.svar_ui_h);
 			}
-			else row_para_dis.Height = new GridLength((sp_measure.Children.Count + 4) / 5 * 20 + 27); //认为他分5列，每列高20
+			else row_para_dis.Height = new GridLength(
+				(sp_measure.Children.Count + sp_measure.Columns-1) / sp_measure.Columns * 22 + 15); //行数*22
 			//sp_measure.Height = row_para_dis.Height.Value;
 #endregion
 #region 指令ui初始化

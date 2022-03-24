@@ -2,8 +2,7 @@
 	"cfgs": //多种配置
 	[
 		{ "fname":"./config.txt","des":"默认配置" },
-		{ "fname":"./cfgs/cfg_bin.txt","des":"二进制协议测试" },
-		{ "fname":"./cfgs/cfg_tl.txt","des":"文本二进制混合测试" }
+		{ "fname":"./cfgs/cfg_bin.txt","des":"二进制协议测试" }
 		//{ "fname":"C:/cur/proj/tools/iap/out/config.txt","des":"IAP" }
 	]
 }

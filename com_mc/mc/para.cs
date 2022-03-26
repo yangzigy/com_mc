@@ -30,6 +30,12 @@ namespace com_mc
 			type = t;
 			if (v.ContainsKey("len")) len = (int)v["len"];
 			else len = DATA_UNION.get_type_len(type);
+			if (v.ContainsKey("str_tab"))
+			{
+				var ar = v["str_tab"] as ArrayList;
+				for (int i = 0; i < ar.Count; i++) str_tab.Add(ar[i] as string);
+				//str_tab = v["str_tab"] as string[];
+			}
 		}
 		public abstract int set_val(byte[] b, int off, int n); //从数据设定值,返回使用的字节数
 		public abstract int get_val(byte[] b, int off, int n); //向数据缓存中复制数据,返回使用的字节数
@@ -118,12 +124,6 @@ namespace com_mc
 		public ParaValue_Val(Dictionary<string, object> v, DataType t) : base(v, t)
 		{
 			if(v.ContainsKey("point_n")) point_n = (int)v["point_n"];
-			if (v.ContainsKey("str_tab"))
-			{
-				var ar = v["str_tab"] as ArrayList;
-				for(int i=0;i<ar.Count;i++) str_tab.Add(ar[i] as string);
-				//str_tab = v["str_tab"] as string[];
-			}
 		}
 		public DATA_UNION data=new DATA_UNION();
 		public int point_n { get; set; } = 2;//小数位数

@@ -281,30 +281,22 @@ namespace com_mc
 				judge_out(t, cmddes.dft);
 				t.update_dis += delegate (DataDes tn) //数据更新回调函数
 				{
-					if (t.update_times > 0) //若有刷新
+					if (sent_times > 0)
 					{
-						judge_out(t, tn.val.ToString()); //显示核心和外环
+						sent_times--; //发送后的计时
+						if (t.update_times > 0) //若有刷新
+						{
+							judge_out(t, tn.val.ToString()); //显示核心和外环
+						}
+						else //若无刷新
+						{
+							bd.Background = new SolidColorBrush(Color.FromRgb(0xbb, 0xbb, 0xbb));
+						}
 					}
-					else //若无刷新
+					else //若已经超时
 					{
 						bd.Background = new SolidColorBrush(Color.FromRgb(0xbb, 0xbb, 0xbb));
 					}
-					//if (sent_times > 0)
-					//{
-					//	sent_times--; //发送后的计时
-					//	if (t.update_times > 0) //若有刷新
-					//	{
-					//		judge_out(t, tn.val.ToString()); //显示核心和外环
-					//	}
-					//	else //若无刷新
-					//	{
-					//		bd.Background = new SolidColorBrush(Color.FromRgb(0xbb, 0xbb, 0xbb));
-					//	}
-					//}
-					//else //若已经超时
-					//{
-					//	bd.Background = new SolidColorBrush(Color.FromRgb(0xbb, 0xbb, 0xbb));
-					//}
 				};
 			}
 		}

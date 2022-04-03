@@ -161,7 +161,7 @@ namespace com_mc
 				{
 					data.du64= UInt64.Parse(s, System.Globalization.NumberStyles.HexNumber);
 				}
-				else double.TryParse(s,out data.df);
+				else data.df=double.Parse(s);
 				set_para_val();
 			}
 		}
@@ -309,7 +309,7 @@ namespace com_mc
 			int col = 0; //处理的列数
 			for (int i = 0; i < prot_list.Count && col<ss.Length; i++) //按协议域遍历
 			{
-				prot_list[i].pro_str(ss[col]);
+				if(prot_list[i].ref_para.name!="")	prot_list[i].pro_str(ss[col]); //若此列有意义
 				col += prot_list[i].skip_n + 1; //处理下一个列
 			}
 		}

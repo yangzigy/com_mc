@@ -2,7 +2,9 @@
 	"cfgs": //多种配置
 	[
 		{ "fname":"./config.txt","des":"默认配置" },
-		{ "fname":"./cfgs/cfg_bin.txt","des":"二进制协议测试" }
+		{ "fname":"./cfgs/cfg_bin.txt","des":"二进制协议测试" },
+		{ "fname":"C:/cur/proj/dr_ctrl/上位机/config_103_sw.txt","des":"sw" },
+		{ "fname":"C:/cur/s17laser_gas_det/上位机/out/config.txt","des":"s17" }
 		//{ "fname":"C:/cur/proj/tools/iap/out/config.txt","des":"IAP" }
 	]
 }

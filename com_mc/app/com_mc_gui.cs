@@ -329,9 +329,10 @@ namespace com_mc
 			img_refresh.Width = 30;
 			img_refresh.AddHandler(UIElement.MouseDownEvent, new RoutedEventHandler(mouseDown), true);
 			//注册到主面板中
+			int cur_row = row;
 			add_ctrl(tt1, ref row, ref col);
-			col--;
-			add_ctrl(img_refresh, ref row,ref col);
+			col-=cmddes.c_span; //即使是最后一行，也是下一个控件换行
+			add_ctrl(img_refresh, ref cur_row, ref col); //刷新图标不会引起换行
 			img_refresh.VerticalAlignment = VerticalAlignment.Center;
 			img_refresh.HorizontalAlignment = HorizontalAlignment.Right;
 

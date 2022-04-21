@@ -274,8 +274,18 @@ namespace com_mc
 	public class PD_LineObj : ProtDom //文本行协议对象
 	{
 		public List<PD_Str> prot_list = new List<PD_Str>(); //一系列顺序的协议域
+		public string[] split_char_list = new string[0]; //本协议的特殊分隔符
 		public PD_LineObj(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t, pd)
 		{
+			if (v.ContainsKey("split_char_list"))
+			{
+				ArrayList l = v["split_char_list"] as ArrayList;
+				split_char_list=new string[l.Count];
+				for(int i=0;i<l.Count;i++)
+				{
+					split_char_list[i]=l[i] as string;	
+				}
+			}
 			ArrayList list = v["prot_list"] as ArrayList;
 			foreach (var item in list)
 			{
@@ -373,6 +383,10 @@ namespace com_mc
 				pname+="-"+vs.Length.ToString();
 				if(textline_dict.ContainsKey(pname)) //若有这个名字的协议
 				{
+					if(textline_dict[pname].split_char_list.Length>0)//看这个协议是否指定了分隔符
+					{
+						vs = s.Split(textline_dict[pname].split_char_list, StringSplitOptions.None);
+					}
 					textline_dict[pname].pro_cols(vs);
 				}
 			}

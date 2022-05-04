@@ -264,7 +264,7 @@
 				</Chr:Chart>
 			</WindowsFormsHost>
 			<Border Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="Chocolate" BorderThickness="1"/>
-			<UniformGrid  Grid.Row="1" Name="sp_measure" Margin="0,7,0,0"></UniformGrid>
+			<UniformGrid  Grid.Row="1" Name="sp_measure" Margin="0,7,0,7"></UniformGrid>
 		</Grid>
 	</Grid>
 </Window>

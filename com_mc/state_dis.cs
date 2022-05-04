@@ -165,10 +165,14 @@ namespace com_mc
 			{
 				colD_cmd_ui.Width = new GridLength(Config.config.cmd_ui_w);
 			}
-			if (Config.config.ctrl_cols == 3) //若是3列排布的,把默认控制按钮的位置改一下
+			if (Config.config.ctrl_cols >= 3) //若是3列排布的,把默认控制按钮的位置改一下
 			{
-				//通用控制按钮加一列
-				grid_ctrl_bts.ColumnDefinitions.Add(new ColumnDefinition());
+				//通用控制按钮列数增加
+				for (int k = 0; k < Config.config.ctrl_cols - 2; k++)
+				{
+					grid_ctrl_bts.ColumnDefinitions.Add(new ColumnDefinition()); //通用控制按钮
+					para_grid.ColumnDefinitions.Add(new ColumnDefinition());//配置按钮面板
+				}
 				//通用控制按钮位置修改
 				System.Windows.Controls.Grid.SetRow(cb_datasrc, 0);
 				System.Windows.Controls.Grid.SetColumn(cb_datasrc, 0);
@@ -184,9 +188,7 @@ namespace com_mc
 				System.Windows.Controls.Grid.SetRow(bt_clear, 1);
 				System.Windows.Controls.Grid.SetColumn(bt_clear, 2);
 				//面板border加长
-				System.Windows.Controls.Grid.SetColumnSpan(bd_dft_and_cfg, 3);
-				//配置按钮面板加一列
-				para_grid.ColumnDefinitions.Add(new ColumnDefinition());
+				System.Windows.Controls.Grid.SetColumnSpan(bd_dft_and_cfg, Config.config.ctrl_cols);
 			}
 			else //2列布局，也要从新写一遍
 			{

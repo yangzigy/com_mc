@@ -64,8 +64,7 @@ namespace com_mc
 				CheckBox cb = new CheckBox();
 				cb.Content = ds.name;
 				cb.IsChecked = ds.is_cv;
-				cb.Width = 150;
-				//cb.MinWidth = Config.config.svar_ui_w;
+				//cb.Width = 150;
 				cb.Background = Brushes.LightCoral;
 				cb.Margin = new Thickness(2, 2, 2, 0);
 				Series tmpserial = null;

@@ -89,7 +89,7 @@ namespace com_mc
 		public CM_Plugin_Interface pro_obj = null; //无插件时的处理对象
 		public void ini(Dictionary<string, object> v) //初始化
 		{
-			ini_mc(v);
+			ini_mc(v);//初始化测控体系，并对参数的显示进行额外配置
 			/////////////////////////////////////////////////////////////////////
 			//_so_tx_cb = new CM_Plugin_Interface.DllcallBack(send_data); //构造不被回收的委托
 			try

@@ -12,7 +12,7 @@ namespace cslib
 	public class Line_Sync
 	{
 		public byte end_c = ((byte)'\n');
-		public byte[] rec_buff=new byte[100];
+		public byte[] rec_buff=new byte[256];
 		public int rec_p=0;//偏移指示
 		/// <summary>
 		/// 用户处理函数
@@ -47,7 +47,7 @@ namespace cslib
 	{
 		public byte[] SYNC={0xaa}; /// 同步字数组
 		public int pack_len=2;
-		public byte[] rec_buff=new byte[100];
+		public byte[] rec_buff=new byte[256];
 		public int rec_p=0;//偏移指示
 		/// <summary>
 		/// 数据包中表示包长的字段所在位置

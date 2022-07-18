@@ -14,7 +14,7 @@ namespace com_mc
 	public class CCmd_Button //指令基类
 	{
 		static public SolidColorBrush br_normal = new SolidColorBrush(Color.FromRgb(0xdd, 0xdd, 0xdd)); //普通按键颜色
-		static public CCmd_Button bt_factory(CmdType t,CmdDes cd, Grid g) //工厂方法
+		static public CCmd_Button bt_factory(CmdType t,CmdDes cd, Grid g) //简单工厂
 		{
 			switch(t)
 			{
@@ -45,7 +45,7 @@ namespace com_mc
 			int m= bt_margin_len;
 			bt_margin=new Thickness(m,m,m,m);
 		}
-		public void add_ctrl(UIElement c, ref int row, ref int col)
+		public void add_ctrl(UIElement c, ref int row, ref int col) //向网格中添加控件，要求网格已经有一行了，若放不下自动添加行
 		{
 			int space_left = ctrl_cols - col;
 			if(cmddes.c_span>space_left) //若不够了

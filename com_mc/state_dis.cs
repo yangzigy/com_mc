@@ -210,13 +210,12 @@ namespace com_mc
 				System.Windows.Controls.Grid.SetColumnSpan(bd_dft_and_cfg, 2);
 			}
 			int i = 0, j = 0; //i行，j列
-			foreach (var item in Config.config.cmds)
+			foreach (var item in Config.config.cmds) //遍历配置中的指令，加入到列表中
 			{ //本来有一行
 				commc.cmds[item.name] = item; //加入指令列表
-				int rownu = para_grid.RowDefinitions.Count - 1; //添加一行
 				var v = CCmd_Button.bt_factory(item.type, item, para_grid);
 				v.ini(ref i, ref j);
-				if (j >= Config.config.ctrl_cols)
+				if (j >= Config.config.ctrl_cols) //自动添加行只在控件本身放不下的情况下做。放下了就需要这里添加行
 				{
 					para_grid.RowDefinitions.Add(new RowDefinition());
 					i++; j = 0;

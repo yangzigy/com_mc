@@ -77,7 +77,7 @@ namespace com_mc
 			off += i + skip_n;
 			set_para_val(); //设置参数数值
 		}
-		public void set_para_val() //设置参数值
+		public void set_para_val() //设置参数值，根据bit_len判断是从df取得还是从du64取得。
 		{
 			//做运算：根据不同的输入类型，都转换成double来做运算。
 			double d = 0;
@@ -161,7 +161,11 @@ namespace com_mc
 				{
 					data.du64= UInt64.Parse(s, System.Globalization.NumberStyles.HexNumber);
 				}
-				else data.df=double.Parse(s);
+				else if (bit_len > 0) //若配了bit长度，说明是按位处理，需要按整数取而不是浮点
+				{
+					data.ds64 = Int64.Parse(s);
+				}
+				else data.df=double.Parse(s); //无论是否是整数，只要按10进制来取就行，当浮点取
 				set_para_val();
 			}
 		}

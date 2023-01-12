@@ -271,7 +271,7 @@ namespace com_mc
 		{
 			if(commc.pro_obj!=null) commc.pro_obj.so_poll_100();
 		}
-#region 串口
+#region 数据接收
 		public void send_cmd_str(string s) //向设备发送文本指令
 		{ //支持多条指令同时发送
 			string[] vs = s.Split("\n".ToCharArray(), StringSplitOptions.None);

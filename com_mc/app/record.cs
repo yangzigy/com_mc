@@ -10,6 +10,7 @@ using System.Web.Script.Serialization;
 
 namespace cslib
 {
+#region 带时间戳的回放：分2种，二进制和文本
 	public class DataSrc_replay : DataSrc //回放模式
 	{
 		public DataSrc_replay(RX_CB cb) : base(cb) { name = "回放"; }
@@ -174,6 +175,8 @@ namespace cslib
 			state = 0;
 		}
 	}
+#endregion
+#region 文本文件直接全部回放
 	public class DataSrc_file : DataSrc //回放模式
 	{
 		public DataSrc_file(RX_CB cb) : base(cb) { name = "文件"; }
@@ -189,6 +192,8 @@ namespace cslib
 			rx_event(buf);
 		}
 	}
+#endregion
+#region 二进制带时间戳日志记录
 	public class BinDataFile : LogFile //二进制协议
 	{
 		public DateTime cur_time = DateTime.Now; //记录文件创建时间
@@ -216,5 +221,7 @@ namespace cslib
 		{
 			throw new Exception("未实现文本接口");
 		}
+		
 	}
+#endregion
 }

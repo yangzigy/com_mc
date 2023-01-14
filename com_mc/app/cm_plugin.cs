@@ -16,9 +16,8 @@ namespace com_mc
 		public RX_BIN_CB rx_bin_cb = null; //上位机接收设备信息的回调函数
 
 		public Encoding cur_encoding = Encoding.Default; //默认编码
-		public Sync_head syn_head =null; //帧同步对象
-		public Sync_Line syn_line = null; //帧同步对象
-		protected List<byte> rxbuf = new List<byte>(); //串口接收缓冲
+		public Sync_head syn_head =null; //帧同步对象，插件中也可以不用
+		public Sync_Line syn_line = null; //帧同步对象，插件中也可以不用
 		public virtual void ini(TX_CB tx,RX_CB rx, RX_BIN_CB  rxbin) //初始化，注册回调函数
 		{
 			tx_cb = tx;

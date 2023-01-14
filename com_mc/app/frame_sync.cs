@@ -42,6 +42,8 @@ namespace cslib
 	}
 	/// <summary>
 	/// 带帧头的帧同步
+	/// 注意：
+	/// 	确定包长时，最小整包长度需大于等于pre_offset+2
 	/// </summary>
 	public class Frame_Sync
 	{
@@ -104,10 +106,9 @@ namespace cslib
 						{
 							if(l==0) //若还没开始回溯
 							{
-								l=pack_len; //回溯长度
+								l= rec_p-1; //回溯长度,用rec_p可能大于pack_len
 							}
 							pback=1; //回溯位置
-							l--;
 						}
 						rec_p=0;
 					}
@@ -123,6 +124,8 @@ namespace cslib
 	}
 	/// <summary>
 	/// 带包头的组包,考虑位滑动
+	/// 注意：
+	/// 	确定包长时，最小整包长度需大于等于pre_offset+2
 	/// </summary>
 	public class Bit_Pack
 	{

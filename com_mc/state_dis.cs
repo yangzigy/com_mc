@@ -307,7 +307,7 @@ namespace com_mc
 			{
 				if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
 				{
-					rec_file.log(s);
+					rec_file.log(s); //文本文件记录
 				}
 				try
 				{
@@ -327,7 +327,7 @@ namespace com_mc
 			{
 				if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
 				{
-					rec_bin_file.write(b,off,n);
+					rec_bin_file.write(b,off,n); //二进制文件的记录
 				}
 				try
 				{

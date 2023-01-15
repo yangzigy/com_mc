@@ -366,6 +366,19 @@ namespace com_mc
 				}
 			}
 		}
+		public Dictionary<string, object> toJson() //使用json保存当前配置
+		{
+			Dictionary<string, object> v=new Dictionary<string, object>();
+			//先存储变量字典
+			var t= new Dictionary<string, object>();
+			foreach (var item in para_dict)
+			{
+				t[item.Key] = item.Value;
+			}
+			v["para_dict"]= t;
+
+			return v;
+		}
 		public void clear()
 		{
 			prot_root = null;

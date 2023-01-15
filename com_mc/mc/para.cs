@@ -37,6 +37,12 @@ namespace com_mc
 				//str_tab = v["str_tab"] as string[];
 			}
 		}
+		public virtual Dictionary<string, object> toJson() //输出json
+		{
+			var v = new Dictionary<string, object>();
+
+			return v;
+		}
 		public abstract int set_val(byte[] b, int off, int n); //从数据设定值,返回使用的字节数
 		public abstract int get_val(byte[] b, int off, int n); //向数据缓存中复制数据,返回使用的字节数
 		public virtual void set_val(double d) { } //设置double值

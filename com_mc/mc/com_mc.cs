@@ -17,7 +17,8 @@ namespace com_mc
 		public bool is_cv { get; set; } = false; //是否显示曲线
 		public bool is_dis { get; set; } = true; //是否显示，若是按钮的从属，则可以不显示
 
-		public bool is_val=true; //是否能按值处理
+		public bool is_val=true; //是否能按值处理(决定是否可以显示曲线)
+		public int dis_data_len { get; set; } = 0; //显示数据长度
 
 		public int update_times = 0; //刷新倒计时
 
@@ -154,6 +155,7 @@ namespace com_mc
 					DataDes td = dset[s];
 					if (tv.ContainsKey("is_cv")) td.is_cv = ((int)tv["is_cv"]) != 0;
 					if (tv.ContainsKey("is_dis")) td.is_dis = ((int)tv["is_dis"]) != 0;
+					if (tv.ContainsKey("dis_data_len")) td.dis_data_len = (int)tv["dis_data_len"];
 				}
 			}
 		}

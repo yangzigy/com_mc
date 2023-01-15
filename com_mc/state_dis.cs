@@ -76,6 +76,7 @@ namespace com_mc
 				else //曲线型的
 				{
 					ds.is_val = true;
+					if(ds.dis_data_len==0) ds.dis_data_len = Config.config.dis_data_len; //若自己没配置，用统一的
 					tmpserial = new Series()
 					{
 						BorderWidth = 2,
@@ -118,7 +119,7 @@ namespace com_mc
 							{
 								tmpserial.Points.AddXY(ticks0 - st_ms, d);
 							}
-							if (tmpserial.Points.Count >= Config.config.dis_data_len)
+							if (tmpserial.Points.Count >= dd.dis_data_len)
 							{
 								tmpserial.Points.RemoveAt(0);
 							}
@@ -379,6 +380,22 @@ namespace com_mc
 			}
 			st_ms = DateTime.Now.Ticks / 10000;
 			x_tick=0;
+		}
+	}
+}
+namespace cslib
+{
+	public class DataSrc_replay_filedlg : DataSrc_replay //带时间戳的日志回放,打开文件对话框包裹
+	{
+		public DataSrc_replay_filedlg(RX_CB cb) : base(cb) { }
+		public override void open(string s)
+		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.txt|*.txt|*.dat|*.dat";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			string exs = Path.GetExtension(ofd.FileName).Trim();
+			if (exs == ".dat") is_bin = true;//若是二进制的
+			base.open(ofd.FileName);
 		}
 	}
 }

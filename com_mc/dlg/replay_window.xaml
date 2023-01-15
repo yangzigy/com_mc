@@ -5,59 +5,98 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:com_mc"
 		mc:Ignorable="d" Loaded="Window_Loaded" ResizeMode="NoResize"
-		Title="replay_window" Height="250" Width="500" Closing="Window_Closing" FontSize="16">
+		Title="Replay_Window" Height="400" Width="600" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="35"></RowDefinition>
-			<RowDefinition Height="30"></RowDefinition>
-			<RowDefinition></RowDefinition>
+			<RowDefinition Height="2*"></RowDefinition>
+			<RowDefinition Height="1*"></RowDefinition>
 		</Grid.RowDefinitions>
-		<StackPanel Grid.Row="0" Orientation="Horizontal">
-			<Button Click="bt_replay_cmd_Click" Tag="home" ToolTip="至首" Width="30">
-				<Button.Background> <ImageBrush ImageSource="/pic/1.PNG" /> </Button.Background>
-			</Button>
-			<Button Click="bt_replay_cmd_Click" Tag="pre" ToolTip="上一行" Width="30">
-				<Button.Background>
-					<ImageBrush ImageSource="/pic/2.PNG" />
-				</Button.Background>
-			</Button>
-			<Button Click="bt_replay_cmd_Click" Tag="resume" ToolTip="回放" Width="30">
-				<Button.Background>
-					<ImageBrush ImageSource="/pic/3.PNG" />
-				</Button.Background>
-			</Button>
-			<Button Click="bt_replay_cmd_Click" Tag="next" ToolTip="下一行" Width="30">
-				<Button.Background>
-					<ImageBrush ImageSource="/pic/4.PNG" />
-				</Button.Background>
-			</Button>
-			<Button Click="bt_replay_cmd_Click" Tag="end" ToolTip="至尾" Width="30">
-				<Button.Background>
-					<ImageBrush ImageSource="/pic/5.PNG" />
-				</Button.Background>
-			</Button>
-			<Label VerticalContentAlignment="Center">倍速</Label>
-			<ComboBox Width="60" VerticalContentAlignment="Center" SelectedIndex="2" Name="cb_speed">
-				<ComboBoxItem>0.1</ComboBoxItem>
-				<ComboBoxItem>0.5</ComboBoxItem>
-				<ComboBoxItem>1</ComboBoxItem>
-				<ComboBoxItem>2</ComboBoxItem>
-				<ComboBoxItem>5</ComboBoxItem>
-				<ComboBoxItem>10</ComboBoxItem>
-				<ComboBoxItem>max</ComboBoxItem>
-			</ComboBox>
-			<TextBox Name="tb_set_row" Width="80">0</TextBox>
-			<Button Name="bt_set_row" Click="bt_replay_cmd_Click" Tag="set_row">指定行</Button>
-		</StackPanel>
-		<Grid Grid.Row="1">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition ></ColumnDefinition>
-				<ColumnDefinition Width="150"></ColumnDefinition>
-			</Grid.ColumnDefinitions>
-			<Slider Grid.Column="0" VerticalAlignment="Center" Minimum="0" Name="sl_cur_row" ValueChanged="sl_cur_row_ValueChanged"></Slider>
-			<Label Grid.Column="1" HorizontalContentAlignment="Right" Name="lb_row_num">x/x</Label>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="170"></ColumnDefinition>
+			<ColumnDefinition Width="1*"></ColumnDefinition>
+		</Grid.ColumnDefinitions>
+		<Grid Grid.Row="0" Grid.Column="0" Grid.RowSpan="2">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="1*"></RowDefinition>
+				<RowDefinition Height="1*"></RowDefinition>
+			</Grid.RowDefinitions>
+			<DataGrid Name="dg_vir" FontSize="12">
+				<DataGrid.Columns>
+					<DataGridCheckBoxColumn Header="选中" Width="34"/>
+					<DataGridTextColumn Header="信道" Width="34"/>
+					<DataGridTextColumn Header="帧数" Width="50"/>
+					<DataGridTextColumn Header="长度" Width="50"/>
+				</DataGrid.Columns>
+			</DataGrid>
+			<Grid Grid.Row="1">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="35"></RowDefinition>
+					<RowDefinition Height="35"></RowDefinition>
+					<RowDefinition Height="35"></RowDefinition>
+					<RowDefinition Height="35"></RowDefinition>
+					<RowDefinition Height="1*"></RowDefinition>
+				</Grid.RowDefinitions>
+				<Button Grid.Row="0" FontSize="16">导出信道为cmlog</Button>
+				<Button Grid.Row="1" FontSize="16">导出信道原始数据</Button>
+				<Button Grid.Row="2" FontSize="16">导出变量csv</Button>
+			</Grid>
 		</Grid>
-		<TextBox Grid.Row="2" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible" Name="tb_org_text"
-				 HorizontalContentAlignment="Left"></TextBox>
+		<Grid Grid.Row="0" Grid.Column="1">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="35"></RowDefinition>
+				<RowDefinition Height="30"></RowDefinition>
+				<RowDefinition></RowDefinition>
+			</Grid.RowDefinitions>
+			<StackPanel Grid.Row="0" Orientation="Horizontal">
+				<Button Click="bt_replay_cmd_Click" Tag="home" ToolTip="至首" Width="30">
+					<Button.Background> <ImageBrush ImageSource="/pic/1.PNG" /> </Button.Background>
+				</Button>
+				<Button Click="bt_replay_cmd_Click" Tag="pre" ToolTip="上一行" Width="30">
+					<Button.Background>
+						<ImageBrush ImageSource="/pic/2.PNG" />
+					</Button.Background>
+				</Button>
+				<Button Click="bt_replay_cmd_Click" Tag="resume" ToolTip="回放" Width="30">
+					<Button.Background>
+						<ImageBrush ImageSource="/pic/3.PNG" />
+					</Button.Background>
+				</Button>
+				<Button Click="bt_replay_cmd_Click" Tag="next" ToolTip="下一行" Width="30">
+					<Button.Background>
+						<ImageBrush ImageSource="/pic/4.PNG" />
+					</Button.Background>
+				</Button>
+				<Button Click="bt_replay_cmd_Click" Tag="end" ToolTip="至尾" Width="30">
+					<Button.Background>
+						<ImageBrush ImageSource="/pic/5.PNG" />
+					</Button.Background>
+				</Button>
+				<Label VerticalContentAlignment="Center">倍速</Label>
+				<ComboBox Width="60" VerticalContentAlignment="Center" SelectedIndex="2" Name="cb_speed">
+					<ComboBoxItem>0.1</ComboBoxItem>
+					<ComboBoxItem>0.5</ComboBoxItem>
+					<ComboBoxItem>1</ComboBoxItem>
+					<ComboBoxItem>2</ComboBoxItem>
+					<ComboBoxItem>5</ComboBoxItem>
+					<ComboBoxItem>10</ComboBoxItem>
+					<ComboBoxItem>max</ComboBoxItem>
+				</ComboBox>
+				<TextBox Name="tb_set_row" Width="80">0</TextBox>
+				<Button Name="bt_set_row" Click="bt_replay_cmd_Click" Tag="set_row">指定行</Button>
+			</StackPanel>
+			<Grid Grid.Row="1">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition ></ColumnDefinition>
+					<ColumnDefinition Width="150"></ColumnDefinition>
+				</Grid.ColumnDefinitions>
+				<Slider Grid.Column="0" VerticalAlignment="Center" Minimum="0" Name="sl_cur_row" ValueChanged="sl_cur_row_ValueChanged"></Slider>
+				<Label Grid.Column="1" HorizontalContentAlignment="Right" Name="lb_row_num">x/x</Label>
+			</Grid>
+			<TextBox Grid.Row="2" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible" Name="tb_org_text"
+					 HorizontalContentAlignment="Left"></TextBox>
+		</Grid>
+		<StackPanel Grid.Row="1" Grid.Column="1" Name="sp_val_list">
+			
+		</StackPanel>
 	</Grid>
 </Window>

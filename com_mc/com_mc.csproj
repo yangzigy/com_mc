@@ -97,6 +97,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="app\cm_plugin.cs" />
+    <Compile Include="dlg\prot_cfg.xaml.cs" />
     <Compile Include="mc\com_mc_gui.cs" />
     <Compile Include="app\config.cs" />
     <Compile Include="app\frame_sync.cs" />
@@ -116,6 +117,10 @@
     <Page Include="dlg\help.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="dlg\prot_cfg.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="dlg\replay_window.xaml">
       <Generator>MSBuild:Compile</Generator>

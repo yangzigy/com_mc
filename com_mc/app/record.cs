@@ -4,14 +4,28 @@ using System.IO;
 using System.IO.Ports;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Web.Script.Serialization;
 
 namespace cslib
 {
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	public struct CMLOG_HEAD //日志帧头
+	{
+		public byte syn; //A0
+		public byte type; //
+		public byte len; //数据长度-1，总长度为len+7
+		public byte ms_l; //毫秒最低字节
+		public UInt16 ms_h; //毫秒高2字节，小端
+		public bool type_bin { get { return (type & (1 << 0)) != 0; } set { type = (value ? type |= (1 << 0) : (byte)(type & (~(1 << 0)))); } } //是否为二进制
+		public int vir { get { return (type & (0x0f << 4)) >> 4; } set { type = (byte)((type & 0x0f) & ((value & 0x0f) << 4)); } } //虚拟信道号
+		public int ms { get { return ms_h * 256 + ms_l; } set { ms_l = (byte)(value & 0xff); ms_h = (UInt16)(value >> 8); } }
+	}
+
 #region 带时间戳的回放：分2种，二进制和文本
-	public class DataSrc_replay : DataSrc //回放模式
+	public class DataSrc_replay : DataSrc //带时间戳的日志回放
 	{
 		public DataSrc_replay(RX_CB cb) : base(cb) { name = "回放"; }
 		public bool is_bin=false; //回放数据是否是二进制的
@@ -30,19 +44,14 @@ namespace cslib
 		public List<int> line_ms_list = new List<int>(); //每一行的ms时间戳
 		public List<string> data_lines = new List<string>(); //回放数据缓存
 		public List<byte[]> bin_lines = new List<byte[]>(); //回放数据缓存(二进制)
-		public override void open(string s) //打开数据源，输入以什么名称打开的
+		public override void open(string fname) //打开数据源，输入数据文件名
 		{
-			var ofd = new System.Windows.Forms.OpenFileDialog();
-			ofd.Filter = "*.txt|*.txt|*.dat|*.dat";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
-			string exs=Path.GetExtension(ofd.FileName).Trim();
-			if(exs==".dat") is_bin = true;//若是二进制的
-
 			line_ms_list.Clear();
 			data_lines.Clear();
+			bin_lines.Clear();
 			if (is_bin)//若是二进制的
 			{
-				FileStream fs=new FileStream(ofd.FileName, FileMode.Open, FileAccess.Read);
+				FileStream fs=new FileStream(fname, FileMode.Open, FileAccess.Read);
 				byte[] dbuf = new byte[fs.Length];
 				fs.Read(dbuf, 0,dbuf.Length);
 				fs.Close();
@@ -68,7 +77,7 @@ namespace cslib
 			}
 			else //文本型
 			{
-				StreamReader sw = new StreamReader(ofd.FileName);
+				StreamReader sw = new StreamReader(fname);
 				string text = sw.ReadToEnd();
 				sw.Close();
 				var lines = text.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
@@ -98,7 +107,6 @@ namespace cslib
 					{
 						switch (state)
 						{
-							case 0: throw new Exception("终止");//终止
 							case 1: //暂停
 								Thread.Sleep(100);
 								break;
@@ -109,6 +117,7 @@ namespace cslib
 								try_to_play();
 								state = 1; //恢复暂停状态
 								break;
+							default: throw new Exception("终止");//终止
 						}
 						Thread.Sleep(20);
 					}
@@ -122,7 +131,7 @@ namespace cslib
 		}
 		public void try_to_play()
 		{
-			if (replay_line < line_ms_list.Count)
+			while (replay_line < line_ms_list.Count)
 			{
 				update_replay_ms(); //更新回放时间
 				if (replay_ms > line_ms_list[replay_line]) //若回放时间大于数据时间，发出
@@ -138,6 +147,7 @@ namespace cslib
 					}
 					replay_line++;
 				}
+				else break;
 			}
 		}
 		public void set_replay_pos(int ind) //设置回放位置
@@ -150,7 +160,7 @@ namespace cslib
 		public void update_replay_ms() //累加回放时间
 		{
 			var d = (DateTime.Now - pre_replay_ms).TotalMilliseconds; //距上次更新的间隔时间
-			replay_ms += (int)(d* time_X);
+			replay_ms += (int)(d* time_X); //用于倍速
 			pre_replay_ms = DateTime.Now; //此时为时间基准
 		}
 		public override void close()
@@ -203,15 +213,21 @@ namespace cslib
 			base.create();
 			cur_time = DateTime.Now; //父类中只有UTC秒的记录
 		}
-		public override void log_pass(byte[] b, int ind, int len) //记录格式：加4个字节头，低20bit是10ms数，高12bit长度
-		{ //若出现大于4K的数据，一行就存不下了，改为多行
+		public override void log_pass(byte[] b, int ind, int len) //
+		{
 			while (len > 0)
 			{
-				int rec_len=len<= 0xfff ? len: 0xfff;
+				CMLOG_HEAD head=new CMLOG_HEAD();
+				head.syn = 0xa0;
+				//head.vir = 1; //二进制的默认给1
+				//head.type_bin = true; //二进制
+				head.type = 0x11; //更高效
+				int rec_len=len<= 256 ? len: 256;
+				head.len = (byte)(rec_len - 1);
 				int ms = (int)((DateTime.Now.Ticks - cur_time.Ticks) / 10000); //表示0001年1月1日午夜 12:00:00 以来所经历的 100 纳秒数
-				ms = ((ms / 10) & 0x000fffff) | ((rec_len & 0xfff) << 20);
-				var tb = Tool.StructToBytes(ms);
-				sw.Write(tb); //写入时间标
+				head.ms = ms;
+				var tb = Tool.StructToBytes(head);
+				sw.Write(tb); //写入头部
 				sw.Write(b, ind, rec_len); //写入数据
 				sw.Flush(); //flush
 				len -= rec_len;
@@ -221,7 +237,6 @@ namespace cslib
 		{
 			throw new Exception("未实现文本接口");
 		}
-		
 	}
 #endregion
 }

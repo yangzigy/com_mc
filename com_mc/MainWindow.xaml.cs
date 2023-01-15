@@ -28,6 +28,7 @@ namespace com_mc
 		System.Windows.Forms.DataVisualization.Charting.Chart chart1;
 		public Timer timer10Hz;
 		public Replay_Window rpl_win = new Replay_Window(); //回放对话框
+		public Prot_Cfg_Window prot_win = new Prot_Cfg_Window(); //协议编辑对话框
 		public uint tick = 0;
 
 		public Dictionary<string, DataSrc> ds_tab = new Dictionary<string, DataSrc>(); //字符与数据源的对应关系
@@ -68,7 +69,8 @@ namespace com_mc
 			//加载默认配置文件
 			//string configfilename = AppDomain.CurrentDomain.BaseDirectory + "/config.txt";
 			ini_by_config(cfglist.cfgs[0].fname);
-			
+			prot_win.cur_prot = commc.mc_prot; //将当前在用的协议引用给协议编辑对话框
+
 			timer10Hz = new Timer((TimerCallback)delegate (object state)
 			{
 				Dispatcher.Invoke((EventHandler)delegate (object sd, EventArgs ea)
@@ -142,8 +144,8 @@ namespace com_mc
 				}
 			}
 			Dictionary<string, object> td = new Dictionary<string, object>();
-			td["type"] = "replay";
-			rpl_win.rplobj = DataSrc.factory(td, rx_fun) as DataSrc_replay; //记录回放对象
+			td["type"] = "replay_filedlg";
+			rpl_win.rplobj = DataSrc.factory(td, rx_fun) as DataSrc_replay_filedlg; //记录回放对象
 			DataSrc.dslist.Add(rpl_win.rplobj);
 			rpl_win.rplobj.open_cb = () => bt_replay_dlg_Click(null, null);
 			td["type"] = "file";
@@ -337,6 +339,10 @@ namespace com_mc
 			rpl_win.Show();
 			rpl_win.Activate();
 			if (rpl_win.WindowState == WindowState.Minimized) rpl_win.WindowState = WindowState.Normal;
+		}
+		private void bt_prot_dlg_Click(object sender, RoutedEventArgs e) //开协议编辑器
+		{
+			prot_win.Show();
 		}
 #endregion
 #region 鼠标操作

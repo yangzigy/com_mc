@@ -24,6 +24,7 @@
 			<MenuItem Header="显示">
 				<MenuItem Header="适应屏幕" Click="bt_fitscreen_Click"></MenuItem>
 				<MenuItem Header="回放对话框" Click="bt_replay_dlg_Click"></MenuItem>
+				<MenuItem Header="协议编辑器" Click="bt_prot_dlg_Click"></MenuItem>
 				<!--<Grid>
 					<Button Margin="0,0,30,0">清空数据</Button>
 					<Image Source="pic/refresh_on.jpg" Width="30" HorizontalAlignment="Right"></Image>

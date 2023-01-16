@@ -138,7 +138,7 @@ namespace com_mc
 					//MessageBox.Show(e.ToString());
 				}
 			}
-			mc_prot.formJson(v); //初始化测控体系
+			mc_prot.fromJson(v); //初始化测控体系
 			foreach (var item in mc_prot.para_dict) //将参数列表复制到显示参数表
 			{
 				DataDes td = new DataDes(item.Value);

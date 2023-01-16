@@ -40,7 +40,19 @@ namespace com_mc
 		public virtual Dictionary<string, object> toJson() //输出json
 		{
 			var v = new Dictionary<string, object>();
-
+			//v["id"]=id; //暂时不用
+			v["name"]=name;
+			if(type!=DataType.df) v["type"]=type;
+			if(len!=0) v["len"]=len;
+			if (str_tab.Count > 0)
+			{
+				var ta = new ArrayList();
+				for (int i = 0; i < str_tab.Count; i++)
+				{
+					ta.Add(str_tab[i]);
+				}
+				v["str_tab"] = ta;
+			}
 			return v;
 		}
 		public abstract int set_val(byte[] b, int off, int n); //从数据设定值,返回使用的字节数
@@ -130,6 +142,12 @@ namespace com_mc
 		public ParaValue_Val(Dictionary<string, object> v, DataType t) : base(v, t)
 		{
 			if(v.ContainsKey("point_n")) point_n = (int)v["point_n"];
+		}
+		public override Dictionary<string, object> toJson()
+		{
+			var v = base.toJson();
+			if(point_n!=2) v["point_n"] = point_n;
+			return v;
 		}
 		public DATA_UNION data=new DATA_UNION();
 		public int point_n { get; set; } = 2;//小数位数

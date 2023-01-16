@@ -334,7 +334,7 @@ namespace com_mc
 		public ProtDom prot_root=null; //二进制协议根节点
 		//文本协议按行分隔，按列分隔，各协议之间按协议名称区分，协议名称为第一列文本，以$开头，加-列数。若第一列不是$开头，则名称仅为-列数
 		public Dictionary<string, PD_LineObj> textline_dict = new Dictionary<string, PD_LineObj>(); //文本协议字典
-		public void formJson(Dictionary<string, object> v) //初始化
+		public void fromJson(Dictionary<string, object> v) //初始化
 		{
 			if (v.ContainsKey("para_dict"))
 			{
@@ -367,15 +367,18 @@ namespace com_mc
 			}
 		}
 		public Dictionary<string, object> toJson() //使用json保存当前配置
-		{
+		{ //构造一个字典，包含：para_dict、prot_root、textline_dict三部分
 			Dictionary<string, object> v=new Dictionary<string, object>();
 			//先存储变量字典
-			var t= new Dictionary<string, object>();
+			var t= new ArrayList();
 			foreach (var item in para_dict)
 			{
-				t[item.Key] = item.Value;
+				t.Add(item.Value.toJson());
 			}
 			v["para_dict"]= t;
+			//然后存储二进制根节点
+
+			//然后存储文本协议字典
 
 			return v;
 		}

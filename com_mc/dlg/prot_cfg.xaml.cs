@@ -36,24 +36,30 @@ namespace com_mc
 		}
 		public void load_prot_from_json(Dictionary<string, object> v) //从json加载协议
 		{
-			para_prot.fromJson(v);
+			para_prot.fromJson(v); //将json转换为协议实体
 			//将协议刷新到界面上
-			//Dictionary<string,object> tmpobj=new Dictionary<string, object>();
-			//foreach (var item in para_prot.para_dict)
-			//{
-			//	tmpobj[item.Key]=new object[] { item.Value.name,item.Value.type,item.Value.len };
-			//}
 			List<ParaValue_Display> tmpobj = new List<ParaValue_Display>();
-			foreach (var item in para_prot.para_dict)
+			//首先刷新参数字典
+			foreach (var item in para_prot.para_dict) 
 			{
 				ParaValue_Display tl = new ParaValue_Display();
 				tl.name=item.Value.name;
 				tl.type = item.Value.type.ToString();
 				tl.len = item.Value.len.ToString();
 				tmpobj.Add(tl);
-				//dg_vir.Items.Add(tl);
+				//dg_vir.Items.Add(tl); //这样加双击时报无法修改错误
 			}
-			dg_vir.ItemsSource=tmpobj;
+			dg_vir.ItemsSource=tmpobj; //刷新到界面上
+			//刷新文本协议列表
+			List<ParaValue_Display> text_dis = new List<ParaValue_Display>();
+			foreach (var item in para_prot.textline_dict)
+			{
+				ParaValue_Display tl = new ParaValue_Display();
+				tl.name = item.Value.name;
+				tl.len = item.Value.prot_list.Count.ToString();
+				text_dis.Add(tl);
+			}
+			dg_text_prot.ItemsSource = text_dis;
 		}
 		private void mi_open_Click(object sender, RoutedEventArgs e) //打开协议处理
 		{

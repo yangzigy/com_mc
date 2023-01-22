@@ -3,6 +3,7 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:my="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
 		xmlns:local="clr-namespace:com_mc"
 		mc:Ignorable="d" Loaded="Window_Loaded" ResizeMode="NoResize"
 		Title="Prot_Cfg_Window" Height="700" Width="900" Closing="Window_Closing" FontSize="16">
@@ -15,7 +16,7 @@
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="2*"></ColumnDefinition>
 			<ColumnDefinition Width="3*"></ColumnDefinition>
-			<ColumnDefinition Width="320"></ColumnDefinition>
+			<ColumnDefinition Width="300"></ColumnDefinition>
 			<ColumnDefinition Width="2*"></ColumnDefinition>
 		</Grid.ColumnDefinitions>
 		<Menu Grid.Row="0" Grid.ColumnSpan="4" FontSize="16" VerticalAlignment="Center">
@@ -72,144 +73,59 @@
 		<Grid Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="30"></RowDefinition>
+				<RowDefinition Height="30"></RowDefinition>
 				<RowDefinition Height="1*"></RowDefinition>
 			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="2*"></ColumnDefinition>
+				<ColumnDefinition Width="2*"></ColumnDefinition>
+			</Grid.ColumnDefinitions>
 			<Label Grid.Row="0">二进制协议树：</Label>
-			<DataGrid Grid.Row="1" Name="dg_prot" FontSize="14" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False">
+			<Button Grid.Row="1" Grid.Column="0">添加</Button>
+			<Button Grid.Row="1" Grid.Column="1">删除</Button>
+			<DataGrid Grid.Row="2" Name="dg_prot" Grid.ColumnSpan="2" FontSize="14" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False">
 				<DataGrid.Columns>
 					<DataGridTextColumn Header="协议名" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
 					<DataGridTextColumn Header="类型" Width="60" Binding="{Binding type}" IsReadOnly="True"/>
 				</DataGrid.Columns>
 			</DataGrid>
 		</Grid>
-		<Grid Grid.Row="1" Grid.Column="2">
+		<Grid Grid.Row="1" Grid.Column="2" Grid.RowSpan="2">
 			<GroupBox Grid.Column="0" BorderBrush="#FFA9AAAF" FontWeight="Normal">
 				<GroupBox.Header>
-					<TextBlock  Text ="二进制协议配置"/>
+					<TextBlock  Text ="协议配置"/>
 				</GroupBox.Header>
-				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="1*"></ColumnDefinition>
-						<ColumnDefinition Width="1*"></ColumnDefinition>
-						<ColumnDefinition Width="1*"></ColumnDefinition>
-						<ColumnDefinition Width="1*"></ColumnDefinition>
-					</Grid.ColumnDefinitions>
+				<Grid Grid.Row="1" Grid.Column="3" Grid.RowSpan="2">
 					<Grid.RowDefinitions>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
+						<RowDefinition Height="30"></RowDefinition>
 						<RowDefinition Height="1*"></RowDefinition>
 					</Grid.RowDefinitions>
-					<Button Grid.Row="0" Grid.Column="0">添加节点</Button>
-					<Button Grid.Row="0" Grid.Column="1">删除节点</Button>
-					<Button Grid.Row="0" Grid.Column="3">写入配置</Button>
-					<Label Grid.Row="1" Grid.Column="0">名称</Label>
-					<TextBox Grid.Row="1" Grid.Column="1"></TextBox>
-					<Label Grid.Row="1" Grid.Column="2">类型</Label>
-					<ComboBox Grid.Row="1" Grid.Column="3" SelectedIndex="0">
-						<ComboBoxItem>u8</ComboBoxItem>
-						<ComboBoxItem>u16</ComboBoxItem>
-						<ComboBoxItem>u32</ComboBoxItem>
-						<ComboBoxItem>u64</ComboBoxItem>
-						<ComboBoxItem>s8</ComboBoxItem>
-						<ComboBoxItem>s16</ComboBoxItem>
-						<ComboBoxItem>s32</ComboBoxItem>
-						<ComboBoxItem>s64</ComboBoxItem>
-						<ComboBoxItem>f</ComboBoxItem>
-						<ComboBoxItem>df</ComboBoxItem>
-						<ComboBoxItem>undef</ComboBoxItem>
-						<ComboBoxItem>str</ComboBoxItem>
-					</ComboBox>
-					<Label Grid.Row="2" Grid.Column="0">引用参数</Label>
-					<TextBox Grid.Row="2" Grid.Column="1"></TextBox>
-					<Label Grid.Row="2" Grid.Column="2">数组长度</Label>
-					<TextBox Grid.Row="2" Grid.Column="3">0</TextBox>
-					<Label Grid.Row="3" Grid.Column="0">变换k</Label>
-					<TextBox Grid.Row="3" Grid.Column="1">1</TextBox>
-					<Label Grid.Row="4" Grid.Column="0">变换b</Label>
-					<TextBox Grid.Row="4" Grid.Column="1">0</TextBox>
-					<Label Grid.Row="5" Grid.Column="0">跳过数量</Label>
-					<TextBox Grid.Row="5" Grid.Column="1">0</TextBox>
-					<Label Grid.Row="3" Grid.Column="2">位段起始</Label>
-					<TextBox Grid.Row="3" Grid.Column="3">1</TextBox>
-					<Label Grid.Row="4" Grid.Column="2">位段长度</Label>
-					<TextBox Grid.Row="4" Grid.Column="3">0</TextBox>
-					<CheckBox Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="2" FontSize="16">位段有符号</CheckBox>
-					<Label Grid.Row="6" Grid.Column="0">文本类型</Label>
-					<ComboBox Grid.Row="6" Grid.Column="1" SelectedIndex="0">
-						<ComboBoxItem>dec</ComboBoxItem>
-						<ComboBoxItem>hex</ComboBoxItem>
-					</ComboBox>
-				</Grid>
-			</GroupBox>
-		</Grid>
-		<Grid Grid.Row="2" Grid.Column="2">
-			<GroupBox Grid.Column="1" BorderBrush="#FFA9AAAF" FontWeight="Normal">
-				<GroupBox.Header>
-					<TextBlock  Text ="参数配置"/>
-				</GroupBox.Header>
-				<Grid>
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="1*"></ColumnDefinition>
-						<ColumnDefinition Width="1*"></ColumnDefinition>
+						<ColumnDefinition Width="2*"></ColumnDefinition>
+						<ColumnDefinition Width="2*"></ColumnDefinition>
 					</Grid.ColumnDefinitions>
-					<Grid.RowDefinitions>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-						<RowDefinition Height="1*"></RowDefinition>
-					</Grid.RowDefinitions>
-					<Button Grid.Row="0" Grid.Column="0">添加参数</Button>
-					<Button Grid.Row="0" Grid.Column="1">删除参数</Button>
-					<Button Grid.Row="1" Grid.Column="0">修改参数</Button>
-					<Label Grid.Row="2" Grid.Column="0">名称</Label>
-					<TextBox Grid.Row="2" Grid.Column="1"></TextBox>
-					<Label Grid.Row="3" Grid.Column="0">类型</Label>
-					<ComboBox Grid.Row="3" Grid.Column="1" SelectedIndex="0">
-						<ComboBoxItem>u8</ComboBoxItem>
-						<ComboBoxItem>u16</ComboBoxItem>
-						<ComboBoxItem>u32</ComboBoxItem>
-						<ComboBoxItem>u64</ComboBoxItem>
-						<ComboBoxItem>s8</ComboBoxItem>
-						<ComboBoxItem>s16</ComboBoxItem>
-						<ComboBoxItem>s32</ComboBoxItem>
-						<ComboBoxItem>s64</ComboBoxItem>
-						<ComboBoxItem>f</ComboBoxItem>
-						<ComboBoxItem>df</ComboBoxItem>
-						<ComboBoxItem>undef</ComboBoxItem>
-						<ComboBoxItem>str</ComboBoxItem>
-					</ComboBox>
-					<Label Grid.Row="4" Grid.Column="0">长度</Label>
-					<TextBox Grid.Row="4" Grid.Column="1">0</TextBox>
-					<Label Grid.Row="5" Grid.Column="0">字符列表</Label>
-					<TextBox Grid.Row="5" Grid.Column="1">[]</TextBox>
-					<CheckBox Grid.Row="6" Grid.Column="0" FontSize="16">显示曲线</CheckBox>
-					<CheckBox Grid.Row="6" Grid.Column="1" FontSize="16">显示</CheckBox>
-					<Label Grid.Row="7" Grid.Column="0">曲线长度</Label>
-					<TextBox Grid.Row="7" Grid.Column="1">0</TextBox>
-					<Label Grid.Row="8" Grid.Column="0">小数位数</Label>
-					<TextBox Grid.Row="8" Grid.Column="1">2</TextBox>
+					<Button Grid.Row="0" Grid.Column="0">更新变量</Button>
+					<WindowsFormsHost Name="windowsFormsHost1" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+						<my:PropertyGrid x:Name="pg_prot"></my:PropertyGrid>
+					</WindowsFormsHost>
 				</Grid>
 			</GroupBox>
 		</Grid>
 		<Grid Grid.Row="1" Grid.Column="3" Grid.RowSpan="2">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="30"></RowDefinition>
+				<RowDefinition Height="30"></RowDefinition>
 				<RowDefinition Height="1*"></RowDefinition>
 			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="2*"></ColumnDefinition>
+				<ColumnDefinition Width="2*"></ColumnDefinition>
+			</Grid.ColumnDefinitions>
 			<Label Grid.Row="0">参数列表：</Label>
-			<DataGrid Name="dg_vir" Grid.Row="1" FontSize="14" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False">
+			<Button Grid.Row="1" Grid.Column="0">添加</Button>
+			<Button Grid.Row="1" Grid.Column="1">删除</Button>
+			<DataGrid Name="dg_vir" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"
+					  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" MouseDown="dg_vir_MouseDown" SelectedCellsChanged="dg_vir_SelectedCellsChanged">
 				<DataGrid.Columns>
 					<DataGridTextColumn Header="变量名" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
 					<DataGridTextColumn Header="类型" Width="40" Binding="{Binding type}" IsReadOnly="True"/>

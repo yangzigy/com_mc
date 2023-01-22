@@ -12,6 +12,7 @@ namespace com_mc
 	{
 		void fromJson(Dictionary<string, object> v); //初始化配置
 		void pro(byte[] b, int off, int n); //数据输入接口
+		int prot_root_id(int rootid = -1); //获取或设置本帧同步对象关联的协议族根节点的id（输入-1为查询，大于等于0为设置）
 	}
 	public enum CHECK_TYPE //数据包校验和的类型
 	{
@@ -20,6 +21,7 @@ namespace com_mc
 	}
 	public class Sync_head : Frame_Sync, Sync_interfase //帧头同步
 	{
+		public int ref_prot_root_id = 0; //关联的协议族根节点id，默认为0
 		public PD_Node len_dom; //确定长度数据
 		public int len_dom_off=0; //确定长度数据的偏移位置
 		public Dictionary<int, int> len_dict = new Dictionary<int, int>(); //确定长度数据表，用于包类型与包长的对应
@@ -32,6 +34,7 @@ namespace com_mc
 		public CM_Plugin_Interface.RX_BIN_CB rx_bin_cb = null;
 		public void fromJson(Dictionary<string,object> v)
 		{
+			if(v.ContainsKey("prot_root_id")) ref_prot_root_id = (byte)(int)v["prot_root_id"]; //关联的协议族根节点id，默认为0
 			if (v.ContainsKey("check_type")) //配置校验类型
 			{
 				string s = json_ser.Serialize(v["check_type"]);
@@ -75,6 +78,11 @@ namespace com_mc
 				}
 			}
 		}
+		public int prot_root_id(int rootid=-1) //获取或设置本帧同步对象关联的协议族根节点的id（输入-1为查询，大于等于0为设置）
+		{
+			if(rootid>=0) ref_prot_root_id = rootid;
+			return ref_prot_root_id;
+		}
 		public void pro(byte[] b, int off, int n)
 		{
 			for (int i = 0; i < n; i++)
@@ -111,7 +119,7 @@ namespace com_mc
 				case CHECK_TYPE.modbuscrc:
 					break;
 			}
-			rx_bin_cb(b, 0, len);
+			rx_bin_cb(b, 0, len, ref_prot_root_id);
 			return 0;
 		}
 		public override void lostlock_cb(byte b)
@@ -121,11 +129,17 @@ namespace com_mc
 	}
 	public class Sync_Line : Line_Sync, Sync_interfase //分行处理
 	{
+		public int ref_prot_root_id = 0; //关联的协议族根节点id，默认为0
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 		public CM_Plugin_Interface.RX_BIN_CB rx_bin_cb = null;
 		public void fromJson(Dictionary<string, object> v)
 		{
-
+			if (v.ContainsKey("prot_root_id")) ref_prot_root_id = (byte)(int)v["prot_root_id"]; //关联的协议族根节点id，默认为0
+		}
+		public int prot_root_id(int rootid = -1) //获取或设置本帧同步对象关联的协议族根节点的id（输入-1为查询，大于等于0为设置）
+		{
+			if (rootid >= 0) ref_prot_root_id = rootid;
+			return ref_prot_root_id;
 		}
 		public void pro(byte[] b, int off, int n)
 		{
@@ -136,7 +150,7 @@ namespace com_mc
 		}
 		public override bool pro_pack(byte[] b, int len)
 		{
-			rx_bin_cb(b, 0, len);
+			rx_bin_cb(b, 0, len,ref_prot_root_id);
 			return true;
 		}
 	}

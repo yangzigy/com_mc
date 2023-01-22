@@ -28,6 +28,7 @@
 	"bt_margin":6, //按钮间距
 	"ctrl_cmds":["^x_axis"], //软件开启后的显示指令
 	"plugin_path":"./cm_plugin.dll",
+	"ext_cfg_files":[], //额外的配置文件，仅能配置prot_cfg
 	//"syn_pro": //帧同步配置,不配置默认文本
 	//{
 		//"syn_line": {}
@@ -50,33 +51,36 @@
 			{"name":"i_off","is_dis":0}
 		],
 		//"prot_root": //二进制协议根
-		"textline_dict": //文本协议列表，通过字符类型、bit长度等参数决定用什么方式来取(type是二进制协议用的，这里无效)
-		[
-			{"col_n":8,"prot_list": //状态上传协议
-				[
-					{"ref_name":"电压","skip_n":1}, //0，第1列空，跳过
-					{"ref_name":"电流"}, //2
-					{"ref_name":"强度"}, //3
-					{"ref_name":"期望温度"}, //4
-					{"ref_name":"温度","skip_n":1}, //5，第6列空，跳过
-					{"ref_name":"模式","str_type":"hex","bit_st":9,"bit_len":2,"skip_n":-1}, //7 指明文本类型为hex
-					{"ref_name":"输出","str_type":"hex","bit_st":6,"bit_len":1,"skip_n":-1}, //7
-					{"ref_name":"温控","str_type":"hex","bit_st":15,"bit_len":1} //7
-				]
-			},
-			{"col_n":2,"name":"$r","prot_list": //指令结果
-				[
-					{"ref_name":"空"},
-					{"ref_name":"指令结果"}
-				]
-			},
-			{"col_n":2,"name":"$@:3:1:0:16","prot_list": //电流偏置
-				[
-					{}, //不提取的域
-					{"ref_name":"i_off","pro_k":0.1}
-				]
-			}
-		]
+		"textline_prot": //文本协议根
+		{
+			"type":"text","textline_dict":
+			[
+				{"col_n":8,"prot_list": //状态上传协议
+					[
+						{"ref_name":"电压","skip_n":1}, //0，第1列空，跳过
+						{"ref_name":"电流"}, //2
+						{"ref_name":"强度"}, //3
+						{"ref_name":"期望温度"}, //4
+						{"ref_name":"温度","skip_n":1}, //5，第6列空，跳过
+						{"ref_name":"模式","str_type":"hex","bit_st":9,"bit_len":2,"skip_n":-1}, //7 指明文本类型为hex
+						{"ref_name":"输出","str_type":"hex","bit_st":6,"bit_len":1,"skip_n":-1}, //7
+						{"ref_name":"温控","str_type":"hex","bit_st":15,"bit_len":1} //7
+					]
+				},
+				{"col_n":2,"name":"$r","prot_list": //指令结果
+					[
+						{"ref_name":"空"},
+						{"ref_name":"指令结果"}
+					]
+				},
+				{"col_n":2,"name":"$@:3:1:0:16","prot_list": //电流偏置
+					[
+						{}, //不提取的域
+						{"ref_name":"i_off","pro_k":0.1}
+					]
+				}
+			]
+		}
 	},
 	"cmds":
 	[

@@ -88,57 +88,9 @@ namespace com_mc
 		public MC_Prot mc_prot = new MC_Prot(); //测控架构
 
 		public CM_Plugin_Interface pro_obj = null; //无插件时的处理对象
-		public void ini(Dictionary<string, object> v) //初始化
-		{
-			ini_mc(v);//初始化测控体系，并对参数的显示进行额外配置
-			/////////////////////////////////////////////////////////////////////
-			//_so_tx_cb = new CM_Plugin_Interface.DllcallBack(send_data); //构造不被回收的委托
-			try
-			{
-				FileInfo fi = new FileInfo(Config.config.plugin_path); //已经变成绝对路径了
-				Assembly assembly = Assembly.LoadFrom(fi.FullName); //重复加载没事
-				string fname = "com_mc." + fi.Name.Replace(fi.Extension, ""); //定义：插件dll中的类名是文件名
-				foreach (var t in assembly.GetExportedTypes())
-				{
-					if (t.FullName == fname)
-					{
-						pro_obj = Activator.CreateInstance(t) as CM_Plugin_Interface;
-					}
-				}
-				if (pro_obj == null) throw new Exception();
-			}
-			catch
-			{
-				pro_obj = new CM_Plugin_Interface();
-			}
-			pro_obj.ini(MainWindow.mw.send_data, MainWindow.mw.rx_line, MainWindow.mw.rx_pack); //无插件的情况，发送函数、接收函数
-			pro_obj.fromJson(Config.config.syn_pro); //帧同步部分初始化
-			if (Config.config.encoding == "utf8") pro_obj.cur_encoding = Encoding.UTF8; //根据配置变换编码
-			//配置初始化指令
-			foreach (var item in Config.config.ctrl_cmds)
-			{
-				MainWindow.mw.ctrl_cmd(item);
-			}
-		}
-		public void ini_mc(Dictionary<string, object> v) //初始化测控体系，并对参数的显示进行额外配置
-		{
-			//判断协议配置的方式
-			if (v.ContainsKey("filename")) //若是从文件加载的
-			{
-				try
-				{
-					string s = v["filename"] as string;
-					s = Tool.relPath_2_abs(Config.configPath, s); //都是以配置文件为基础的
-					object t = Tool.load_json_from_file<Dictionary<string, object>>(s);
-					Tool.dictinary_update(ref t, v); //用软件配置更新协议配置文件里加载的配置
-					v = t as Dictionary<string, object>;
-				}
-				catch (Exception e)
-				{
-					//MessageBox.Show(e.ToString());
-				}
-			}
-			mc_prot.fromJson(v); //初始化测控体系
+		public void ini(Dictionary<string, object> v) //初始化测控体系，并对参数的显示进行额外配置，输入prot_cfg域
+		{ //这里关心的：
+			mc_prot.fromJson(v); //初始化动态协议部分
 			foreach (var item in mc_prot.para_dict) //将参数列表复制到显示参数表
 			{
 				DataDes td = new DataDes(item.Value);

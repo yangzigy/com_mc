@@ -6,7 +6,6 @@ using System.Collections;
 using System.Web.Script.Serialization;
 using System.IO;
 using System.Windows;
-using static com_mc.CCmd_Button;
 
 namespace com_mc
 {
@@ -20,7 +19,7 @@ namespace com_mc
 		public int id { get; set; } = 0; //参数的唯一id，在C程序中使用
 		public DataType type { get; set; } = 0; //数据类型,默认是u8（此处无效，在factory处设置为u64）
 		public string ref_name { get; set; } = "";//引用参数的名称
-		public ParaValue ref_para=null; //引用的参数
+		public ParaValue ref_para=null; //引用的参数，没有引用会给内部对象，一定会有
 		public ProtDom(Dictionary<string, object> v, DataType t, MC_Prot pd) //从json构造对象
 		{ //这里遇到错误就throw出去，不想throw的才判断
 			p_mcp = pd;
@@ -155,7 +154,7 @@ namespace com_mc
 			off += n;
 		}
 	}
-	public class PD_Str : PD_Node //字符型叶子节点，分为十进制和hex，输出类型只能是值类型
+	public class PD_Str : PD_Node //字符型叶子节点（同时适用于二进制和文本行协议），分为十进制和hex，输出类型只能是值类型
 	{
 		public string str_type = ""; //空为10进制，hex：16进制
 		public PD_Str(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
@@ -168,7 +167,7 @@ namespace com_mc
 			if (str_type != "") v["str_type"] = str_type;
 			return v;
 		}
-		public override void pro(byte[] b, ref int off, int n) //字符型在二进制流中取得
+		public override void pro(byte[] b, ref int off, int n) //在二进制流中取得字符
 		{
 			int str_len = len;
 			if(str_len == 0) //若不定长度,就按0为分割，确定字符串长度
@@ -257,11 +256,13 @@ namespace com_mc
 	{
 		public string ref_type = ""; //引用的协议域，用于确定包类型
 		public string cfg_str_type = ""; //配置中，协议索引的字符串类型。空为10进制，hex为10进制
+		public int is_reset = 0; //对子协议，是否复位解析位置（若是对多种协议的选择，可以从0开始，从新解析）
 		public Dictionary<int, ProtDom> prot_map=new Dictionary<int, ProtDom>(); //各协议描述符头部，由int对协议进行索引
 		public PD_Switch(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
 		{
 			ref_type = v["ref_type"] as string;
 			if(v.ContainsKey("cfg_str_type")) cfg_str_type = v["cfg_str_type"] as string; //
+			if (v.ContainsKey("is_reset")) is_reset = (int)v["is_reset"];
 			var dict = v["prot_map"] as Dictionary<string, object>; //各协议由字典组织
 			foreach (var item in dict)
 			{
@@ -300,6 +301,7 @@ namespace com_mc
 			PD_Node pn = father_Dom.prot_dict[ref_type] as PD_Node; //引用的一定是个值类型的协议域
 			var para = pn.ref_para as ParaValue_Val;
 			int ti = (int)para.data.du64; //此时是变换以后的
+			if (is_reset != 0) off = 0; //若是从新解析，只需将off给0
 			prot_map[ti].pro(b, ref off, n); //找到这个协议，调用
 		}
 	}
@@ -350,7 +352,7 @@ namespace com_mc
 			}
 		}
 	}
-	public class PD_LineObj : ProtDom //文本行协议对象
+	public class PD_LineObj : ProtDom //文本行协议对象，不接受二进制输入
 	{
 		public List<PD_Str> prot_list = new List<PD_Str>(); //一系列顺序的协议域
 		public string[] split_char_list = new string[0]; //本协议的特殊分隔符
@@ -389,7 +391,7 @@ namespace com_mc
 			}
 			return ls.ToArray();
 		}
-		public override void pro(byte[] b, ref int off, int n)
+		public override void pro(byte[] b, ref int off, int n) //不支持二进制输入
 		{
 			
 		}
@@ -403,14 +405,58 @@ namespace com_mc
 			}
 		}
 	}
+	public class PD_LineSwitch : ProtDom //文本行协议分类
+	{
+		public Encoding cur_encoding = Encoding.Default; //默认编码
+		public Dictionary<string, PD_LineObj> textline_dict = new Dictionary<string, PD_LineObj>(); //文本协议字典
+		public PD_LineSwitch(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t, pd)
+		{
+			if (v.ContainsKey("encoding")) cur_encoding = Encoding.GetEncoding(v["encoding"] as string);
+			ArrayList list = v["textline_dict"] as ArrayList;
+			foreach (var item in list)
+			{
+				var tv = item as Dictionary<string, object>;
+
+				string s = "";
+				if (tv.ContainsKey("name")) s = tv["name"] as string;
+				int col_n = (int)tv["col_n"]; //必须描述此协议的列数
+				s += "-" + col_n.ToString();
+				textline_dict[s] = new PD_LineObj(tv, DataType.str, pd);
+			}
+		}
+		public override void pro(byte[] b, ref int off, int n)
+		{
+			string s = cur_encoding.GetString(b, off, n);
+			s = s.Trim();
+			if (s == "") return;
+			string[] vs = s.Split(", \t".ToCharArray(), StringSplitOptions.None); //有分隔符没数据也算
+			if (vs.Length >= 1) //若有数据
+			{
+				//构造协议名
+				string pname = "";
+				if (vs[0].StartsWith("$")) pname = vs[0]; //.Substring(1);
+				pname += "-" + vs.Length.ToString();
+				if (textline_dict.ContainsKey(pname)) //若有这个名字的协议
+				{
+					if (textline_dict[pname].split_char_list.Length > 0)//看这个协议是否指定了分隔符
+					{
+						vs = s.Split(textline_dict[pname].split_char_list, StringSplitOptions.None);
+					}
+					textline_dict[pname].pro_cols(vs);
+				}
+			}
+		}
+	}
 	public class MC_Prot //测控参数体系的实现
 	{
 		public Dictionary<string, ParaValue> para_dict = new Dictionary<string, ParaValue>(); //参数字典
-		public ProtDom prot_root=null; //二进制协议根节点
+		//public ProtDom prot_root=null; //二进制协议根节点
+		public List<ProtDom> prot_root_list=new List<ProtDom>(); //协议族根节点列表
 		//文本协议按行分隔，按列分隔，各协议之间按协议名称区分，协议名称为第一列文本，以$开头，加-列数。若第一列不是$开头，则名称仅为-列数
-		public Dictionary<string, PD_LineObj> textline_dict = new Dictionary<string, PD_LineObj>(); //文本协议字典
+		//public Dictionary<string, PD_LineObj> textline_dict = new Dictionary<string, PD_LineObj>(); //文本协议字典
 		public void fromJson(Dictionary<string, object> v) //初始化
 		{
+			clear();
 			if (v.ContainsKey("para_dict"))
 			{
 				ArrayList list = v["para_dict"] as ArrayList;
@@ -421,25 +467,19 @@ namespace com_mc
 					para_dict[s] = ParaValue.factory(tv); //构建参数
 				}
 			}
+			ProtDom text_root = null;
+			//文本行协议
+			if (v.ContainsKey("textline_prot"))
+			{
+				text_root = MC_Prot.factory(v["textline_prot"] as Dictionary<string, object>, this); //递归创建自己的子协议域
+			}
+			prot_root_list.Add(text_root);
+			ProtDom prot_root = null; //二进制协议根节点
 			if (v.ContainsKey("prot_root"))
 			{
 				prot_root = MC_Prot.factory(v["prot_root"] as Dictionary<string, object>, this); //递归创建自己的子协议域
 			}
-			//文本行协议
-			if(v.ContainsKey("textline_dict"))
-			{
-				ArrayList list = v["textline_dict"] as ArrayList;
-				foreach (var item in list)
-				{
-					var tv = item as Dictionary<string, object>;
-				
-					string s = "";
-					if (tv.ContainsKey("name"))	s = tv["name"] as string;
-					int col_n = (int)tv["col_n"]; //必须描述此协议的列数
-					s+="-"+col_n.ToString();
-					textline_dict[s] = new PD_LineObj(tv, DataType.str, this);
-				}
-			}
+			prot_root_list.Add(prot_root);
 		}
 		public Dictionary<string, object> toJson() //使用json保存当前配置
 		{ //构造一个字典，包含：para_dict、prot_root、textline_dict三部分
@@ -454,43 +494,29 @@ namespace com_mc
 			//然后存储二进制根节点
 
 			//然后存储文本协议字典
-			t.Clear();
-			foreach (var item in textline_dict)
-			{
-				var textline_tmp = item.Value.toJson();
-				textline_tmp["col_n"] = Convert.ToInt32(item.Key.Substring(item.Key.LastIndexOf('-')+1)); //命名为“-7”7为列数
-				t.Add(textline_tmp);
-			}
-			v["textline_dict"] = t;
+			//t.Clear();
+			//foreach (var item in textline_dict)
+			//{
+			//	var textline_tmp = item.Value.toJson();
+			//	textline_tmp["col_n"] = Convert.ToInt32(item.Key.Substring(item.Key.LastIndexOf('-')+1)); //命名为“-7”7为列数
+			//	t.Add(textline_tmp);
+			//}
+			//v["textline_dict"] = t;
 			return v;
 		}
 		public void clear()
 		{
-			prot_root = null;
-			textline_dict.Clear();
+			//prot_root = null;
+			//textline_dict.Clear();
 			para_dict.Clear();
+			prot_root_list.Clear();
 		}
-		public void pro(byte[] b,int off,int n) //处理二进制包，缓存，偏移，长度（off之后）
+		public void pro(byte[] b,int off,int n,int rootid) //特定协议族处理一帧数据，缓存，偏移，长度（off之后）
 		{
-			prot_root.pro(b,ref off,n);
-		}
-		public void pro_line(string s) //处理一行文本
-		{
-			string[] vs = s.Split(", \t".ToCharArray(), StringSplitOptions.None); //有分隔符没数据也算
-			if (vs.Length >= 1) //若有数据
+			//prot_root.pro(b,ref off,n);
+			if(rootid< prot_root_list.Count)
 			{
-				//构造协议名
-				string pname="";
-				if (vs[0].StartsWith("$")) pname = vs[0]; //.Substring(1);
-				pname+="-"+vs.Length.ToString();
-				if(textline_dict.ContainsKey(pname)) //若有这个名字的协议
-				{
-					if(textline_dict[pname].split_char_list.Length>0)//看这个协议是否指定了分隔符
-					{
-						vs = s.Split(textline_dict[pname].split_char_list, StringSplitOptions.None);
-					}
-					textline_dict[pname].pro_cols(vs);
-				}
+				prot_root_list[rootid].pro(b,ref off, n); //调用对应协议族的根节点
 			}
 		}
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
@@ -510,6 +536,7 @@ namespace com_mc
 					case "obj": return new PD_Obj(v, t,pd);
 					case "switch": return new PD_Switch(v, t, pd);
 					case "loop": return new PD_Loop(v, t, pd);
+					case "text": return new PD_LineSwitch(v, t, pd);
 					default:
 						break;
 				}

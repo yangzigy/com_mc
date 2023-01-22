@@ -51,7 +51,7 @@ namespace com_mc
 		public int mv_h { get; set; } = 0;//主窗体高
 		public int bt_margin { get; set; } = 2; //按钮间距
 		public Dictionary<string, object> syn_pro { get; set; } = new Dictionary<string, object>(); //帧同步处理
-																									//数据结构
+		//数据结构
 		public Dictionary<string, object> prot_cfg { get; set; } = new Dictionary<string, object>(); //通用测控对象
 		public List<CmdDes> cmds { get; set; } = new List<CmdDes>(); //指令列表
 		//菜单
@@ -61,6 +61,7 @@ namespace com_mc
 		public string menu_name { get; set; } = "";//菜单名
 		public string encoding { get; set; } = "utf8";//编码名称（dft为默认编码）
 		public string plugin_path { get; set; } = "";//插件路径，相对此配置文件
+		public List<string> ext_cfg_files { get; set; }= new List<string>(); //额外的配置文件
 		//数据输入
 		public List<Dictionary<string, object>> data_src { get; set; }=new List<Dictionary<string, object>>();
 	}

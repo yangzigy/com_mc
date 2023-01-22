@@ -48,25 +48,28 @@
 			{"name":"crc","type":"u16"}
 		]
 	},
-	"textline_dict": //文本协议列表
-	[
-		{"col_n":8,"prot_list": //状态上传协议
-			[
-				{"ref_name":"电压","skip_n":1}, //0，第一列空，跳过
-				{"ref_name":"电流"}, //2
-				{"ref_name":"强度"}, //3
-				{"ref_name":"期望温度"}, //4
-				{"ref_name":"温度","skip_n":1}, //5，第六列空，跳过
-				{"ref_name":"模式","str_type":"hex","bit_st":9,"bit_len":2,"skip_n":-1}, //7
-				{"ref_name":"输出","str_type":"hex","bit_st":6,"bit_len":1,"skip_n":-1}, //7
-				{"ref_name":"温控","str_type":"hex","bit_st":15,"bit_len":1} //7
-			]
-		},
-		{"col_n":2,"name":"$r","prot_list": //指令结果
-			[
-				{"ref_name":"空"},
-				{"ref_name":"指令结果"}
-			]
-		}
-	]
+	"textline_prot": //文本协议根
+	{
+		"type":"text","textline_dict":
+		[
+			{"col_n":8,"prot_list": //状态上传协议
+				[
+					{"ref_name":"电压","skip_n":1}, //0，第一列空，跳过
+					{"ref_name":"电流"}, //2
+					{"ref_name":"强度"}, //3
+					{"ref_name":"期望温度"}, //4
+					{"ref_name":"温度","skip_n":1}, //5，第六列空，跳过
+					{"ref_name":"模式","str_type":"hex","bit_st":9,"bit_len":2,"skip_n":-1}, //7
+					{"ref_name":"输出","str_type":"hex","bit_st":6,"bit_len":1,"skip_n":-1}, //7
+					{"ref_name":"温控","str_type":"hex","bit_st":15,"bit_len":1} //7
+				]
+			},
+			{"col_n":2,"name":"$r","prot_list": //指令结果
+				[
+					{"ref_name":"空"},
+					{"ref_name":"指令结果"}
+				]
+			}
+		]
+	}
 }

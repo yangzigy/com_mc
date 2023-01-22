@@ -59,7 +59,7 @@ namespace com_mc
 			{
 				var me = new MenuItem();
 				me.Header = cfglist.cfgs[i].des;
-				me.Tag = cfglist.cfgs[i];
+				me.Tag = cfglist.cfgs[i]; //将配置属性直接写在Tag里
 				me.Click += (RoutedEventHandler)delegate(object se, RoutedEventArgs ee)
 				{
 					ini_by_config(((Config_Prop)(((MenuItem)se).Tag)).fname); //按这个配置初始化
@@ -68,7 +68,7 @@ namespace com_mc
 			}
 			//加载默认配置文件
 			//string configfilename = AppDomain.CurrentDomain.BaseDirectory + "/config.txt";
-			ini_by_config(cfglist.cfgs[0].fname);
+			ini_by_config(cfglist.cfgs[0].fname); //默认按配置列表的第一项初始化，即使没有cm_cfgs.txt，第一项也会默认一个config.txt
 			prot_win.cur_prot = commc.mc_prot; //将当前在用的协议引用给协议编辑对话框
 
 			timer10Hz = new Timer((TimerCallback)delegate (object state)
@@ -114,7 +114,13 @@ namespace com_mc
 							}
 						}
 					}
-					rpl_win.poll(); //10Hz
+					try
+					{
+						rpl_win.poll(); //10Hz
+					}
+					catch (Exception ee)
+					{
+					}
 				}, invokeobj);
 			}, this, 0, 100);
 		}
@@ -124,7 +130,7 @@ namespace com_mc
 		}
 		void ini_by_config(string fname) //从配置文件初始化程序，输入配置文件名
 		{
-			Config.config = Config.load(fname);
+			Config.config = Config.load(fname); //加载主配置文件
 			//首先清除上一个配置
 			bt_open_datasrc.Content = "关闭端口";
 			btnConnCom_Click(bt_open_datasrc, null); //关闭数据源
@@ -163,7 +169,7 @@ namespace com_mc
 			CCmd_Button.cmds = commc.cmds;
 			CCmd_Button.dset = commc.dset;
 			CCmd_Button.send_cmd_str = send_cmd_str;
-
+			//测控部分初始化
 			mc_ini(); //内部先清除上一个配置
 		}
 #region click

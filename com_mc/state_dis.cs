@@ -48,7 +48,49 @@ namespace com_mc
 		public void mc_ini() //测控界面初始化
 		{
 			deinit(); //先去除初始化
-			commc.ini(Config.config.prot_cfg); //测控后台初始化
+			//将多个配置文件来的配置合成一个
+			foreach (var item in Config.config.ext_cfg_files)
+			{
+				try
+				{
+					string s = Tool.relPath_2_abs(Config.configPath, item); //都是以配置文件为基础的
+					object t = Tool.load_json_from_file<Dictionary<string, object>>(s);
+					Tool.dictinary_update(ref t, Config.config.prot_cfg); //用软件配置更新协议配置文件里加载的配置
+					Config.config.prot_cfg = t as Dictionary<string, object>;
+				}
+				catch (Exception e)
+				{
+					//MessageBox.Show(e.ToString());
+				}
+			}
+			//测控后台初始化
+			commc.ini(Config.config.prot_cfg); 
+			//_so_tx_cb = new CM_Plugin_Interface.DllcallBack(send_data); //构造不被回收的委托
+			try //初始化插件，若没有插件，初始化帧同步部分
+			{
+				FileInfo fi = new FileInfo(Config.config.plugin_path); //已经变成绝对路径了
+				Assembly assembly = Assembly.LoadFrom(fi.FullName); //重复加载没事
+				string fname = "com_mc." + fi.Name.Replace(fi.Extension, ""); //定义：插件dll中的类名是文件名
+				foreach (var t in assembly.GetExportedTypes())
+				{
+					if (t.FullName == fname)
+					{
+						commc.pro_obj = Activator.CreateInstance(t) as CM_Plugin_Interface;
+					}
+				}
+				if (commc.pro_obj == null) throw new Exception();
+			}
+			catch
+			{
+				commc.pro_obj = new CM_Plugin_Interface();
+			}
+			commc.pro_obj.ini(send_data, rx_pack); //无插件的情况，发送函数、接收函数
+			commc.pro_obj.fromJson(Config.config.syn_pro); //帧同步部分初始化
+			//配置初始化指令
+			foreach (var item in Config.config.ctrl_cmds)
+			{
+				ctrl_cmd(item);
+			}
 #region 传感参数部分
 			chart1 = mainFGrid.Child as Chart;
 			chart1.Legends[0].DockedToChartArea = "ChartArea1";
@@ -273,20 +315,48 @@ namespace com_mc
 			if(commc.pro_obj!=null) commc.pro_obj.so_poll_100();
 		}
 #region 数据接收
+		int rx_Byte_1_s = 0; //每秒接收的字节数
+		public void rx_fun(byte[] buf) //从数据源接收回调函数
+		{
+			rx_Byte_1_s += buf.Length;
+			commc.pro_obj.rx_fun(buf);
+		}
+		public long ticks0 = DateTime.Now.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
+		public void rx_pack(byte[] b, int off, int n, int rootid) //从帧同步接收一包数据（二进制）
+		{
+			Dispatcher.BeginInvoke((Action)(() =>
+			{
+				if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
+				{
+					rec_bin_file.write(b,off,n); //二进制文件的记录
+				}
+				try
+				{
+					ticks0 = DateTime.Now.Ticks / 10000;//给传感变量刷新
+					commc.mc_prot.pro(b, off, n,rootid);
+				}
+				catch (Exception ee)
+				{
+					//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
+				}
+			}));
+		}
+#endregion
+#region 数据发送
 		public void send_cmd_str(string s) //向设备发送文本指令
 		{ //支持多条指令同时发送
 			string[] vs = s.Split("\n".ToCharArray(), StringSplitOptions.None);
-			for(int i=0;i<vs.Length;i++)
+			for (int i = 0; i < vs.Length; i++)
 			{
 				//首先看看是不是软件指令
-				if(ctrl_cmd(vs[i])) continue;
+				if (ctrl_cmd(vs[i])) continue;
 				//发送
 				commc.pro_obj.send_cmd(vs[i]);
 			}
 		}
 		public void send_data(string s) //字符串版的发送函数
 		{
-			var b=Encoding.UTF8.GetBytes(s+"\n");
+			var b = Encoding.UTF8.GetBytes(s + "\n");
 			send_data(b);
 		}
 		public void send_data(byte[] b) //向设备发送数据
@@ -300,55 +370,8 @@ namespace com_mc
 				//MessageBox.Show(ee.Message);
 			}
 		}
-		public void rx_line(string s) //接收一行数据，必是符合通用文本行协议的
-		{
-			s = s.Trim();
-			if (s == "") return;
-			Dispatcher.BeginInvoke((EventHandler)delegate (object sd, EventArgs ea)
-			{
-				if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
-				{
-					rec_file.log(s); //文本文件记录
-				}
-				try
-				{
-					if (ctrl_cmd(s)) return;//首先看看是不是软件指令
-					ticks0 = DateTime.Now.Ticks / 10000;	//给传感变量刷新
-					commc.mc_prot.pro_line(s);
-				}
-				catch (Exception ee)
-				{
-					//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
-				}
-			}, invokeobj);
-		}
-		public void rx_pack(byte[] b, int off, int n) //接收一包数据
-		{
-			Dispatcher.BeginInvoke((Action)(() =>
-			{
-				if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
-				{
-					rec_bin_file.write(b,off,n); //二进制文件的记录
-				}
-				try
-				{
-					ticks0 = DateTime.Now.Ticks / 10000;//给传感变量刷新
-					commc.mc_prot.pro(b, off, n);
-				}
-				catch (Exception ee)
-				{
-					//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
-				}
-			}));
-		}
-		int rx_Byte_1_s = 0; //每秒接收的字节数
-		public void rx_fun(byte[] buf) //数据源接收回调函数
-		{
-			rx_Byte_1_s += buf.Length;
-			commc.pro_obj.rx_fun(buf);
-		}
-		public long ticks0 = DateTime.Now.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
 #endregion
+
 		public bool ctrl_cmd(string s) //返回是否是控制指令
 		{
 			bool r=false;
@@ -395,6 +418,7 @@ namespace cslib
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
 			string exs = Path.GetExtension(ofd.FileName).Trim();
 			if (exs == ".dat") is_bin = true;//若是二进制的
+			else is_bin = false;
 			base.open(ofd.FileName);
 		}
 	}

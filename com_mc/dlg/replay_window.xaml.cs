@@ -94,6 +94,10 @@ namespace com_mc
 					string s = "";
 					for(int i = st; i<end;i++)
 					{
+						if(i==rplobj.replay_line) //若是正要回放的行
+						{
+							s += "*";
+						}
 						s += string.Format("{0}:	{1}",i,rplobj.data_lines[i]);
 					}
 					tb_org_text.Text = s;

@@ -1,0 +1,47 @@
+{
+	"data_src": //需要的数据源列表
+	[
+		{
+			"type":"uart", //数据源类型：串口
+			"uart_b":115200 //460800,115200，192000
+		},
+		{
+			"type":"udp", //数据源类型：udp
+			"name":"udp2",
+			"ip" : "127.0.0.1", "port" : 22000,
+			"rmt_ip" : "127.0.0.1", "rmt_port" : 22001
+		}
+	],
+	"dis_data_len":1000, //曲线显示长度
+	//"ctrl_cols":3, //命令按钮区域按钮列数
+	"svar_ui_h":0, //传感变量区域的高度
+	"svar_cols":4, //传感变量区域的高度
+	"cmd_ui_w":350, //命令按钮区域宽度
+	"mv_w":1000, //主窗体默认宽度
+	"mv_h":760, //主窗体默认高度
+	"bt_margin":6, //按钮间距
+	"ctrl_cmds":["^x_axis"], //软件开启后的显示指令
+	"plugin_path":"./cm_plugin.dll",
+	"ext_cfg_files": //额外的配置文件，仅能配置prot_cfg
+	[
+		"./sample1_cmds.txt",
+		"./sample1_para.txt",
+		"./sample1_prot.txt"
+	],
+	"syn_pro": //帧同步配置,不配置默认文本
+	{
+		"syn_bin":
+		{
+			"syn":["0xaa"], "check_type":"crc16", //同步字0xaa,尾部crc16校验
+			"prot_root_id":1, //对应的协议根节点号
+			"pre_offset":1, "len_dom_off":1, //第2个字节能够确定包长
+			"len_dom": { "type":"u8" }, //确定包长的数据域为u8型
+			"len_dict": { "1":20,"2":9 } //类型与包长的表
+		},
+		"syn_line": {} //定义了文本协议，则文本、二进制兼容
+	},
+	"para_dict": //增量配置
+	[
+		{ "name":"指令结果","type":"u8","str_tab":["err","OK"]} //覆盖文件中的配置
+	]
+}

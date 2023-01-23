@@ -5,7 +5,7 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:com_mc"
 		mc:Ignorable="d" Loaded="Window_Loaded" ResizeMode="NoResize"
-		Title="Replay_Window" Height="400" Width="600" Closing="Window_Closing" FontSize="16">
+		Title="Replay_Window" Height="500" Width="650" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="2*"></RowDefinition>
@@ -45,6 +45,7 @@
 			<Grid.RowDefinitions>
 				<RowDefinition Height="35"></RowDefinition>
 				<RowDefinition Height="30"></RowDefinition>
+				<RowDefinition Height="30"></RowDefinition>
 				<RowDefinition></RowDefinition>
 			</Grid.RowDefinitions>
 			<StackPanel Grid.Row="0" Orientation="Horizontal">
@@ -72,7 +73,7 @@
 					</Button.Background>
 				</Button>
 				<Label VerticalContentAlignment="Center">倍速</Label>
-				<ComboBox Width="60" VerticalContentAlignment="Center" SelectedIndex="2" Name="cb_speed">
+				<ComboBox Width="50" VerticalContentAlignment="Center" SelectedIndex="2" Name="cb_speed">
 					<ComboBoxItem>0.1</ComboBoxItem>
 					<ComboBoxItem>0.5</ComboBoxItem>
 					<ComboBoxItem>1</ComboBoxItem>
@@ -81,8 +82,8 @@
 					<ComboBoxItem>10</ComboBoxItem>
 					<ComboBoxItem>max</ComboBoxItem>
 				</ComboBox>
-				<TextBox Name="tb_set_row" Width="80">0</TextBox>
-				<Button Name="bt_set_row" Click="bt_replay_cmd_Click" Tag="set_row">指定行</Button>
+				<TextBox Name="tb_set_row" Width="80" FontSize="16">0</TextBox>
+				<Button Name="bt_set_row" Click="bt_replay_cmd_Click" Tag="set_row" FontSize="16">指定行</Button>
 			</StackPanel>
 			<Grid Grid.Row="1">
 				<Grid.ColumnDefinitions>
@@ -92,7 +93,16 @@
 				<Slider Grid.Column="0" VerticalAlignment="Center" Minimum="0" Name="sl_cur_row" ValueChanged="sl_cur_row_ValueChanged"></Slider>
 				<Label Grid.Column="1" HorizontalContentAlignment="Right" Name="lb_row_num">x/x</Label>
 			</Grid>
-			<TextBox Grid.Row="2" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible" Name="tb_org_text"
+			<StackPanel Grid.Row="2" Orientation="Horizontal" IsEnabled="false">
+				<TextBox Name="tb_replay_st" Width="50" FontSize="16">0</TextBox>
+				<Label>-</Label>
+				<TextBox Name="tb_replay_end" Width="50" FontSize="16">0</TextBox>
+				<Button FontSize="16">设置起止行</Button>
+				<TextBox Name="tb_ms_search" Width="50" FontSize="16"></TextBox>
+				<Button FontSize="16">按ms查找</Button>
+				<Button FontSize="16">回放当前帧</Button>
+			</StackPanel>
+			<TextBox Grid.Row="3" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible" Name="tb_org_text"
 					 HorizontalContentAlignment="Left"></TextBox>
 		</Grid>
 		<StackPanel Grid.Row="1" Grid.Column="1" Name="sp_val_list">

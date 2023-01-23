@@ -13,6 +13,7 @@ namespace com_mc
 	public class Config
 	{
 		public static Config config = new Config();     // 存放系统设置
+		public static Dictionary<string,object> cfg_dict= new Dictionary<string,object>(); //字典形式的配置
 		public static string configPath =AppDomain.CurrentDomain.BaseDirectory;
 		public static Config load(string s)
 		{
@@ -52,7 +53,8 @@ namespace com_mc
 		public int bt_margin { get; set; } = 2; //按钮间距
 		public Dictionary<string, object> syn_pro { get; set; } = new Dictionary<string, object>(); //帧同步处理
 		//数据结构
-		public Dictionary<string, object> prot_cfg { get; set; } = new Dictionary<string, object>(); //通用测控对象
+		public Dictionary<string, object> para_cfg { get; set; } = new Dictionary<string, object>(); //参数配置
+		public Dictionary<string, object> prot_cfg { get; set; } = new Dictionary<string, object>(); //协议配置
 		public List<CmdDes> cmds { get; set; } = new List<CmdDes>(); //指令列表
 		//菜单
 		public int menu_cols { get; set; } = 2;//菜单控制按钮的列数

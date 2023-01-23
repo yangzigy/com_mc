@@ -1,0 +1,74 @@
+{ 
+	"prot_cfg": //协议配置
+	{
+		"prot_root": "bin_root",//二进制协议根
+		"textline_prot": "tl_root" //文本协议根
+	},
+
+	"prot_dict": //协议域字典
+	[ 
+//文本部分
+	//状态上传协议
+		{ "name":"tl_root","type":"text","textline_dict":["tl0","tl1","tl2"]},
+		{ "name":"tl0","type":"tline","col_n":8,"prot_list":
+		[
+			"tp_电压","tp_电流","tp_强度","tp_期望温度",
+			"tp_温度","tp_模式","tp_输出","tp_温控"
+		]},
+		{ "name":"tp_电压", "type":"str", "ref_name":"电压","skip_n":1}, //0，第1列空，跳过
+		{ "name":"tp_电流", "type":"str","ref_name":"电流"}, //2
+		{ "name":"tp_强度", "type":"str","ref_name":"强度"}, //3
+		{ "name":"tp_期望温度", "type":"str","ref_name":"期望温度"}, //4
+		{ "name":"tp_温度", "type":"str","ref_name":"温度","skip_n":1}, //5，第6列空，跳过
+		{ "name":"tp_模式", "type":"str","ref_name":"模式","str_type":"hex","bit_st":9,"bit_len":2,"skip_n":-1}, //7 指明文本类型为hex
+		{ "name":"tp_输出", "type":"str","ref_name":"输出","str_type":"hex","bit_st":6,"bit_len":1,"skip_n":-1}, //7
+		{ "name":"tp_温控", "type":"str","ref_name":"温控","str_type":"hex","bit_st":15,"bit_len":1}, //7
+	//指令结果
+		{ "name":"tl1","type":"tline","col_n":2,"head":"$r","prot_list":
+		[
+			"tp_空","tp_指令结果"
+		]},
+		{ "name":"tp_空", "type":"str"},
+		{ "name":"tp_指令结果", "type":"str"},
+	//电流偏置
+		{ "name":"tl2","type":"tline","col_n":2,"head":"$@:3:1:0:16","prot_list":
+		[
+			"tp_空","tp_i_off"
+		]},
+		{ "name":"tp_i_off", "type":"str","ref_name":"i_off","pro_k":0.1},
+
+//二进制部分
+	//01包
+		{"name":"aa01","type":"obj","prot_list":
+		[
+			"aa","type",
+			"b_电压","b_电流","b_强度","b_期望温度",
+			"b_温度","b_模式", "b_输出","b_温控",
+			"crc"
+		]},
+		{"name":"aa","type":"u8"},
+		{"name":"type","type":"u8"},
+		{"name":"b_电压","type":"s16","ref_name":"电压","pro_k":0.1,"skip_n":2},
+		{"name":"b_电流","type":"s16","ref_name":"电流","pro_k":0.1},
+		{"name":"b_强度","type":"u16","ref_name":"强度","pro_k":0.1},
+		{"name":"b_期望温度","type":"s16","ref_name":"期望温度","pro_k":0.1},
+		{"name":"b_温度","type":"s16","ref_name":"温度","pro_k":0.1,"skip_n":1},
+		{"name":"b_模式","type":"u32","ref_name":"模式","bit_st":9,"bit_len":2,"skip_n":-4},
+		{"name":"b_输出","type":"u32","ref_name":"输出","bit_st":6,"bit_len":1,"skip_n":-4},
+		{"name":"b_温控","type":"u32","ref_name":"温控","bit_st":15,"bit_len":1},
+		{"name":"crc","type":"u16"},
+	//02包
+		{"name":"aa02","type":"obj","prot_list": [ "aa","type","02_loop", "crc" ]},
+		{"name":"02_loop","type":"loop","loop_n":2,"prot_list":["02_loop_obj"]},
+		{"name":"02_loop_obj","type":"obj","prot_list":["pt","02_loop_obj_sw"]},
+		{"name":"pt","type":"u8"}, //1或2
+		{"name":"02_loop_obj_sw","type":"switch","ref_type":"pt","prot_map":
+			{ "1":"02_sw_1", "2":"02_sw_2" }},
+		{"name":"02_sw_1","type":"u8","ref_name":"指令结果"},
+		{"name":"02_sw_2","type":"u16","ref_name":"i_off","pro_k":0.1},
+	//aa根节点（实现协议帧选择）
+		{"name":"bin_root","type":"obj","prot_list":["aa","type","aa_sw"]},
+		{"name":"aa_sw","type":"switch","ref_type":"type","is_reset":1,"prot_map":
+			{"1":"aa01","2":"aa02"}}
+	]
+}

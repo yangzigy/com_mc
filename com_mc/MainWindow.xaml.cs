@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
+using System.Collections;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -16,7 +16,6 @@ using System.IO.Ports;
 using System.Windows.Forms.DataVisualization;
 using cslib;
 using System.Threading;
-
 namespace com_mc
 {
 	/// <summary>
@@ -130,7 +129,25 @@ namespace com_mc
 		}
 		void ini_by_config(string fname) //从配置文件初始化程序，输入配置文件名
 		{
-			Config.config = Config.load(fname); //加载主配置文件
+			Config.configPath = fname; //记录配置文件名
+			//首先按字典读入，便于为了多配置文件综合，并能给协议部分动态结构初始化用
+			Config.cfg_dict = Tool.load_json_from_file<Dictionary<string, object>>(fname);
+			if(Config.cfg_dict.ContainsKey("ext_cfg_files")) //若有额外配置文件
+			{ //加载额外配置
+				ArrayList list = Config.cfg_dict["ext_cfg_files"] as ArrayList;
+				foreach (var item in list)
+				{
+					string tf = item as string;
+					string s = Tool.relPath_2_abs(Config.configPath, tf); //都是以配置文件为基础的
+					object t = Tool.load_json_from_file<Dictionary<string, object>>(s);
+					Tool.dictinary_update(ref t, Config.cfg_dict); //用软件配置更新协议配置文件里加载的配置
+					Config.cfg_dict = t as Dictionary<string, object>;
+				}
+				//将主配置字典转换为字符串
+				string mainjsonstr = Tool.json_ser.Serialize(Config.cfg_dict);
+				Config.config = Tool.json_ser.Deserialize<Config>(mainjsonstr);
+			}
+			else Config.config = Config.load(fname); //加载主配置文件
 			//首先清除上一个配置
 			bt_open_datasrc.Content = "关闭端口";
 			btnConnCom_Click(bt_open_datasrc, null); //关闭数据源
@@ -138,7 +155,6 @@ namespace com_mc
 			if(rpl_win.rplobj!=null) rpl_win.rplobj.close();
 			rpl_win.rplobj = null;
 			//开始配置
-			Config.configPath = fname; //记录配置文件名
 			Config.config.plugin_path=Tool.relPath_2_abs(fname, Config.config.plugin_path);//把插件目录的位置变为绝对路径
 			//加载数据源
 			if (Config.config.data_src != null)

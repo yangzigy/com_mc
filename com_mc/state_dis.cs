@@ -48,23 +48,8 @@ namespace com_mc
 		public void mc_ini() //测控界面初始化
 		{
 			deinit(); //先去除初始化
-			//将多个配置文件来的配置合成一个
-			foreach (var item in Config.config.ext_cfg_files)
-			{
-				try
-				{
-					string s = Tool.relPath_2_abs(Config.configPath, item); //都是以配置文件为基础的
-					object t = Tool.load_json_from_file<Dictionary<string, object>>(s);
-					Tool.dictinary_update(ref t, Config.config.prot_cfg); //用软件配置更新协议配置文件里加载的配置
-					Config.config.prot_cfg = t as Dictionary<string, object>;
-				}
-				catch (Exception e)
-				{
-					//MessageBox.Show(e.ToString());
-				}
-			}
 			//测控后台初始化
-			commc.ini(Config.config.prot_cfg); 
+			commc.ini(Config.cfg_dict); 
 			//_so_tx_cb = new CM_Plugin_Interface.DllcallBack(send_data); //构造不被回收的委托
 			try //初始化插件，若没有插件，初始化帧同步部分
 			{
@@ -308,7 +293,6 @@ namespace com_mc
 			grid_menu_cmd.ColumnDefinitions.Add(new ColumnDefinition()); //本来有2列
 			grid_menu_cmd.ColumnDefinitions.Add(new ColumnDefinition()); //本来有2列
 			grid_menu_cmd.Children.Clear();
-
 		}
 		public void OnTimedEvent(object state) //100Hz
 		{
@@ -371,7 +355,6 @@ namespace com_mc
 			}
 		}
 #endregion
-
 		public bool ctrl_cmd(string s) //返回是否是控制指令
 		{
 			bool r=false;

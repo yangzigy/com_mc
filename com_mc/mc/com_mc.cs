@@ -88,7 +88,7 @@ namespace com_mc
 		public MC_Prot mc_prot = new MC_Prot(); //测控架构
 
 		public CM_Plugin_Interface pro_obj = null; //无插件时的处理对象
-		public void ini(Dictionary<string, object> v) //初始化测控体系，并对参数的显示进行额外配置，输入prot_cfg域
+		public void ini(Dictionary<string, object> v) //初始化测控体系，输入整个配置文件
 		{ //这里关心的：
 			mc_prot.fromJson(v); //初始化动态协议部分
 			foreach (var item in mc_prot.para_dict) //将参数列表复制到显示参数表

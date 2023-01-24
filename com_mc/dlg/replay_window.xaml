@@ -5,7 +5,7 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:com_mc"
 		mc:Ignorable="d" Loaded="Window_Loaded" ResizeMode="NoResize"
-		Title="Replay_Window" Height="500" Width="650" Closing="Window_Closing" FontSize="16">
+		Title="Replay_Window" Height="450" Width="650" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="2*"></RowDefinition>
@@ -20,12 +20,12 @@
 				<RowDefinition Height="1*"></RowDefinition>
 				<RowDefinition Height="1*"></RowDefinition>
 			</Grid.RowDefinitions>
-			<DataGrid Name="dg_vir" FontSize="12">
+			<DataGrid Name="dg_vir" FontSize="12" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" AutoGenerateColumns="False">
 				<DataGrid.Columns>
-					<DataGridCheckBoxColumn Header="选中" Width="34"/>
-					<DataGridTextColumn Header="信道" Width="34"/>
-					<DataGridTextColumn Header="帧数" Width="50"/>
-					<DataGridTextColumn Header="长度" Width="50"/>
+					<DataGridCheckBoxColumn Header="选中"  Binding="{Binding is_sel}" Width="34"/>
+					<DataGridTextColumn Header="信道" Binding="{Binding vir}" Width="34"/>
+					<DataGridTextColumn Header="帧数" Binding="{Binding frame_n}" Width="50"/>
+					<DataGridTextColumn Header="长度" Binding="{Binding len}" Width="50"/>
 				</DataGrid.Columns>
 			</DataGrid>
 			<Grid Grid.Row="1">
@@ -34,11 +34,14 @@
 					<RowDefinition Height="35"></RowDefinition>
 					<RowDefinition Height="35"></RowDefinition>
 					<RowDefinition Height="35"></RowDefinition>
+					<RowDefinition Height="35"></RowDefinition>
 					<RowDefinition Height="1*"></RowDefinition>
 				</Grid.RowDefinitions>
-				<Button Grid.Row="0" FontSize="16">导出信道为cmlog</Button>
-				<Button Grid.Row="1" FontSize="16">导出信道原始数据</Button>
-				<Button Grid.Row="2" FontSize="16">导出变量csv</Button>
+				<Button Grid.Row="0" FontSize="16" Click="bt_update_vir_Click">更新选择</Button>
+				<Button Grid.Row="1" FontSize="16">导出为cmlog</Button>
+				<Button Grid.Row="2" FontSize="16">导出原始数据</Button>
+				<Button Grid.Row="3" FontSize="16">导出带时间戳文本</Button>
+				<Button Grid.Row="4" FontSize="16">导出变量csv</Button>
 			</Grid>
 		</Grid>
 		<Grid Grid.Row="0" Grid.Column="1">
@@ -93,14 +96,14 @@
 				<Slider Grid.Column="0" VerticalAlignment="Center" Minimum="0" Name="sl_cur_row" ValueChanged="sl_cur_row_ValueChanged"></Slider>
 				<Label Grid.Column="1" HorizontalContentAlignment="Right" Name="lb_row_num">x/x</Label>
 			</Grid>
-			<StackPanel Grid.Row="2" Orientation="Horizontal" IsEnabled="false">
+			<StackPanel Grid.Row="2" Orientation="Horizontal">
 				<TextBox Name="tb_replay_st" Width="50" FontSize="16">0</TextBox>
 				<Label>-</Label>
 				<TextBox Name="tb_replay_end" Width="50" FontSize="16">0</TextBox>
-				<Button FontSize="16">设置起止行</Button>
+				<Button FontSize="16" Click="bt_st_end_Click">设置起止行</Button>
 				<TextBox Name="tb_ms_search" Width="50" FontSize="16"></TextBox>
-				<Button FontSize="16">按ms查找</Button>
-				<Button FontSize="16">回放当前帧</Button>
+				<Button FontSize="16" Click="bt_search_by_ms_Click">按ms查找</Button>
+				<Button FontSize="16" Click="bt_replay_cur_Click">回放当前帧</Button>
 			</StackPanel>
 			<TextBox Grid.Row="3" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible" Name="tb_org_text"
 					 HorizontalContentAlignment="Left"></TextBox>

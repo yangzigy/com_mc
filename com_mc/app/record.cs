@@ -20,10 +20,21 @@ namespace cslib
 		public byte ms_l; //毫秒最低字节
 		public UInt16 ms_h; //毫秒高2字节，小端
 		public bool type_bin { get { return (type & (1 << 0)) != 0; } set { type = (value ? type |= (1 << 0) : (byte)(type & (~(1 << 0)))); } } //是否为二进制
-		public int vir { get { return (type & (0x0f << 4)) >> 4; } set { type = (byte)((type & 0x0f) & ((value & 0x0f) << 4)); } } //虚拟信道号
+		public int vir { get { return (type & (0x0f << 4)) >> 4; } set { type = (byte)((type & 0x0f) | ((value & 0x0f) << 4)); } } //虚拟信道号
 		public int ms { get { return ms_h * 256 + ms_l; } set { ms_l = (byte)(value & 0xff); ms_h = (UInt16)(value >> 8); } }
 	}
-
+	public class CCmlog_Vir_Info //cmlog日志的虚拟信道信息
+	{
+		public bool is_sel { get; set; } = true; //是否选中了
+		public int vir { get; set; } //虚拟信道号
+		public int frame_n { get; set; } = 0; //帧数
+		public int len { get; set; } = 0; //总长
+		public CCmlog_Vir_Info() { }
+		public CCmlog_Vir_Info(int i)
+		{
+			vir = i;
+		}
+	}
 #region 带时间戳的回放：分2种，二进制和文本
 	public class DataSrc_replay : DataSrc //带时间戳的日志回放
 	{
@@ -41,20 +52,30 @@ namespace cslib
 		public int replay_ms = 0; //回放的时间进度，单位ms
 		public DateTime pre_replay_ms=DateTime.Now; //上次更新回放时间的点
 		public int cur_line_ms = 0; //当前回放行的ms数
+
+		public byte[] org_data= null; //cmlog的原始数据记录
 		public List<int> line_ms_list = new List<int>(); //每一行的ms时间戳
 		public List<string> data_lines = new List<string>(); //回放数据缓存
+		public List<CMLOG_HEAD> line_cmlog_list = new List<CMLOG_HEAD>(); //cmlog的每一行的头
 		public List<byte[]> bin_lines = new List<byte[]>(); //回放数据缓存(二进制)
+
+		public int replay_st = 0;
+		public int replay_end = 0; //回放的起始偏移和终止长度
+
+		public CCmlog_Vir_Info[] cmlog_vir_info= new CCmlog_Vir_Info[16]; //cmlog格式的各虚拟信道的信息
 		public override void open(string fname) //打开数据源，输入数据文件名
 		{
 			line_ms_list.Clear();
 			data_lines.Clear();
 			bin_lines.Clear();
+			for (int i = 0; i < cmlog_vir_info.Length; i++) cmlog_vir_info[i] = new CCmlog_Vir_Info(i); //先清除
 			if (is_bin)//若是二进制的
 			{
 				FileStream fs=new FileStream(fname, FileMode.Open, FileAccess.Read);
-				byte[] dbuf = new byte[fs.Length];
-				fs.Read(dbuf, 0,dbuf.Length);
+				org_data = new byte[fs.Length];
+				fs.Read(org_data, 0, org_data.Length);
 				fs.Close();
+				/* //二进制带时间戳dat文件
 				for (int i = 0; i < dbuf.Length - 4;) //将内存中的数据添加到行列表
 				{
 					uint tt = (uint)Tool.BytesToStruct(dbuf, i, typeof(uint));
@@ -73,7 +94,9 @@ namespace cslib
 					}
 					sline += "\n";
 					data_lines.Add(sline);
-				}
+				}*/
+				//cmlog格式
+				update_cmlog_data();
 			}
 			else //文本型
 			{
@@ -96,6 +119,8 @@ namespace cslib
 				}
 			}
 			if (line_ms_list.Count <= 0) return;
+			replay_st = 0;
+			replay_end = line_ms_list.Count; //设置起止位置
 			//提交回放任务
 			ThreadPool.QueueUserWorkItem(delegate (object ss)
 			{
@@ -129,30 +154,69 @@ namespace cslib
 			});
 			if (open_cb != null) open_cb(); //调用事件
 		}
+		public void update_cmlog_data() //修改虚拟信道选择后更新cmlog的数据
+		{
+			line_ms_list.Clear();
+			data_lines.Clear();
+			bin_lines.Clear();
+			for (int i = 0; i < org_data.Length - 6;) //将内存中的数据添加到行列表
+			{
+				CMLOG_HEAD h = (CMLOG_HEAD)Tool.BytesToStruct(org_data, i, typeof(CMLOG_HEAD));
+				int len = h.len + 1; //len这个域是长度-1
+				int ms = h.ms;
+				if (!cmlog_vir_info[h.vir].is_sel) //若没选中，需要跳过
+				{
+					i += Marshal.SizeOf(h) + len;
+					continue;
+				}
+				line_ms_list.Add(ms); //加入时间戳列表
+				cmlog_vir_info[h.vir].frame_n++; //累加虚拟信道的帧数
+				cmlog_vir_info[h.vir].len += len;
+				line_cmlog_list.Add(h);
+				byte[] b = new byte[len];
+				i += Marshal.SizeOf(h);
+				Array.ConstrainedCopy(org_data, i, b, 0, len);
+				i += len;
+				bin_lines.Add(b); //加入数据行列表
+				string sline = ""; //行的hex显示
+				for (int j = 0; j < b.Length; j++)
+				{
+					sline += string.Format("{0:X2} ", b[j]);
+				}
+				sline += "\n";
+				data_lines.Add(sline);
+			}
+			replay_st = 0;
+			replay_end = line_ms_list.Count; //设置起止位置
+		}
 		public void try_to_play()
 		{
-			while (replay_line < line_ms_list.Count)
+			while (replay_line < replay_end)
 			{
 				update_replay_ms(); //更新回放时间
 				if (replay_ms > line_ms_list[replay_line]) //若回放时间大于数据时间，发出
 				{
-					if (is_bin) //若是二进制
-					{
-						rx_event(bin_lines[replay_line]);
-					}
-					else //若是文本行
-					{
-						var b = Encoding.UTF8.GetBytes(data_lines[replay_line]);
-						rx_event(b);
-					}
+					replay_run_1_frame();
 					replay_line++;
 				}
 				else break;
 			}
 		}
+		public void replay_run_1_frame() //回放当前帧，不更新状态，慎重调用
+		{
+			if (is_bin) //若是二进制
+			{
+				rx_event(bin_lines[replay_line]);
+			}
+			else //若是文本行
+			{
+				var b = Encoding.UTF8.GetBytes(data_lines[replay_line]);
+				rx_event(b);
+			}
+		}
 		public void set_replay_pos(int ind) //设置回放位置
 		{
-			if (ind < 0 || ind >= line_ms_list.Count) return;
+			if (ind < replay_st || ind >= replay_end) return;
 			replay_line = ind;
 			replay_ms = line_ms_list[ind]; //起始的时间位置在第一个数据处
 			pre_replay_ms = DateTime.Now; //此时为时间基准
@@ -184,6 +248,14 @@ namespace cslib
 		{
 			state = 0;
 		}
+		public void set_st_end(int st,int end) //设置起止行
+		{
+			replay_st= st; replay_end= end;
+			int new_rpl_line = replay_line;
+			if (new_rpl_line < st) new_rpl_line = st;
+			else if (new_rpl_line >= end) new_rpl_line = end - 1;
+			set_replay_pos(new_rpl_line);
+		}
 	}
 #endregion
 #region 文本文件直接全部回放
@@ -207,7 +279,7 @@ namespace cslib
 	public class BinDataFile : LogFile //二进制协议
 	{
 		public DateTime cur_time = DateTime.Now; //记录文件创建时间
-		public BinDataFile() { suffix = ".dat"; }
+		public BinDataFile() { suffix = ".cmlog"; }
 		public override void create()
 		{
 			base.create();
@@ -215,14 +287,19 @@ namespace cslib
 		}
 		public override void log_pass(byte[] b, int ind, int len) //
 		{
+			log_cmlog(b, ind, len,0);
+		}
+		public void log_cmlog(byte[] b, int ind, int len,int vir) //输入信道号
+		{
+			update_file_name();
 			while (len > 0)
 			{
-				CMLOG_HEAD head=new CMLOG_HEAD();
+				CMLOG_HEAD head = new CMLOG_HEAD();
 				head.syn = 0xa0;
-				//head.vir = 1; //二进制的默认给1
-				//head.type_bin = true; //二进制
-				head.type = 0x11; //更高效
-				int rec_len=len<= 256 ? len: 256;
+				head.vir = vir; //
+				head.type_bin = true; //二进制
+				//head.type = 0x11; //更高效
+				int rec_len = len <= 256 ? len : 256;
 				head.len = (byte)(rec_len - 1);
 				int ms = (int)((DateTime.Now.Ticks - cur_time.Ticks) / 10000); //表示0001年1月1日午夜 12:00:00 以来所经历的 100 纳秒数
 				head.ms = ms;

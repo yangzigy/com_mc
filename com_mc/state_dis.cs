@@ -27,9 +27,11 @@ namespace com_mc
 		public Dictionary<string, CCmd_Button> cmd_ctrl_dict = new Dictionary<string, CCmd_Button>(); //控制控件，用于轮询
 		
 		public Com_MC commc=new Com_MC(); //本程序的测控总体
-		
-		public LogFile rec_file = new LogFile(); //文本记录文件
+
+		public int rec_mod = 0; //记录模式，0不记录，1纯文本记录，2，带时间戳文本，3cmlog
+		public LogFile rec_text = new LogFile(); //文本记录文件
 		public BinDataFile rec_bin_file = new BinDataFile(); //二进制记录文件
+
 		public object[] invokeobj=new object[2];
 		public Dictionary<string, Series> series_map=new Dictionary<string, Series>();
 		public Dictionary<string, CheckBox> checkb_map = new Dictionary<string, CheckBox>();
@@ -40,7 +42,7 @@ namespace com_mc
 		public Timer threadTimer = null; //ui线程定时器
 		public void state_dis_ini()
 		{
-			rec_file.ts_fmt="mmss.fff	"; //用于时间戳的时间格式，回放约定的格式
+			rec_text.ts_fmt="mmss.fff	"; //用于时间戳的时间格式，回放约定的格式
 			mw = this;
 			mi_menu_cmd.Click += (s, e) => { mi_menu_cmd.IsSubmenuOpen = true; };
 			threadTimer = new Timer(OnTimedEvent, null, 0, 10); //100Hz
@@ -310,10 +312,6 @@ namespace com_mc
 		{
 			Dispatcher.BeginInvoke((Action)(() =>
 			{
-				if ((bool)checkb_rec_data.IsChecked) //若需要记录，写文件
-				{
-					rec_bin_file.write(b,off,n); //二进制文件的记录
-				}
 				try
 				{
 					ticks0 = DateTime.Now.Ticks / 10000;//给传感变量刷新
@@ -324,6 +322,20 @@ namespace com_mc
 					//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
 				}
 			}));
+			switch(rec_mod)
+			{
+				case 1: rec_text.write(b, off, n); break;//纯文本记录
+				case 2:
+					{
+						var p = commc.mc_prot.prot_root_obj_list[rootid] as PD_LineSwitch;
+						Encoding ed = Encoding.UTF8;
+						if (p != null) { ed = p.cur_encoding; } //若是文本协议，用协议描述中的编码器
+						string s = ed.GetString(b, off, n);
+						rec_text.log(s);
+						break;//带时间戳文本记录
+					}
+				case 3: rec_bin_file.log_cmlog(b, off, n, rootid); break; //cmlog记录
+			}
 		}
 #endregion
 #region 数据发送
@@ -397,10 +409,10 @@ namespace cslib
 		public override void open(string s)
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
-			ofd.Filter = "*.txt|*.txt|*.dat|*.dat";
+			ofd.Filter = "*.txt|*.txt|*.cmlog|*.cmlog";
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
 			string exs = Path.GetExtension(ofd.FileName).Trim();
-			if (exs == ".dat") is_bin = true;//若是二进制的
+			if (exs == ".cmlog") is_bin = true;//若是二进制的
 			else is_bin = false;
 			base.open(ofd.FileName);
 		}

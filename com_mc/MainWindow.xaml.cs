@@ -112,6 +112,14 @@ namespace com_mc
 								chart1.Series.Remove(item.Value);
 							}
 						}
+						//查看记录模式
+						if (checkb_rec_data.IsChecked==true)
+						{
+							if (rb_rec_text.IsChecked == true) rec_mod = 1;
+							else if (rb_rec_timetext.IsChecked == true) rec_mod = 2;
+							else if (rb_rec_cmlog.IsChecked == true) rec_mod = 3;
+						}
+						else rec_mod = 0;
 					}
 					try
 					{
@@ -330,7 +338,7 @@ namespace com_mc
 		}
 		private void cb_recdata_Click(object sender, RoutedEventArgs e) //存储日志的点击
 		{
-			rec_file.close(); //让日志从新记一个
+			rec_text.close(); //让日志从新记一个
 			rec_bin_file.close();
 		}
 		private void Chart_CursorPositionChanged(object sender, System.Windows.Forms.DataVisualization.Charting.CursorEventArgs e)
@@ -361,6 +369,7 @@ namespace com_mc
 			rpl_win.Show();
 			rpl_win.Activate();
 			if (rpl_win.WindowState == WindowState.Minimized) rpl_win.WindowState = WindowState.Normal;
+			rpl_win.new_file_loaded();
 		}
 		private void bt_prot_dlg_Click(object sender, RoutedEventArgs e) //开协议编辑器
 		{

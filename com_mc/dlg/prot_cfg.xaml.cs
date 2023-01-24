@@ -42,7 +42,6 @@ namespace com_mc
 		public void load_prot_from_json(Dictionary<string, object> v) //从json加载协议
 		{
 			para_prot.fromJson(v); //将json转换为协议实体
-			
 			//首先刷新参数字典
 			foreach (var item in para_prot.para_dict) 
 			{

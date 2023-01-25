@@ -38,10 +38,10 @@
 					<RowDefinition Height="1*"></RowDefinition>
 				</Grid.RowDefinitions>
 				<Button Grid.Row="0" FontSize="16" Click="bt_update_vir_Click">更新选择</Button>
-				<Button Grid.Row="1" FontSize="16">导出为cmlog</Button>
-				<Button Grid.Row="2" FontSize="16">导出原始数据</Button>
-				<Button Grid.Row="3" FontSize="16">导出带时间戳文本</Button>
-				<Button Grid.Row="4" FontSize="16">导出变量csv</Button>
+				<Button Grid.Row="1" FontSize="16" Click="bt_export_Click" Tag="cmlog">导出为cmlog</Button>
+				<Button Grid.Row="2" FontSize="16" Click="bt_export_Click" Tag="org">导出原始数据</Button>
+				<Button Grid.Row="3" FontSize="16" Click="bt_export_Click" Tag="timetext">导出带时间戳文本</Button>
+				<Button Grid.Row="4" FontSize="16" Click="bt_export_Click" Tag="csv">导出变量csv</Button>
 			</Grid>
 		</Grid>
 		<Grid Grid.Row="0" Grid.Column="1">

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 using cslib;
 
 namespace com_mc
@@ -44,26 +46,26 @@ namespace com_mc
 				if (rplobj.cmlog_vir_info[i].frame_n <= 0) continue;
 				tlist.Add(rplobj.cmlog_vir_info[i]);
 			}
-			dg_vir.ItemsSource=tlist;
+			dg_vir.ItemsSource = tlist;
 		}
 		private void bt_replay_cmd_Click(object sender, RoutedEventArgs e) //回放指令
 		{
 			//FrameworkElement fe = sender as FrameworkElement;
-			Button fe=sender as Button;	
+			Button fe = sender as Button;
 			switch (fe.Tag)
 			{
 				case "home": //至首
 					rplobj.set_replay_pos(rplobj.replay_st);
 					break;
 				case "end": //至尾
-					rplobj.set_replay_pos(rplobj.replay_end- 1);
+					rplobj.set_replay_pos(rplobj.replay_end - 1);
 					break;
 				case "pre": //前一帧
-					rplobj.set_replay_pos(rplobj.replay_line-1);
+					rplobj.set_replay_pos(rplobj.replay_line - 1);
 					if (rplobj.state == 1) rplobj.state = 3; //若是暂停的，改成单步
 					break;
 				case "next": //下一帧
-					rplobj.set_replay_pos(rplobj.replay_line+1);
+					rplobj.set_replay_pos(rplobj.replay_line + 1);
 					if (rplobj.state == 1) rplobj.state = 3; //若是暂停的，改成单步
 					break;
 				case "resume": //恢复
@@ -90,7 +92,7 @@ namespace com_mc
 		public void poll() //10Hz
 		{
 			tick++;
-			if(tick%3==0) //3.3Hz
+			if (tick % 3 == 0) //3.3Hz
 			{
 				lb_row_num.Content = string.Format("{0}/{1}行", rplobj.replay_line, rplobj.line_ms_list.Count);
 				sl_cur_row.Maximum = rplobj.replay_end;
@@ -105,23 +107,68 @@ namespace com_mc
 					if (st < 0) st = 0; else if (st >= rplobj.line_ms_list.Count) st = rplobj.line_ms_list.Count - 1;
 					if (end < 0) end = 0; else if (end > rplobj.line_ms_list.Count) end = rplobj.line_ms_list.Count;
 					string s = "";
-					for(int i = st; i<end;i++)
+					for (int i = st; i < end; i++)
 					{
-						if(i==rplobj.replay_line) //若是正要回放的行
+						if (i == rplobj.replay_line) //若是正要回放的行
 						{
 							s += "*";
 						}
-						s += string.Format("{0}:	{1}",i,rplobj.data_lines[i]);
+						s += string.Format("{0}:	{1}", i, rplobj.data_lines[i]);
 					}
 					tb_org_text.Text = s;
 				}
 			}
 			//查看变速设置
 			string sp = cb_speed.Text;
-			if(float.TryParse(sp,out rplobj.time_X)==false)
+			if (float.TryParse(sp, out rplobj.time_X) == false)
 			{
 				rplobj.time_X = 10000; //一下全放出来
 			}
+		}
+		public void export_org() //导出为原始数据
+		{
+			var ofd = new System.Windows.Forms.SaveFileDialog();
+			ofd.Filter = "*.txt|*.txt|*.dat|*.dat";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+			string exs = System.IO.Path.GetExtension(ofd.FileName).Trim();
+			FileStream fs = new FileStream(ofd.FileName, FileMode.Create, FileAccess.Write);
+			var b = rplobj.export_org();
+			fs.Write(b.ToArray(), 0, b.Count);
+			fs.Close();
+		}
+		public void export_cmlog() //将当前选中的数据导出成cmlog格式
+		{
+			var ofd = new System.Windows.Forms.SaveFileDialog();
+			ofd.Filter = "*.cmlog|*.cmlog";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+			string exs = System.IO.Path.GetExtension(ofd.FileName).Trim();
+			FileStream fs = new FileStream(ofd.FileName, FileMode.Create, FileAccess.Write);
+			var b = rplobj.export_cmlog();
+			fs.Write(b.ToArray(), 0, b.Count);
+			fs.Close();
+		}
+		public void export_timetext() //将当前选中的数据导出成带时间戳文本格式
+		{
+			var ofd = new System.Windows.Forms.SaveFileDialog();
+			ofd.Filter = "*.txt|*.txt";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+			string exs = System.IO.Path.GetExtension(ofd.FileName).Trim();
+			FileStream fs = new FileStream(ofd.FileName, FileMode.Create, FileAccess.Write);
+			var b = rplobj.export_timetext();
+			fs.Write(b.ToArray(), 0, b.Count);
+			fs.Close();
+		}
+		public void export_csv() //将当前选中的数据导出成csv
+		{
+			var ofd = new System.Windows.Forms.SaveFileDialog();
+			ofd.Filter = "*.csv|*.csv";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+			string exs = System.IO.Path.GetExtension(ofd.FileName).Trim();
+			FileStream fs = new FileStream(ofd.FileName, FileMode.Create, FileAccess.Write);
+
+			//var b = rplobj.export_timetext();
+			//fs.Write(b.ToArray(), 0, b.Count);
+			fs.Close();
 		}
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
@@ -142,9 +189,9 @@ namespace com_mc
 				if (st >= rplobj.line_ms_list.Count) st = rplobj.line_ms_list.Count - 1;
 				if (end > rplobj.line_ms_list.Count) end = rplobj.line_ms_list.Count;
 				if (st < 0 || end < st) return;
-				
+
 				rplobj.set_st_end(st, end); //设置回放引擎
-				//从回放后台读取起止值，重新设置界面
+											//从回放后台读取起止值，重新设置界面
 				sl_cur_row.Minimum = rplobj.replay_st;
 				sl_cur_row.Maximum = rplobj.replay_end;
 				tb_replay_st.Text = rplobj.replay_st.ToString();
@@ -160,7 +207,7 @@ namespace com_mc
 				int ms = Convert.ToInt32(tb_ms_search.Text);
 				for (int i = 0; i < rplobj.line_ms_list.Count; i++)
 				{
-					if (rplobj.line_ms_list[i]>ms) //若有一个数据的ms值比查找值大了，就是他了
+					if (rplobj.line_ms_list[i] > ms) //若有一个数据的ms值比查找值大了，就是他了
 					{
 						rplobj.set_replay_pos(i);
 						break;
@@ -182,6 +229,17 @@ namespace com_mc
 				rplobj.cmlog_vir_info[t.vir].is_sel = t.is_sel;
 			}
 			rplobj.update_cmlog_data();
+		}
+		private void bt_export_Click(object sender, RoutedEventArgs e) //导出工具
+		{
+			FrameworkElement fe = sender as FrameworkElement;
+			switch (fe.Tag)
+			{
+				case "cmlog": export_cmlog(); break;
+				case "org": export_org(); break;
+				case "timetext": export_timetext(); break;
+				case "csv": export_csv(); break;
+			}
 		}
 	}
 }

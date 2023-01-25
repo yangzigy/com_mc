@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Ports;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -55,7 +56,7 @@ namespace cslib
 
 		public byte[] org_data= null; //cmlog的原始数据记录
 		public List<int> line_ms_list = new List<int>(); //每一行的ms时间戳
-		public List<string> data_lines = new List<string>(); //回放数据缓存
+		public List<string> data_lines = new List<string>(); //文本格式回放数据缓存，若是二进制，则为hex显示数据
 		public List<CMLOG_HEAD> line_cmlog_list = new List<CMLOG_HEAD>(); //cmlog的每一行的头
 		public List<byte[]> bin_lines = new List<byte[]>(); //回放数据缓存(二进制)
 
@@ -256,6 +257,87 @@ namespace cslib
 			else if (new_rpl_line >= end) new_rpl_line = end - 1;
 			set_replay_pos(new_rpl_line);
 		}
+#region 数据导出
+		public List<byte> export_org() //将当前选中的数据导出成原始数据
+		{
+			List<byte> ret=new List<byte>();
+			if (is_bin) //若是二进制
+			{
+				for (int i = replay_st; i < replay_end; i++)
+				{
+					ret.AddRange(bin_lines[i]);
+				}
+			}
+			else
+			{
+				for (int i = replay_st; i < replay_end; i++)
+				{
+					var b = Encoding.UTF8.GetBytes(data_lines[i]);
+					ret.AddRange(b);
+				}
+			}
+			return ret;
+		}
+		public List<byte> export_cmlog() //将当前选中的数据导出成cmlog格式
+		{
+			List<byte> ret = new List<byte>();
+			if (is_bin) //若是二进制
+			{
+				for (int i = replay_st; i < replay_end; i++)
+				{
+					var tb = Tool.StructToBytes(line_cmlog_list[i]);
+					ret.AddRange(tb); //写入头部
+					ret.AddRange(bin_lines[i]); //
+				}
+			}
+			else
+			{
+				for (int i = replay_st; i < replay_end; i++)
+				{
+					var b = Encoding.UTF8.GetBytes(data_lines[i]);
+					
+					int len = b.Length;
+					int ind = 0;
+					while (len > 0)
+					{
+						CMLOG_HEAD head = new CMLOG_HEAD();
+						head.syn = 0xa0;
+						//head.vir = 0; //
+						//head.type_bin = true; //二进制
+						head.type = 0x0; //更高效
+						int rec_len = len <= 256 ? len : 256;
+						head.len = (byte)(rec_len - 1);
+						head.ms = line_ms_list[i];
+						var tb = Tool.StructToBytes(head);
+						ret.AddRange(tb); //写入头部
+						for (int j = 0; j < rec_len; j++)
+						{
+							ret.Add(b[j+ind]);
+						}
+						len -= rec_len;
+						ind += rec_len;
+					}
+				}
+			}
+			return ret;
+		}
+		public List<byte> export_timetext() //将当前选中的数据导出成带时间戳文本格式
+		{ //无论什么格式，都一样
+			List<byte> ret = new List<byte>();
+			for (int i = replay_st; i < replay_end; i++)
+			{
+				string s=data_lines[i];
+				int sec = line_ms_list[i] / 1000;
+				int min = sec / 60;
+				DateTime dt = new DateTime(1970, 1, 1, 0, min, sec%60, line_ms_list[i]%1000);
+				string tmp_time = dt.ToString("mmss.fff	"); //时间戳
+				s = tmp_time + s;
+				var tb = Encoding.UTF8.GetBytes(s);
+				ret.AddRange(tb); //
+			}
+			return ret;
+		}
+#endregion
 	}
 #endregion
 #region 文本文件直接全部回放
@@ -308,6 +390,7 @@ namespace cslib
 				sw.Write(b, ind, rec_len); //写入数据
 				sw.Flush(); //flush
 				len -= rec_len;
+				ind += rec_len;
 			}
 		}
 		public override void log_pass(string s) //禁止文本形式写入

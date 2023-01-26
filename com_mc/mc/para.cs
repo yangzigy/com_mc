@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace com_mc
 {
-	public enum DataType //协议域中数据类型
+	public enum DataType //参数数据类型
 	{
 		u8, u16, u32, u64, //无符号整数
 		s8, s16, s32, s64, //有符号整数
@@ -325,6 +325,7 @@ namespace com_mc
 				case DataType.s32: return ds32;
 				case DataType.s64: return ds64;
 				case DataType.f: return f;
+				case DataType.str: //字符型的默认是按df来解
 				case DataType.df: return df;
 				default: throw new Exception("type err");
 			}
@@ -342,6 +343,7 @@ namespace com_mc
 				case DataType.s32: return ds32;
 				case DataType.s64: return (int)ds64;
 				case DataType.f: return (int)f;
+				case DataType.str: //字符型的默认是按df来解
 				case DataType.df: return (int)df;
 				default: return 0;
 			}

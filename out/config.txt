@@ -51,7 +51,7 @@
 	"prot_dict": //协议域字典
 	[ 
 	//状态上传协议
-		{ "name":"tl_root","type":"text","textline_dict":["tl0","tl1","tl2"]},
+		{ "name":"tl_root","type":"text","prot_list":["tl0","tl1","tl2"]},
 		{ "name":"tl0","type":"tline","col_n":8,"prot_list":
 		[
 			"tp_电压","tp_电流","tp_强度","tp_期望温度","tp_温度","tp_模式",
@@ -79,11 +79,8 @@
 		]},
 		{ "name":"tp_i_off", "type":"str","ref_name":"i_off","pro_k":0.1}
 	],
-	"prot_cfg": //协议配置
-	{
-		//"prot_root": //二进制协议根
-		"textline_prot": "tl_root" //文本协议根
-	},
+	"prot_roots": ["tl_root"], //协议族根节点配置
+
 	"cmds":
 	[
 		{"name":"开数据","cmd":"s 1\n^x_axis","type":"bt"},

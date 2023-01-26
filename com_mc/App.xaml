@@ -6,64 +6,68 @@
 	<Application.Resources>
 		<ResourceDictionary>
 			<Style TargetType="{x:Type Button}">
-                <Setter Property="Height" Value="30" />
-                <Setter Property="HorizontalContentAlignment" Value="Center" />
+				<Setter Property="Height" Value="30" />
+				<Setter Property="HorizontalContentAlignment" Value="Center" />
 				<Setter Property="VerticalContentAlignment" Value="Center" />
 				<Setter Property="FontSize" Value="16" />
 				<Setter Property="Margin" Value="2,2" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ButtonBase}">
-                            <Border x:Name="Border" Width="{TemplateBinding Width}"
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="{x:Type ButtonBase}">
+							<Border x:Name="Border" Width="{TemplateBinding Width}"
 								Height="{TemplateBinding Height}"
 								Background="{TemplateBinding Background}">
-                                <TextBlock x:Name="TextBlock"
+								<TextBlock x:Name="TextBlock"
 									   Text="{TemplateBinding Content}"
 									   FontSize="{TemplateBinding FontSize}"
 									   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
 									   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsPressed" Value="True">
-                                    <Setter Property="Background"
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsPressed" Value="True">
+									<Setter Property="Background"
 										Value="#FFfcac1c" />
-                                    <!--<Setter Property="Background"
+									<!--<Setter Property="Background"
 										Value="{Binding RelativeSource = {RelativeSource Self},Path=(local:ButtonBrush.ButtonPressBackground)}" />-->
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style TargetType="{x:Type ToggleButton}">
-                <Setter Property="Height" Value="30" />
-                <Setter Property="HorizontalContentAlignment" Value="Center" />
-                <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="FontSize" Value="16" />
-                <Setter Property="Margin" Value="2,2" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ToggleButton}">
-                            <Border x:Name="Border" Width="{TemplateBinding Width}"
+								</Trigger>
+								<Trigger Property="IsEnabled" Value="false">
+									<Setter Property="Foreground"
+										Value="#ffbbbbbb" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+			<Style TargetType="{x:Type ToggleButton}">
+				<Setter Property="Height" Value="30" />
+				<Setter Property="HorizontalContentAlignment" Value="Center" />
+				<Setter Property="VerticalContentAlignment" Value="Center" />
+				<Setter Property="FontSize" Value="16" />
+				<Setter Property="Margin" Value="2,2" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="{x:Type ToggleButton}">
+							<Border x:Name="Border" Width="{TemplateBinding Width}"
 								Height="{TemplateBinding Height}"
 								Background="{TemplateBinding Background}">
-                                <TextBlock x:Name="TextBlock"
+								<TextBlock x:Name="TextBlock"
 									   Text="{TemplateBinding Content}"
 									   FontSize="{TemplateBinding FontSize}"
 									   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
 									   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsChecked" Value="True">
-                                    <Setter Property="Background"
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsChecked" Value="True">
+									<Setter Property="Background"
 										Value="#FFfcac1c" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <!--<Style TargetType="{x:Type ToggleButton}"></Style>-->
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+			<!--<Style TargetType="{x:Type ToggleButton}"></Style>-->
 			<Style TargetType="{x:Type TextBox}">
 				<Setter Property="VerticalContentAlignment" Value="Center" />
 				<Setter Property="HorizontalContentAlignment" Value="Right"/>

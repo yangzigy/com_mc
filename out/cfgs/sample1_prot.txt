@@ -1,15 +1,11 @@
 { 
-	"prot_cfg": //协议配置
-	{
-		"prot_root": "bin_root",//二进制协议根
-		"textline_prot": "tl_root" //文本协议根
-	},
+	"prot_roots": ["tl_root","bin_root"], //协议族根节点配置，注意先后顺序
 
 	"prot_dict": //协议域字典
 	[ 
 //文本部分
 	//状态上传协议
-		{ "name":"tl_root","type":"text","textline_dict":["tl0","tl1","tl2"]},
+		{ "name":"tl_root","type":"text","prot_list":["tl0","tl1","tl2"]},
 		{ "name":"tl0","type":"tline","col_n":8,"prot_list":
 		[
 			"tp_电压","tp_电流","tp_强度","tp_期望温度",
@@ -62,13 +58,13 @@
 		{"name":"02_loop","type":"loop","loop_n":2,"prot_list":["02_loop_obj"]},
 		{"name":"02_loop_obj","type":"obj","prot_list":["pt","02_loop_obj_sw"]},
 		{"name":"pt","type":"u8"}, //1或2
-		{"name":"02_loop_obj_sw","type":"switch","ref_type":"pt","prot_map":
+		{"name":"02_loop_obj_sw","type":"sw","ref_type":"pt","prot_map":
 			{ "1":"02_sw_1", "2":"02_sw_2" }},
 		{"name":"02_sw_1","type":"u8","ref_name":"指令结果"},
 		{"name":"02_sw_2","type":"u16","ref_name":"i_off","pro_k":0.1},
 	//aa根节点（实现协议帧选择）
 		{"name":"bin_root","type":"obj","prot_list":["aa","type","aa_sw"]},
-		{"name":"aa_sw","type":"switch","ref_type":"type","is_reset":1,"prot_map":
+		{"name":"aa_sw","type":"sw","ref_type":"type","is_reset":1,"prot_map":
 			{"1":"aa01","2":"aa02"}}
 	]
 }

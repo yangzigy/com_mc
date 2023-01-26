@@ -7,21 +7,33 @@ using System.Web.Script.Serialization;
 using System.IO;
 using System.Windows;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
-
 namespace com_mc
 {
+	public enum ProtType //协议域类型，str之前必须兼容DataType
+	{
+		u8, u16, u32, u64, //无符号整数
+		s8, s16, s32, s64, //有符号整数
+		f, df, //float、double
+		undef, str, //未定义、字符串
+		//插件扩展的时候，可以用undef
+		obj, //顺序协议域容器
+		loop, //循环协议域
+		sw, //选择分支协议域容器
+		text, //文本行协议族选择
+		tline, //文本行协议域容器
+	}
 	//协议相当于结构体定义中的一个变量，协议名称是变量名称。
 	//由于每个变量都需要引用参数，所以不需要定义变量的类型。嵌套结构体通过全部展开定义基础数据结构的方式来定义，协议对象无法复用
 	public abstract class ProtDom //协议域纯虚父类
 	{
 		public MC_Prot p_mcp=null; //协议系统的引用
-		public PD_Obj father_Dom = null; //上级协议的引用
+		public PD_Obj father_Dom = null; //上级协议的引用（对于公共协议域，被多个协议域引用，就没有父的概念）
 		public string name { get; set; } = ""; //协议域名称(唯一，或没有)
 		public int id { get; set; } = 0; //参数的唯一id，在C程序中使用
-		public DataType type { get; set; } = 0; //数据类型,默认是u8（此处无效，在factory处设置为u64）
+		public ProtType type { get; set; } = 0; //数据类型,默认是u8（此处无效，在factory处设置为str）
 		public string ref_name { get; set; } = "";//引用参数的名称
 		public ParaValue ref_para=null; //引用的参数，没有引用会给内部对象，一定会有
-		public ProtDom(Dictionary<string, object> v, DataType t, MC_Prot pd) //从json构造对象
+		public ProtDom(Dictionary<string, object> v, ProtType t, MC_Prot pd) //从json构造对象
 		{ //这里遇到错误就throw出去，不想throw的才判断
 			p_mcp = pd;
 			if (v.ContainsKey("id")) id = (int)v["id"];
@@ -46,12 +58,11 @@ namespace com_mc
 			var v = new Dictionary<string, object>();
 			//v["id"]=id; //暂时不用
 			v["name"] = name;
-			if (type != DataType.df) v["type"] = type;
+			if (type != ProtType.str) v["type"] = type;
 			if (ref_name != "") v["ref_name"] = ref_name;
 			return v;
 		}
 		public virtual void create_connection() { } //对于协议域组织，需要等初始化完成后进行。只在结构子类中实现即可
-		//public virtual string[] get_children() { return new string[0]; } //获得本对象的所有子协议域id
 		public abstract void pro(byte[] b, ref int off, int n); //处理数据，输入对象首地址，off：数据起始位置，n:off之后还有多长。
 		public static Int64 double_2_s64(double f) //浮点转整型四舍五入
 		{
@@ -70,7 +81,7 @@ namespace com_mc
 		public int bit_st { get; set; } = 0; //起始bit
 		public int bit_len { get; set; } = 0; //bit长度，用此配置表示此域为按bit处理
 		public int bit_singed { get; set; } = 0; //是否是有符号数
-		public PD_Node(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
+		public PD_Node(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t,pd)
 		{
 			if(v.ContainsKey("pro_k")) pro_k = (double)(decimal)v["pro_k"];
 			if(v.ContainsKey("pro_b")) pro_b = (double)(decimal)v["pro_b"];
@@ -78,15 +89,15 @@ namespace com_mc
 			if (v.ContainsKey("bit_len")) bit_len = (int)v["bit_len"];
 			if (v.ContainsKey("bit_singed")) bit_st = (int)v["bit_singed"]; //默认从0bit开始
 			if (v.ContainsKey("skip_n")) skip_n = (int)v["skip_n"];
-			len = DATA_UNION.get_type_len(type);
+			len = DATA_UNION.get_type_len((DataType)type);
 		}
 		public override Dictionary<string, object> toJson()
 		{
 			var v=base.toJson();
 			if(len!=0) v["len"] = len;
 			if(skip_n != 0) v["skip_n"] = skip_n;
-			if(pro_k != 1) v["pro_k"] = pro_k;
-			if(pro_b != 0) v["pro_b"] = pro_b;
+			if(pro_k != 1) v["pro_k"] = (decimal)pro_k;
+			if(pro_b != 0) v["pro_b"] = (decimal)pro_b;
 			if(bit_st != 0) v["bit_st"] = bit_st;
 			if(bit_len != 0) v["bit_len"] = bit_len;
 			if(bit_singed != 0) v["bit_singed"] = bit_singed;
@@ -117,7 +128,7 @@ namespace com_mc
 				}
 				d = data.du64;
 			}
-			else d = data.get_double(type); //整数或浮点都能兼容
+			else d = data.get_double((DataType)type); //整数或浮点都能兼容
 			d = d * pro_k + pro_b;
 			//最后给引用的参数
 			ParaValue_Val p = (ParaValue_Val)ref_para; //二进制为值类型，输出也必然是值类型
@@ -139,7 +150,7 @@ namespace com_mc
 	public class PD_Array : ProtDom //数组型叶子节点，包括未定义和字符串，输出类型只能是未定义或字符串
 	{
 		public int len = 0; //本域的数据长度
-		public PD_Array(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
+		public PD_Array(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t,pd)
 		{
 			len = (int)v["len"];
 		}
@@ -157,13 +168,12 @@ namespace com_mc
 		}
 	}
 	//字符型叶子节点（同时适用于二进制和文本行协议），分为十进制和hex，输出类型只能是值类型,所以自身类型不可以是str
-	public class PD_Str : PD_Node 
+	public class PD_Str : PD_Node
 	{
 		public string str_type = ""; //空为10进制，hex：16进制
-		public PD_Str(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
+		public PD_Str(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t,pd)
 		{
 			if(v.ContainsKey("str_type")) str_type=v["str_type"] as string;
-			if(t==DataType.str || t==DataType.undef) type=DataType.df; //默认按double来做，输入肯定是字符
 		}
 		public override Dictionary<string, object> toJson()
 		{
@@ -211,8 +221,8 @@ namespace com_mc
 	{
 		public List<string> prot_list = new List<string>(); //一系列顺序的协议域
 
-		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议字典
-		public PD_Obj(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t, pd)
+		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议字典，为了方便
+		public PD_Obj(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t, pd)
 		{
 			if (!v.ContainsKey("prot_list")) return;
 			prot_list.Clear();
@@ -220,17 +230,8 @@ namespace com_mc
 			ArrayList list = v["prot_list"] as ArrayList;
 			foreach (var item in list)
 			{
-				//var tv = item as Dictionary<string, object>;
 				string s=item as string;
-				//if (tv.ContainsKey("name")) s = tv["name"] as string;
-				//else s = name + "._" + prot_list.Count.ToString(); //若没有显式指明名称，分配自动名称：上级名._位置
 				prot_list.Add(s);
-				//var p = MC_Prot.factory(tv, p_mcp); //递归创建自己的子协议域
-				//p.father_Dom = this; //给上层引用赋值
-				//p.name = s; //覆盖子节点的名称
-				//var p = p_mcp.prot_dict[s];
-				//p.father_Dom = this; //给上层引用赋值
-				//prot_dict[s] = p;
 			}
 		}
 		public override void create_connection()
@@ -245,7 +246,9 @@ namespace com_mc
 		public override Dictionary<string, object> toJson()
 		{
 			var v = base.toJson();
-			v["prot_list"] = prot_list;
+			var vl = new ArrayList();
+			vl.AddRange(prot_list);
+			v["prot_list"] = vl;
 			return v;
 		}
 		public override void pro(byte[] b, ref int off, int n)
@@ -268,7 +271,7 @@ namespace com_mc
 		public Dictionary<int, string> protname_map = new Dictionary<int, string>(); //各协议描述符头部，由int对协议名进行索引
 
 		public Dictionary<int, ProtDom> prot_map=new Dictionary<int, ProtDom>(); //各协议描述符头部，由int对协议进行索引
-		public PD_Switch(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
+		public PD_Switch(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t,pd)
 		{
 			ref_type = v["ref_type"] as string;
 			if(v.ContainsKey("cfg_str_type")) cfg_str_type = v["cfg_str_type"] as string; //
@@ -282,12 +285,7 @@ namespace com_mc
 					k= int.Parse(item.Key, System.Globalization.NumberStyles.HexNumber);
 				}
 				else int.TryParse(item.Key, out k);
-				//var tv = item.Value as Dictionary<string, object>;
-				//var p = MC_Prot.factory(tv, p_mcp); //递归创建自己的子协议域
 				protname_map[k] = item.Value as string;
-				//var p = p_mcp.prot_dict[item.Value as string];
-				//p.father_Dom = this; //给上层引用赋值
-				//prot_map[k] = p;
 			}
 		}
 		public override void create_connection()
@@ -304,17 +302,12 @@ namespace com_mc
 			var v = base.toJson();
 			if (ref_type != "") v["ref_type"] = ref_type;
 			if (cfg_str_type != "") v["cfg_str_type"] = cfg_str_type;
-			var ta = new ArrayList();
-			foreach (var item in prot_map)
-			{
-				var vt = new Dictionary<string, object>();
-				string s = "";
-				if(cfg_str_type=="") s = string.Format("{0}", item.Key); //以数字索引
-				else s = string.Format("{0:X}", item.Key); //以数字索引
-				vt[s]=item.Value.toJson(); //递归调用子协议域的toJson
-				ta.Add(vt);
-			}
-			v["prot_map"] = ta;
+			if (is_reset != 0) v["is_reset"] = is_reset;
+			Dictionary<string, object> vt=new Dictionary<string, object>();
+			string key_type = "";
+			if (cfg_str_type == "hex") key_type="X";//若是hex的字符格式
+			foreach (var item in protname_map) vt[item.Key.ToString(key_type)] = item.Value;
+			v["prot_map"] = vt;
 			return v;
 		}
 		public override void pro(byte[] b, ref int off, int n)
@@ -329,7 +322,7 @@ namespace com_mc
 	public class PD_Loop : PD_Obj //重复协议域方式，与Obj域的区别在于仅第一个域有效，重复次数可配置可引用
 	{
 		public string ref_len = ""; //引用的协议域，用于确定重复次数
-		public PD_Loop(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t,pd)
+		public PD_Loop(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t,pd)
 		{
 			if(v.ContainsKey("ref_len")) ref_len=v["ref_len"] as string;
 			else //需要直接指定
@@ -375,14 +368,14 @@ namespace com_mc
 	}
 	public class PD_LineObj : PD_Obj //文本行协议对象，不接受二进制输入
 	{
-		//public List<string> prot_list = new List<string>(); //一系列顺序的协议域
 		public string head = ""; //协议头，带着$
 		public int col_n = 0; //列数
 		public string[] split_char_list = new string[0]; //本协议的特殊分隔符
 
 		public PD_Str[] protobj_list = null; //一系列顺序的协议域
-		public PD_LineObj(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t, pd)
+		public PD_LineObj(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t, pd)
 		{
+			if (v.ContainsKey("head")) head = v["head"] as string;
 			if (v.ContainsKey("split_char_list"))
 			{
 				ArrayList l = v["split_char_list"] as ArrayList;
@@ -393,13 +386,6 @@ namespace com_mc
 				}
 			}
 			if (v.ContainsKey("col_n")) col_n = (int)v["col_n"];
-			//protobj_list.Clear();
-			//for (int i = 0; i < prot_list.Count; i++)
-			//{
-			//	var p = p_mcp.prot_dict[prot_list[i]] as PD_Str;
-			//	if (p == null) throw new Exception(prot_list[i] + "应为PD_Str");
-			//	protobj_list.Add(p);
-			//}
 		}
 		public override void create_connection()
 		{
@@ -410,6 +396,19 @@ namespace com_mc
 				p.father_Dom = this; //给上层引用赋值
 				protobj_list[i]= p as PD_Str;
 			}
+		}
+		public override Dictionary<string, object> toJson()
+		{
+			var v = base.toJson();
+			if (head != "") v["head"] = head;
+			v["col_n"] = col_n;
+			if (split_char_list.Length > 0)
+			{
+				var vl = new ArrayList();
+				vl.AddRange(split_char_list);
+				v["split_char_list"] = vl;
+			}
+			return v;
 		}
 		public override void pro(byte[] b, ref int off, int n) //不支持二进制输入
 		{
@@ -426,16 +425,11 @@ namespace com_mc
 	}
 	public class PD_LineSwitch : PD_Obj //文本行协议分类
 	{
-		public Encoding cur_encoding = Encoding.Default; //默认编码
+		public Encoding cur_encoding = Encoding.UTF8; //默认编码
 		//文本协议字典,以文本协议的头为索引，不是name是head
-		public PD_LineSwitch(Dictionary<string, object> v, DataType t, MC_Prot pd) : base(v, t, pd)
+		public PD_LineSwitch(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t, pd)
 		{
 			if (v.ContainsKey("encoding")) cur_encoding = Encoding.GetEncoding(v["encoding"] as string);
-			ArrayList list = v["textline_dict"] as ArrayList;
-			foreach (var item in list) //"textline_dict":["tl0","tl1","tl2"]
-			{
-				prot_list.Add(item as string); //先存行协议的名称，等所有协议都加载完了，再换成文本行协议的索引名
-			}
 		}
 		public override void create_connection()
 		{
@@ -449,6 +443,12 @@ namespace com_mc
 				s += "-" + p.col_n.ToString(); //索引名为：$r-2，或者-7
 				prot_dict[s] = p;
 			}
+		}
+		public override Dictionary<string, object> toJson()
+		{
+			var v = base.toJson();
+			if (cur_encoding != Encoding.UTF8) v["encoding"] = cur_encoding;
+			return v;
 		}
 		public override void pro(byte[] b, ref int off, int n)
 		{
@@ -480,7 +480,7 @@ namespace com_mc
 		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议域字典
 		public List<string> prot_root_list=new List<string>(); //协议族根节点列表
 
-		public List<ProtDom> prot_root_obj_list=new List<ProtDom>(); //协议族根节点列表
+		public List<ProtDom> prot_root_obj_list=new List<ProtDom>(); //协议族根节点列表，为了引用方便
 		public void fromJson(Dictionary<string, object> v) //初始化
 		{
 			clear();
@@ -508,27 +508,16 @@ namespace com_mc
 			{
 				item.Value.create_connection();
 			}
-			v = v["prot_cfg"] as Dictionary<string, object>; //先默认必须有这个
-			string text_root = null;
-			//文本行协议
-			if (v.ContainsKey("textline_prot"))
+			ArrayList l = v["prot_roots"] as ArrayList; //读取各协议族的根节点
+			foreach (var item in l)
 			{
-				text_root = v["textline_prot"] as string;
-				//text_root = MC_Prot.factory(v["textline_prot"] as Dictionary<string, object>, this); //递归创建自己的子协议域
-				prot_root_list.Add(text_root);
-				prot_root_obj_list.Add(prot_dict[text_root]);
-			}
-			string prot_root = null; //二进制协议根节点
-			if (v.ContainsKey("prot_root"))
-			{
-				prot_root = v["prot_root"] as string;
-				//prot_root = MC_Prot.factory(v["prot_root"] as Dictionary<string, object>, this); //递归创建自己的子协议域
-				prot_root_list.Add(prot_root);
-				prot_root_obj_list.Add(prot_dict[prot_root]);
+				string s=item as string;
+				prot_root_list.Add(s);
+				prot_root_obj_list.Add(prot_dict[s]);
 			}
 		}
 		public Dictionary<string, object> toJson() //使用json保存当前配置
-		{ //构造一个字典，包含：para_dict、prot_root、textline_dict三部分
+		{ //构造一个字典，包含：para_dict、prot_roots、prot_dict三部分
 			Dictionary<string, object> v=new Dictionary<string, object>();
 			//先存储变量字典
 			var t= new ArrayList();
@@ -538,16 +527,17 @@ namespace com_mc
 			}
 			v["para_dict"]= t;
 			//然后存储二进制根节点
-
-			//然后存储文本协议字典
-			//t.Clear();
-			//foreach (var item in textline_dict)
-			//{
-			//	var textline_tmp = item.Value.toJson();
-			//	textline_tmp["col_n"] = Convert.ToInt32(item.Key.Substring(item.Key.LastIndexOf('-')+1)); //命名为“-7”7为列数
-			//	t.Add(textline_tmp);
-			//}
-			//v["textline_dict"] = t;
+			var al = new ArrayList();
+			al.AddRange(prot_root_list);
+			v["prot_roots"] = al;
+			//然后存储协议域字典
+			var tp = new ArrayList();
+			foreach (var item in prot_dict)
+			{
+				var pltmp = item.Value.toJson();
+				tp.Add(pltmp);
+			}
+			v["prot_dict"] = tp;
 			return v;
 		}
 		public void clear()
@@ -569,40 +559,31 @@ namespace com_mc
 		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
 		public static ProtDom factory(Dictionary<string, object> v, MC_Prot pd) //构建工厂，输入配置，测控协议对象
 		{
-			string s = json_ser.Serialize(v["type"]); //这样取得的字符串带"
-			DataType t = DataType.u64; //默认类型
-			try
+			ProtType t = ProtType.str; //默认类型,str的不需要写type这个域
+			if (v.ContainsKey("type"))
 			{
-				t = json_ser.Deserialize<DataType>(s); //取得参数类型，enum类型的反串行化需要字符串带"
-			}
-			catch (Exception e) //若不是基础类型，则建立协议组织类型
-			{
-				s=s.Replace("\"", ""); //去掉"
-				switch (s)
-				{
-					case "obj": return new PD_Obj(v, t,pd);
-					case "switch": return new PD_Switch(v, t, pd);
-					case "loop": return new PD_Loop(v, t, pd);
-					case "text": return new PD_LineSwitch(v, t, pd);
-					case "tline": return new PD_LineObj(v, DataType.str, pd); //这个type好像没用
-					default:
-						break;
-				}
+				string s = json_ser.Serialize(v["type"]); //这样取得的字符串带"
+				t = json_ser.Deserialize<ProtType>(s); //取得参数类型，enum类型的反串行化需要字符串带"
 			}
 			switch (t) //若是基础类型
 			{
-				case DataType.undef: return new PD_Array(v, t, pd);
-				case DataType.str: return new PD_Str(v, t, pd);
-				case DataType.u8:
-				case DataType.u16:
-				case DataType.u32:
-				case DataType.u64:
-				case DataType.s8:
-				case DataType.s16:
-				case DataType.s32:
-				case DataType.s64:
-				case DataType.f:
-				case DataType.df: return new PD_Node(v, t, pd);
+				case ProtType.undef: return new PD_Array(v, t, pd);
+				case ProtType.str: return new PD_Str(v, t, pd);
+				case ProtType.u8:
+				case ProtType.u16:
+				case ProtType.u32:
+				case ProtType.u64:
+				case ProtType.s8:
+				case ProtType.s16:
+				case ProtType.s32:
+				case ProtType.s64:
+				case ProtType.f:
+				case ProtType.df: return new PD_Node(v, t, pd);
+				case ProtType.obj:return new PD_Obj(v, t, pd);
+				case ProtType.sw:return new PD_Switch(v, t, pd);
+				case ProtType.loop:return new PD_Loop(v, t, pd);
+				case ProtType.text:return new PD_LineSwitch(v, t, pd);
+				case ProtType.tline: return new PD_LineObj(v, t, pd);
 				default: throw new Exception("type err");
 			}
 		}

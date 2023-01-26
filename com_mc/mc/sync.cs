@@ -59,7 +59,7 @@ namespace com_mc
 			{
 				var vt = v["len_dom"] as Dictionary<string, object>;
 				string s = json_ser.Serialize(vt["type"]);
-				DataType t = json_ser.Deserialize<DataType>(s); //取得参数类型
+				ProtType t = json_ser.Deserialize<ProtType>(s); //取得参数类型
 				len_dom = new PD_Node(vt, t,null); //一定没有引用参数，所以不使用测控架构对象
 			}
 			if(v.ContainsKey("len_dict")) //读取长度列表
@@ -94,7 +94,7 @@ namespace com_mc
 		{
 			int off = len_dom_off;
 			len_dom.pro(b, ref off, len-off);
-			int n =(int) len_dom.data.get_double(len_dom.type);
+			int n =(int) len_dom.data.get_double((DataType)len_dom.type);
 			if (len_dict.ContainsKey(n)) //若有查表
 			{
 				n = len_dict[n];

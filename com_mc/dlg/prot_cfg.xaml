@@ -39,33 +39,14 @@
 					<ColumnDefinition Width="2*"></ColumnDefinition>
 					<ColumnDefinition Width="2*"></ColumnDefinition>
 				</Grid.ColumnDefinitions>
-				<Label Grid.Row="0" Grid.ColumnSpan="2">文本协议列表：</Label>
+				<Label Grid.Row="0" Grid.ColumnSpan="2">协议族根节点列表：</Label>
 				<Button Grid.Row="1" Grid.Column="0">添加</Button>
 				<Button Grid.Row="1" Grid.Column="1">删除</Button>
-				<DataGrid Name="dg_text_prot" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False">
-					<DataGrid.Columns>
-						<DataGridTextColumn Header="协议头" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
-						<DataGridTextColumn Header="列数" Width="50" Binding="{Binding len}" IsReadOnly="True"/>
-					</DataGrid.Columns>
-				</DataGrid>
-			</Grid>
-			<Grid Grid.Row="1" Grid.Column="0">
-				<Grid.RowDefinitions>
-					<RowDefinition Height="30"></RowDefinition>
-					<RowDefinition Height="30"></RowDefinition>
-					<RowDefinition Height="1*"></RowDefinition>
-				</Grid.RowDefinitions>
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="2*"></ColumnDefinition>
-					<ColumnDefinition Width="2*"></ColumnDefinition>
-				</Grid.ColumnDefinitions>
-				<Label Grid.Row="0" Grid.ColumnSpan="2">二进制协议根：</Label>
-				<Button Grid.Row="1" Grid.Column="0">添加</Button>
-				<Button Grid.Row="1" Grid.Column="1">删除</Button>
-				<DataGrid Name="dg_bin_root" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False">
+				<DataGrid Name="dg_roots_list" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
+						  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False">
 					<DataGrid.Columns>
 						<DataGridTextColumn Header="名称" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
-						<DataGridTextColumn Header="类型" Width="50" Binding="{Binding type}" IsReadOnly="True"/>
+						<DataGridTextColumn Header="类型" Width="60" Binding="{Binding type}" IsReadOnly="True"/>
 					</DataGrid.Columns>
 				</DataGrid>
 			</Grid>
@@ -83,9 +64,10 @@
 			<Label Grid.Row="0">二进制协议树：</Label>
 			<Button Grid.Row="1" Grid.Column="0">添加</Button>
 			<Button Grid.Row="1" Grid.Column="1">删除</Button>
-			<DataGrid Grid.Row="2" Name="dg_prot" Grid.ColumnSpan="2" FontSize="14" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False">
+			<DataGrid Grid.Row="2" Name="dg_prot" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
+					  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" MouseDown="dg_prot_MouseDown" SelectedCellsChanged="dg_prot_SelectedCellsChanged">
 				<DataGrid.Columns>
-					<DataGridTextColumn Header="协议名" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
+					<DataGridTextColumn Header="协议名" Width="150" Binding="{Binding name}" IsReadOnly="True"/>
 					<DataGridTextColumn Header="类型" Width="60" Binding="{Binding type}" IsReadOnly="True"/>
 				</DataGrid.Columns>
 			</DataGrid>
@@ -124,7 +106,7 @@
 			<Label Grid.Row="0">参数列表：</Label>
 			<Button Grid.Row="1" Grid.Column="0">添加</Button>
 			<Button Grid.Row="1" Grid.Column="1">删除</Button>
-			<DataGrid Name="dg_vir" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"
+			<DataGrid Name="dg_vir" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
 					  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" MouseDown="dg_vir_MouseDown" SelectedCellsChanged="dg_vir_SelectedCellsChanged">
 				<DataGrid.Columns>
 					<DataGridTextColumn Header="变量名" Width="80" Binding="{Binding name}" IsReadOnly="True"/>

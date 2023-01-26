@@ -22,7 +22,7 @@
 	"bt_margin":6, //按钮间距
 	"ctrl_cmds":["^x_axis"], //软件开启后的显示指令
 	"plugin_path":"./cm_plugin.dll",
-	"ext_cfg_files": //额外的配置文件，仅能配置prot_cfg
+	"ext_cfg_files": //额外的配置文件
 	[
 		"./sample1_cmds.txt",
 		"./sample1_para.txt",

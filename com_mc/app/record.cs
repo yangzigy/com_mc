@@ -36,10 +36,11 @@ namespace cslib
 			vir = i;
 		}
 	}
-#region 带时间戳的回放：分2种，二进制和文本
 	public class DataSrc_replay : DataSrc //带时间戳的日志回放
 	{
+#region 带时间戳的回放：分2种，二进制和文本
 		public DataSrc_replay(RX_CB cb) : base(cb) { name = "回放"; }
+		public string rpl_filename = ""; //回放数据文件名
 		public bool is_bin=false; //回放数据是否是二进制的
 		public float time_X = 1; //回放时间倍数
 		public int state = 0;//0终止，1暂停，2回放，3单步
@@ -66,6 +67,7 @@ namespace cslib
 		public CCmlog_Vir_Info[] cmlog_vir_info= new CCmlog_Vir_Info[16]; //cmlog格式的各虚拟信道的信息
 		public override void open(string fname) //打开数据源，输入数据文件名
 		{
+			rpl_filename=fname;
 			line_ms_list.Clear();
 			data_lines.Clear();
 			bin_lines.Clear();
@@ -76,26 +78,6 @@ namespace cslib
 				org_data = new byte[fs.Length];
 				fs.Read(org_data, 0, org_data.Length);
 				fs.Close();
-				/* //二进制带时间戳dat文件
-				for (int i = 0; i < dbuf.Length - 4;) //将内存中的数据添加到行列表
-				{
-					uint tt = (uint)Tool.BytesToStruct(dbuf, i, typeof(uint));
-					int len = (int)((tt >> 20) & 0x0fff); //数据包长度
-					int ms = (int)(tt & 0x000fffff) * 10; //取得ms数
-					line_ms_list.Add(ms); //加入时间戳列表
-					byte[] b = new byte[len];
-					i += 4;
-					Array.ConstrainedCopy(dbuf, i, b, 0, len);
-					i += len;
-					bin_lines.Add(b); //加入数据行列表
-					string sline = ""; //行的hex显示
-					for (int j = 0; j < b.Length; j++)
-					{
-						sline += string.Format("{0:X2} ",b[j]);
-					}
-					sline += "\n";
-					data_lines.Add(sline);
-				}*/
 				//cmlog格式
 				update_cmlog_data();
 			}
@@ -180,11 +162,19 @@ namespace cslib
 				i += len;
 				bin_lines.Add(b); //加入数据行列表
 				string sline = ""; //行的hex显示
-				for (int j = 0; j < b.Length; j++)
+				if (h.type_bin) //若是二进制
 				{
-					sline += string.Format("{0:X2} ", b[j]);
+					for (int j = 0; j < b.Length; j++)
+					{
+						sline += string.Format("{0:X2} ", b[j]);
+					}
+					sline += "\n";
 				}
-				sline += "\n";
+				else
+				{
+					sline = Encoding.UTF8.GetString(b); //文本的直接显示
+					if (!sline.EndsWith("\n")) sline += "\n"; //带换行
+				}
 				data_lines.Add(sline);
 			}
 			replay_st = 0;
@@ -201,6 +191,7 @@ namespace cslib
 					replay_line++;
 				}
 				else break;
+				if (state == 3) break;//若是单帧播放
 			}
 		}
 		public void replay_run_1_frame() //回放当前帧，不更新状态，慎重调用
@@ -257,20 +248,15 @@ namespace cslib
 			else if (new_rpl_line >= end) new_rpl_line = end - 1;
 			set_replay_pos(new_rpl_line);
 		}
+#endregion
 #region 数据导出
 		public List<byte> export_org() //将当前选中的数据导出成原始数据
 		{
 			List<byte> ret=new List<byte>();
-			if (is_bin) //若是二进制
+			for (int i = replay_st; i < replay_end; i++)
 			{
-				for (int i = replay_st; i < replay_end; i++)
-				{
-					ret.AddRange(bin_lines[i]);
-				}
-			}
-			else
-			{
-				for (int i = replay_st; i < replay_end; i++)
+				if (is_bin) ret.AddRange(bin_lines[i]); //若是二进制
+				else
 				{
 					var b = Encoding.UTF8.GetBytes(data_lines[i]);
 					ret.AddRange(b);
@@ -322,11 +308,17 @@ namespace cslib
 			return ret;
 		}
 		public List<byte> export_timetext() //将当前选中的数据导出成带时间戳文本格式
-		{ //无论什么格式，都一样
+		{ //文本数据输入，导出timetext没问题，cmlog的二进制输入，导出时按hex，cmlog的文本输入，按文本导出
 			List<byte> ret = new List<byte>();
 			for (int i = replay_st; i < replay_end; i++)
 			{
-				string s=data_lines[i];
+				string s="";
+				if(is_bin) //若是二进制格式，查看具体数据帧是文本还是二进制
+				{
+					if(line_cmlog_list[i].type_bin) s = data_lines[i]; //若是二进制，这个缓存里是hex
+					else s = Encoding.UTF8.GetString(bin_lines[i]); //若是文本
+				}
+				else s = data_lines[i]; //文本数据输入，直接输出
 				int sec = line_ms_list[i] / 1000;
 				int min = sec / 60;
 				DateTime dt = new DateTime(1970, 1, 1, 0, min, sec%60, line_ms_list[i]%1000);
@@ -339,7 +331,6 @@ namespace cslib
 		}
 #endregion
 	}
-#endregion
 #region 文本文件直接全部回放
 	public class DataSrc_file : DataSrc //回放模式
 	{
@@ -369,9 +360,10 @@ namespace cslib
 		}
 		public override void log_pass(byte[] b, int ind, int len) //
 		{
-			log_cmlog(b, ind, len,0);
+			throw new Exception("未实现直接记录接口");
+			//log_cmlog(b, ind, len,0);
 		}
-		public void log_cmlog(byte[] b, int ind, int len,int vir) //输入信道号
+		public void log_cmlog(byte[] b, int ind, int len,int vir,bool type_bin) //输入信道号
 		{
 			update_file_name();
 			while (len > 0)
@@ -379,9 +371,9 @@ namespace cslib
 				CMLOG_HEAD head = new CMLOG_HEAD();
 				head.syn = 0xa0;
 				head.vir = vir; //
-				head.type_bin = true; //二进制
+				head.type_bin = type_bin; //二进制
 				//head.type = 0x11; //更高效
-				int rec_len = len <= 256 ? len : 256;
+				int rec_len = len <= 256 ? len : 256; //本次实际要写入的数据长度
 				head.len = (byte)(rec_len - 1);
 				int ms = (int)((DateTime.Now.Ticks - cur_time.Ticks) / 10000); //表示0001年1月1日午夜 12:00:00 以来所经历的 100 纳秒数
 				head.ms = ms;

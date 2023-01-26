@@ -310,7 +310,8 @@ namespace com_mc
 		public long ticks0 = DateTime.Now.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
 		public void rx_pack(byte[] b, int off, int n, int rootid) //从帧同步接收一包数据（二进制）
 		{
-			Dispatcher.BeginInvoke((Action)(() =>
+			var dop=Dispatcher.BeginInvoke((Action)(() =>
+			//Dispatcher.Invoke((Action)(() => //为了导出csv功能，单独回放一帧，阻塞等待结果
 			{
 				try
 				{
@@ -322,20 +323,22 @@ namespace com_mc
 					//MessageBox.Show("message: " + ee.Message + " trace: " + ee.StackTrace);
 				}
 			}));
-			switch(rec_mod)
+			//此处记录与界面响应并行
+			var p = commc.mc_prot.prot_root_obj_list[rootid] as PD_LineSwitch;
+			switch (rec_mod)
 			{
 				case 1: rec_text.write(b, off, n); break;//纯文本记录
 				case 2:
 					{
-						var p = commc.mc_prot.prot_root_obj_list[rootid] as PD_LineSwitch;
 						Encoding ed = Encoding.UTF8;
 						if (p != null) { ed = p.cur_encoding; } //若是文本协议，用协议描述中的编码器
 						string s = ed.GetString(b, off, n);
 						rec_text.log(s);
 						break;//带时间戳文本记录
 					}
-				case 3: rec_bin_file.log_cmlog(b, off, n, rootid); break; //cmlog记录
+				case 3: rec_bin_file.log_cmlog(b, off, n, rootid, p == null); break; //cmlog记录，输入协议族根节点号作为信道号，是否是二进制协议
 			}
+			dop.Wait(); //为了导出csv功能，单独回放一帧，阻塞等待结果
 		}
 #endregion
 #region 数据发送

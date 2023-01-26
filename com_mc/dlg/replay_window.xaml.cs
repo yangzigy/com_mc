@@ -30,6 +30,7 @@ namespace com_mc
 		public uint tick = 0;
 		public ImageBrush resume_bkimg = new ImageBrush(); //恢复图标
 		public ImageBrush suspend_bkimg = new ImageBrush(); //暂停图标
+		public Dictionary<string, CRpl_Para_Info> para_info_dict = new Dictionary<string, CRpl_Para_Info>(); //所有测量量的显示
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
 			resume_bkimg.ImageSource = new BitmapImage(new Uri("pack://application:,,,/pic/3.PNG"));
@@ -38,6 +39,13 @@ namespace com_mc
 		}
 		public void new_file_loaded() //新的文件加载
 		{
+			Title="relay: "+ rplobj.rpl_filename;
+			//首先将界面失能，等用到的时候使能
+			bt_update_vir.IsEnabled = false;
+			bt_export_cmlog.IsEnabled= false;
+			bt_export_org.IsEnabled= false;
+			bt_export_timetext.IsEnabled= false;
+			if (rplobj.line_ms_list.Count <= 0) return;
 			tb_replay_st.Text = rplobj.replay_st.ToString();
 			tb_replay_end.Text = rplobj.replay_end.ToString();
 			List<CCmlog_Vir_Info> tlist = new List<CCmlog_Vir_Info>();
@@ -47,6 +55,27 @@ namespace com_mc
 				tlist.Add(rplobj.cmlog_vir_info[i]);
 			}
 			dg_vir.ItemsSource = tlist;
+			//根据文件格式，确定哪个按钮能用
+			bt_export_cmlog.IsEnabled = true;
+			bt_export_org.IsEnabled = true;
+			bt_export_timetext.IsEnabled = true;
+			if (rplobj.is_bin) //若是文本的，没有更新选择按钮
+			{
+				bt_update_vir.IsEnabled= true;
+			}
+			//加载所有协议的参数
+			sp_val_list.Children.Clear();
+			para_info_dict.Clear();
+			foreach (var item in MainWindow.mw.commc.dset)
+			{
+				CRpl_Para_Info info = new CRpl_Para_Info();
+				info.cb = new CheckBox();
+				info.cb.Content = item.Value.name;
+				info.cb.Background = Brushes.LightCoral;
+				info.cb.Margin = new Thickness(2, 2, 2, 0);
+				para_info_dict[item.Key] = info;
+				sp_val_list.Children.Add(info.cb);
+			}
 		}
 		private void bt_replay_cmd_Click(object sender, RoutedEventArgs e) //回放指令
 		{
@@ -65,7 +94,7 @@ namespace com_mc
 					if (rplobj.state == 1) rplobj.state = 3; //若是暂停的，改成单步
 					break;
 				case "next": //下一帧
-					rplobj.set_replay_pos(rplobj.replay_line + 1);
+					rplobj.set_replay_pos(rplobj.replay_line);
 					if (rplobj.state == 1) rplobj.state = 3; //若是暂停的，改成单步
 					break;
 				case "resume": //恢复
@@ -125,50 +154,103 @@ namespace com_mc
 				rplobj.time_X = 10000; //一下全放出来
 			}
 		}
-		public void export_org() //导出为原始数据
+		public void save_file(string filter, Func<byte[]> fun) //打开保存文件对话框，输入处理部分，取得文件的二进制内容
 		{
 			var ofd = new System.Windows.Forms.SaveFileDialog();
-			ofd.Filter = "*.txt|*.txt|*.dat|*.dat";
+			ofd.Filter = filter;
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
 			string exs = System.IO.Path.GetExtension(ofd.FileName).Trim();
 			FileStream fs = new FileStream(ofd.FileName, FileMode.Create, FileAccess.Write);
-			var b = rplobj.export_org();
-			fs.Write(b.ToArray(), 0, b.Count);
+			var b=fun();
+			fs.Write(b, 0, b.Length);
 			fs.Close();
+		}
+		public void export_org() //导出为原始数据
+		{
+			save_file("*.txt|*.txt|*.dat|*.dat", () => rplobj.export_org().ToArray() );
 		}
 		public void export_cmlog() //将当前选中的数据导出成cmlog格式
 		{
-			var ofd = new System.Windows.Forms.SaveFileDialog();
-			ofd.Filter = "*.cmlog|*.cmlog";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-			string exs = System.IO.Path.GetExtension(ofd.FileName).Trim();
-			FileStream fs = new FileStream(ofd.FileName, FileMode.Create, FileAccess.Write);
-			var b = rplobj.export_cmlog();
-			fs.Write(b.ToArray(), 0, b.Count);
-			fs.Close();
+			save_file("*.cmlog|*.cmlog", () => rplobj.export_cmlog().ToArray() );
 		}
 		public void export_timetext() //将当前选中的数据导出成带时间戳文本格式
 		{
-			var ofd = new System.Windows.Forms.SaveFileDialog();
-			ofd.Filter = "*.txt|*.txt";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-			string exs = System.IO.Path.GetExtension(ofd.FileName).Trim();
-			FileStream fs = new FileStream(ofd.FileName, FileMode.Create, FileAccess.Write);
-			var b = rplobj.export_timetext();
-			fs.Write(b.ToArray(), 0, b.Count);
-			fs.Close();
+			save_file("*.txt|*.txt", () => rplobj.export_timetext().ToArray() );
 		}
 		public void export_csv() //将当前选中的数据导出成csv
 		{
-			var ofd = new System.Windows.Forms.SaveFileDialog();
-			ofd.Filter = "*.csv|*.csv";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-			string exs = System.IO.Path.GetExtension(ofd.FileName).Trim();
-			FileStream fs = new FileStream(ofd.FileName, FileMode.Create, FileAccess.Write);
-
-			//var b = rplobj.export_timetext();
-			//fs.Write(b.ToArray(), 0, b.Count);
-			fs.Close();
+			save_file("*.csv|*.csv", () =>
+			{
+				MC_Prot para_prot = new MC_Prot(); //变量和协议的整体 
+				//首先从当前协议中构造新的协议对象
+				para_prot.fromJson(MainWindow.mw.commc.mc_prot.toJson()); //将json转换为协议实体
+				//将参数对象中的回调函数换掉
+				foreach (var item in para_prot.para_dict)
+				{
+					item.Value.update_cb = (pv) =>
+					{
+						para_info_dict[pv.name].is_assigned = true;
+					};
+				}
+				//将commc中的mc_prot域换了，并进行全速回放
+				string s = "ms,"; //第一列为ms数
+				//先写第一行
+				List<CRpl_Para_Info> vallist = new List<CRpl_Para_Info>(); //选中的变量列表
+				foreach (var item in para_info_dict)
+				{
+					if (item.Value.cb.IsChecked == false) continue;
+					s += string.Format("{0},", item.Key);
+					vallist.Add(item.Value);
+					item.Value.pv = para_prot.para_dict[item.Key]; //把参数记下来，便于访问
+				}
+				if (vallist.Count<=0) return new byte[0]; //没有选择任何变量
+				s=s.Remove(s.Length - 1)+'\n'; //将最后一个字符逗号改为换行
+				//对于每一行，输出到文件
+				MC_Prot tmp_commc_prot = MainWindow.mw.commc.mc_prot; //缓存软件中用的协议对象
+				try
+				{
+					MainWindow.mw.commc.mc_prot = para_prot; //把软件中用的协议对象替换掉，借用软件的数据流
+					for (int i = rplobj.replay_st; i < rplobj.replay_end; i++)
+					{
+						//首先清空所有变量的标志
+						foreach (var item in vallist) item.is_assigned = false;
+						//然后回放一行
+						byte[] tb = null;
+						if (rplobj.is_bin) tb = rplobj.bin_lines[i]; //若是二进制
+						else tb = Encoding.UTF8.GetBytes(rplobj.data_lines[i]);
+						rplobj.rx_event(tb);
+						//查看所选的变量，看有哪些赋值了
+						bool has_data = false; //是否有值
+						foreach (var item in vallist)
+						{
+							if (item.is_assigned)
+							{
+								has_data = true;
+								break;
+							}
+						}
+						if (has_data) //若有数据，就输出一行
+						{
+							string ts = rplobj.line_ms_list[i].ToString()+","; //先输出ms
+							foreach (var item in vallist) //输出每一列
+							{
+								ts += item.pv.ToString() + ",";
+							}
+							ts=ts.Remove(ts.Length - 1)+'\n'; //将最后一个字符逗号改为换行
+							s += ts;
+						}
+					}
+				}
+				catch (Exception e)
+				{
+				}
+				finally
+				{
+					MainWindow.mw.commc.mc_prot = tmp_commc_prot; //把软件中用的协议对象换回来
+				}
+				byte[] b = Encoding.UTF8.GetBytes(s);
+				return b;
+			});
 		}
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
@@ -219,6 +301,7 @@ namespace com_mc
 		}
 		private void bt_replay_cur_Click(object sender, RoutedEventArgs e) //回放当前帧
 		{
+			if (rplobj.line_ms_list.Count <= 0) return;
 			rplobj.replay_run_1_frame();
 		}
 		private void bt_update_vir_Click(object sender, RoutedEventArgs e) //更新选择
@@ -241,5 +324,11 @@ namespace com_mc
 				case "csv": export_csv(); break;
 			}
 		}
+	}
+	public class CRpl_Para_Info //回放对话框中测量量参数信息，包括选择控件和输出缓存
+	{
+		public CheckBox cb;
+		public bool is_assigned=false; //是否被赋过值了 （仅在导出csv时）
+		public ParaValue pv; //缓存变量，方便访问（仅在导出csv时）
 	}
 }

@@ -124,6 +124,8 @@ namespace com_mc
 			if (tick % 3 == 0) //3.3Hz
 			{
 				lb_row_num.Content = string.Format("{0}/{1}行", rplobj.replay_line, rplobj.line_ms_list.Count);
+				lb_row_st.Content = string.Format("起:{0}", rplobj.replay_st);
+				lb_row_end.Content = string.Format("止:{0}", rplobj.replay_end);
 				sl_cur_row.Maximum = rplobj.replay_end;
 				sl_cur_row.ValueChanged -= sl_cur_row_ValueChanged; //修改界面的拖动条，会触发事件形成循环
 				sl_cur_row.Value = rplobj.replay_line;
@@ -276,8 +278,8 @@ namespace com_mc
 											//从回放后台读取起止值，重新设置界面
 				sl_cur_row.Minimum = rplobj.replay_st;
 				sl_cur_row.Maximum = rplobj.replay_end;
-				tb_replay_st.Text = rplobj.replay_st.ToString();
-				tb_replay_end.Text = rplobj.replay_end.ToString();
+				//tb_replay_st.Text = rplobj.replay_st.ToString();
+				//tb_replay_end.Text = rplobj.replay_end.ToString();
 			}
 			catch (Exception ee)
 			{ }

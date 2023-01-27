@@ -35,7 +35,7 @@
 					</Grid>
 				</GroupBox>
 			</MenuItem>
-			<MenuItem Header="工具">
+			<MenuItem Header="工具" IsEnabled="false">
 				<MenuItem Header="hex原始数据转二进制"></MenuItem>
 				<MenuItem Header="二进制原始数据转hex"></MenuItem>
 				<MenuItem Header="原始数据转cmlog"></MenuItem>

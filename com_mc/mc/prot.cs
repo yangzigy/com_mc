@@ -221,12 +221,12 @@ namespace com_mc
 	{
 		public List<string> prot_list = new List<string>(); //一系列顺序的协议域
 
-		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议字典，为了方便
+		public List<ProtDom> prot_ref_list = new List<ProtDom>(); //协议引用，为了方便
 		public PD_Obj(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t, pd)
 		{
 			if (!v.ContainsKey("prot_list")) return;
 			prot_list.Clear();
-			prot_dict.Clear();
+			prot_ref_list.Clear();
 			ArrayList list = v["prot_list"] as ArrayList;
 			foreach (var item in list)
 			{
@@ -236,11 +236,11 @@ namespace com_mc
 		}
 		public override void create_connection()
 		{
-			foreach (var s in prot_list) //对于每个协议名称，取得子协议的引用，提高引用效率
+			for (int i=0;i<prot_list.Count;i++) //对于每个协议名称，取得子协议的引用，提高引用效率
 			{
-				var p = p_mcp.prot_dict[s];
+				var p = p_mcp.prot_dict[prot_list[i]];
 				p.father_Dom = this; //给上层引用赋值
-				prot_dict[s] = p;
+				prot_ref_list.Add(p);
 			}
 		}
 		public override Dictionary<string, object> toJson()
@@ -256,20 +256,20 @@ namespace com_mc
 			int pre_off = off; //上次偏移位置
 			for (int i = 0; i < prot_list.Count; i++)
 			{
-				ProtDom pd = prot_dict[prot_list[i]]; //当前子协议域
-				pd.pro(b, ref off, n); //递归调用
+				prot_ref_list[i].pro(b, ref off, n); //递归调用
 				n -= off - pre_off; //增加了多少字节，总字节数相应减掉
 				pre_off = off;
 			}
 		}
 	}
-	public class PD_Switch : PD_Obj //选择协议域方式
+	public class PD_Switch : ProtDom //选择协议域方式
 	{
 		public string ref_type = ""; //引用的协议域，用于确定包类型
 		public string cfg_str_type = ""; //配置中，协议索引的字符串类型。空为10进制，hex为10进制
 		public int is_reset = 0; //对子协议，是否复位解析位置（若是对多种协议的选择，可以从0开始，从新解析）
 		public Dictionary<int, string> protname_map = new Dictionary<int, string>(); //各协议描述符头部，由int对协议名进行索引
 
+		public PD_Node ref_dom; //为了方便直接建立确定包类型的协议域
 		public Dictionary<int, ProtDom> prot_map=new Dictionary<int, ProtDom>(); //各协议描述符头部，由int对协议进行索引
 		public PD_Switch(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t,pd)
 		{
@@ -290,10 +290,11 @@ namespace com_mc
 		}
 		public override void create_connection()
 		{
+			ref_dom= p_mcp.prot_dict[ref_type] as PD_Node;
 			foreach (var item in protname_map) //对于每个协议名称，取得子协议的引用，提高引用效率
 			{
 				var p = p_mcp.prot_dict[item.Value];
-				p.father_Dom = this; //给上层引用赋值
+				//p.father_Dom = this; //给上层引用赋值
 				prot_map[item.Key] = p;
 			}
 		}
@@ -312,8 +313,7 @@ namespace com_mc
 		}
 		public override void pro(byte[] b, ref int off, int n)
 		{
-			PD_Node pn = father_Dom.prot_dict[ref_type] as PD_Node; //引用的一定是个值类型的协议域
-			var para = pn.ref_para as ParaValue_Val;
+			var para = ref_dom.ref_para as ParaValue_Val;
 			int ti = (int)para.data.du64; //此时是变换以后的
 			if (is_reset != 0) off = 0; //若是从新解析，只需将off给0
 			prot_map[ti].pro(b, ref off, n); //找到这个协议，调用
@@ -322,6 +322,8 @@ namespace com_mc
 	public class PD_Loop : PD_Obj //重复协议域方式，与Obj域的区别在于仅第一个域有效，重复次数可配置可引用
 	{
 		public string ref_len = ""; //引用的协议域，用于确定重复次数
+
+		public PD_Node ref_dom; //引用的协议域，用于确定重复次数，为了方便
 		public PD_Loop(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t,pd)
 		{
 			if(v.ContainsKey("ref_len")) ref_len=v["ref_len"] as string;
@@ -342,13 +344,17 @@ namespace com_mc
 			}
 			return v;
 		}
+		public override void create_connection()
+		{
+			base.create_connection();
+			if (ref_len!="") ref_dom = p_mcp.prot_dict[ref_len] as PD_Node; //若有引用协议域
+		}
 		public override void pro(byte[] b, ref int off, int n)
 		{
-			int ti = 0;
+			int ti = 0; //重复次数
 			if (ref_len!="") //若是指定的
 			{
-				PD_Node pn = father_Dom.prot_dict[ref_len] as PD_Node; //引用的一定是个值类型的协议域
-				var para = pn.ref_para as ParaValue_Val;
+				var para = ref_dom.ref_para as ParaValue_Val;
 				ti= para.data.ds32; //此时是变换以后的
 			}
 			else
@@ -356,11 +362,12 @@ namespace com_mc
 				var para = ref_para as ParaValue_Val;
 				ti = para.data.ds32; //此时是变换以后的
 			}
-			var pr= prot_dict.ToArray()[0].Value; //取得第一个协议域
+			//var pr= prot_dict.ToArray()[0].Value; //取得第一个协议域
 			int pre_off = off; //上次偏移位置
 			for (int i = 0; i < ti; i++)
 			{
-				pr.pro(b,ref off, n);
+				base.pro(b,ref off, n); //用PD_Obj的处理方式，loop对象直接包含一系列顺序域
+				//pr.pro(b,ref off, n);
 				n -= off - pre_off; //增加了多少字节，总字节数相应减掉
 				pre_off = off;
 			}
@@ -427,6 +434,7 @@ namespace com_mc
 	{
 		public Encoding cur_encoding = Encoding.UTF8; //默认编码
 		//文本协议字典,以文本协议的头为索引，不是name是head
+		public Dictionary<string, ProtDom> prot_dict = new Dictionary<string, ProtDom>(); //协议字典，为了方便
 		public PD_LineSwitch(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t, pd)
 		{
 			if (v.ContainsKey("encoding")) cur_encoding = Encoding.GetEncoding(v["encoding"] as string);

@@ -5,7 +5,7 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:com_mc"
 		mc:Ignorable="d" Loaded="Window_Loaded" ResizeMode="NoResize"
-		Title="Replay_Window" Height="450" Width="650" Closing="Window_Closing" FontSize="16">
+		Title="Replay_Window" Height="450" Width="700" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="2*"></RowDefinition>
@@ -90,11 +90,15 @@
 			</StackPanel>
 			<Grid Grid.Row="1">
 				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="80"></ColumnDefinition>
 					<ColumnDefinition ></ColumnDefinition>
-					<ColumnDefinition Width="150"></ColumnDefinition>
+					<ColumnDefinition Width="80"></ColumnDefinition>
+					<ColumnDefinition Width="120"></ColumnDefinition>
 				</Grid.ColumnDefinitions>
-				<Slider Grid.Column="0" VerticalAlignment="Center" Minimum="0" Name="sl_cur_row" ValueChanged="sl_cur_row_ValueChanged"></Slider>
-				<Label Grid.Column="1" HorizontalContentAlignment="Right" Name="lb_row_num">x/x</Label>
+				<Label Grid.Column="0" HorizontalContentAlignment="Left" Name="lb_row_st">起:0</Label>
+				<Slider Grid.Column="1" VerticalAlignment="Center" Minimum="0" Name="sl_cur_row" ValueChanged="sl_cur_row_ValueChanged"></Slider>
+				<Label Grid.Column="2" HorizontalContentAlignment="Left" Name="lb_row_end">止:max</Label>
+				<Label Grid.Column="3" HorizontalContentAlignment="Right" Name="lb_row_num">x/x</Label>
 			</Grid>
 			<StackPanel Grid.Row="2" Orientation="Horizontal">
 				<TextBox Name="tb_replay_st" Width="50" FontSize="16">0</TextBox>

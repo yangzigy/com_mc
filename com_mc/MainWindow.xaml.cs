@@ -539,9 +539,9 @@ namespace com_mc
 				ell.Text = string.Format("x:{0},y:{1:0.0}", (int)rx, ry);
 				if (x_axis_id == "") //若使用时间做x轴
 				{
-					lb_measure.Content = "x: " + ((rx - past_rx) * 0.001f).ToString("F3") + "s y: " + (ry - past_ry).ToString("F2");
+					lb_measure.Content = "dx: " + ((rx - past_rx) * 0.001f).ToString("F3") + "s dy: " + (ry - past_ry).ToString("F2");
 				}
-				else lb_measure.Content = "x: " + (rx - past_rx).ToString("F0") + " y: " + (ry - past_ry).ToString("F2");
+				else lb_measure.Content = "dx: " + (rx - past_rx).ToString("F0") + " dy: " + (ry - past_ry).ToString("F2");
 				past_rx = rx;
 				past_ry = ry;
 				set_legend(rx); //根据横坐标设置曲线图例值

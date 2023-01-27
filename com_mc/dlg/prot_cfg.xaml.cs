@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -11,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -26,8 +28,9 @@ namespace com_mc
 		public MC_Prot para_prot = new MC_Prot(); //变量和协议的整体 
 		public MC_Prot cur_prot = null; //当前使用的协议
 		//将协议刷新到界面上
-		List<ParaValue_Display> para_disobj = new List<ParaValue_Display>();
-		List<ParaValue_Display> prot_disobj = new List<ParaValue_Display>();
+		List<PEdit_Display> para_disobj = new List<PEdit_Display>(); //测量量的列表
+		List<PEdit_Display> prot_disobj = new List<PEdit_Display>(); //协议域的列表
+		List<PEdit_Display> prot_treeobj = new List<PEdit_Display>(); //协议域的树形结构
 		public Prot_Cfg_Window()
 		{
 			InitializeComponent();
@@ -46,7 +49,7 @@ namespace com_mc
 			//首先刷新参数字典
 			foreach (var item in para_prot.para_dict) 
 			{
-				ParaValue_Display tl = new ParaValue_Display();
+				PEdit_Display tl = new PEdit_Display();
 				tl.name=item.Value.name;
 				tl.type = item.Value.type.ToString();
 				tl.len = item.Value.len.ToString();
@@ -54,21 +57,22 @@ namespace com_mc
 				//dg_vir.Items.Add(tl); //这样加双击时报无法修改错误
 			}
 			dg_vir.ItemsSource=para_disobj; //刷新到界面上
-			//刷新协议域字典（后续修改：改成树形显示，名字带点的不在根上显示。树中多次引用的节点可重复显示）
+			//刷新协议域
+			prot_treeobj.Clear();
 			foreach (var item in para_prot.prot_dict)
 			{
-				ParaValue_Display tl = new ParaValue_Display();
-				tl.name = item.Value.name;
-				tl.type = item.Value.type.ToString();
-				prot_disobj.Add(tl);
-				//dg_vir.Items.Add(tl); //这样加双击时报无法修改错误
+				PEdit_Display tl = new PEdit_Display();
+				if (item.Key.IndexOf(".") >= 0) continue; //若有点，说明是局部变量，不显示
+				//为此节点加子节点
+				tl.add_ProtDom(item.Value);
+				prot_treeobj.Add(tl);
 			}
-			dg_prot.ItemsSource = prot_disobj; //刷新到界面上
+			tv_prot.ItemsSource = prot_treeobj;
 			//刷新协议根节点列表
-			List<ParaValue_Display> roots_dis = new List<ParaValue_Display>();
+			List<PEdit_Display> roots_dis = new List<PEdit_Display>();
 			foreach (var item in para_prot.prot_root_obj_list)
 			{
-				ParaValue_Display tl = new ParaValue_Display();
+				PEdit_Display tl = new PEdit_Display();
 				tl.name = item.name;
 				tl.type = item.type.ToString();
 				roots_dis.Add(tl);
@@ -96,7 +100,15 @@ namespace com_mc
 		}
 		private void mi_save_Click(object sender, RoutedEventArgs e) //存储协议配置
 		{
-
+			var ofd = new System.Windows.Forms.SaveFileDialog();
+			ofd.Filter = "*.txt|*.txt";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+			string exs = System.IO.Path.GetExtension(ofd.FileName).Trim();
+			StreamWriter sw = new StreamWriter(ofd.FileName);
+			var js = para_prot.toJson();
+			string s = Tool.json_ser.Serialize(js);
+			sw.Write(s);
+			sw.Close();
 		}
 		private void dg_vir_MouseDown(object sender, MouseButtonEventArgs e) //参数列表的鼠标按下
 		{
@@ -121,7 +133,7 @@ namespace com_mc
 				pg_prot.SelectedObject = disobj;
 			}
 		}
-		private void dg_prot_MouseDown(object sender, MouseButtonEventArgs e) //参数列表的鼠标按下
+		private void tv_prot_MouseDown(object sender, MouseButtonEventArgs e) //协议树鼠标按下
 		{
 			try //若上次显示的属性不是协议
 			{
@@ -131,28 +143,54 @@ namespace com_mc
 			catch (Exception ee)
 			{
 				//刷新属性显示
-				dg_prot_SelectedCellsChanged(null, null);
+				tv_prot_SelectedItemChanged(null, null);
 			}
 		}
-		private void dg_prot_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+		private void tv_prot_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
 		{
-			if (dg_prot.SelectedIndex >= 0)
+			if (tv_prot.SelectedItem !=null)
 			{
-				string name = prot_disobj[dg_prot.SelectedIndex].name; //取得所选的名称
+				var ped = tv_prot.SelectedItem as PEdit_Display;
+				string name = ped.name; //取得所选的名称
 				var obj = para_prot.prot_dict[name]; //取得所选的对象
 				var disobj = ProtDom_PropDis.get_disobj(obj);
 				pg_prot.SelectedObject = disobj;
 			}
 		}
+		private void bt_update_prop_Click(object sender, RoutedEventArgs e) //更新属性点击
+		{
+			var t = pg_prot.SelectedObject;
+			var pe=t as Prop_Edit;
+			pe.display_2_var(); //让每个显示对象更新对应的后台变量
+		}
 	}
 #region 显示结构定义
-	public class ParaValue_Display //参数值的列表显示结构，也可作为其他列表的显示结构
+	public class PEdit_Display //参数值的列表显示结构，也可作为其他列表的显示结构
 	{
 		public string name { get; set; }
 		public string type { get; set; }
 		public string len { get; set; }
+		public List<PEdit_Display> sub { get; set; }=new List<PEdit_Display>(); //为了树形控件
+		public void add_ProtDom(ProtDom v) //递归加载协议域
+		{
+			name = v.name; type = v.type.ToString();
+			var p = v as PD_Obj; 
+			if(p!=null) //若是Obj，具有子协议域
+			{
+				foreach (var item in p.prot_list) //文本的不给prot_ref_list赋值，所以要通过名称索引
+				{
+					PEdit_Display tp= new PEdit_Display();
+					tp.add_ProtDom(p.p_mcp.prot_dict[item]);
+					sub.Add(tp);
+				}
+			}
+		}
 	}
-	public class ParaValue_PropDis //在属性修改显示时使用的结构
+	public interface Prop_Edit //属性编辑的接口
+	{
+		void display_2_var(); //从显示对象更新到后台变量
+	}
+	public class ParaValue_PropDis : Prop_Edit //在属性修改显示时使用的结构
 	{
 		[CategoryAttribute("常规"), DescriptionAttribute("名字")]
 		public string name { get; set; } = "";  //参数的唯一id，在C#程序中使用
@@ -162,17 +200,20 @@ namespace com_mc
 		public int len { get; set; } = 0; //数据长度
 		[CategoryAttribute("常规"), DescriptionAttribute("显示字符表")]
 		public List<string> 显示字符表 { get; set; } = new List<string>();//显示字符串表。可用于bool型指令，0为失败字符，1为成果字符
+		
+		public ParaValue backend_var; //关联的后台变量
 		public ParaValue_PropDis(ParaValue v)
 		{
+			backend_var = v;
 			name = v.name; type=v.type; len = v.len;
 			显示字符表.Clear();
 			显示字符表.AddRange(v.str_tab);
 		}
-		public virtual void to_obj(ParaValue v) //从显示变量转换到之前的内存对象中
+		public virtual void display_2_var() //从显示对象更新到后台变量
 		{
-			v.name = name; v.type = type; v.len = len;
-			v.str_tab.Clear();
-			v.str_tab.AddRange(显示字符表);
+			backend_var.name = name; backend_var.type=type; backend_var.len = len;
+			backend_var.str_tab.Clear();
+			backend_var.str_tab.AddRange(显示字符表);
 		}
 		static public ParaValue_PropDis get_disobj(ParaValue v) //从参数类构造参数的显示对象
 		{
@@ -192,14 +233,14 @@ namespace com_mc
 		{
 			point_n = v.point_n;
 		}
-		public override void to_obj(ParaValue v)
+		public override void display_2_var()
 		{
-			base.to_obj(v);
-			var vt = v as ParaValue_Val;
+			base.display_2_var();
+			var vt = backend_var as ParaValue_Val;
 			vt.point_n= point_n;
 		}
 	}
-	public class ProtDom_PropDis //ProtDom对象的显示扩充
+	public class ProtDom_PropDis : Prop_Edit //ProtDom对象的显示扩充
 	{
 		[CategoryAttribute("常规"), DescriptionAttribute("名字")]
 		public string name { get; set; } = ""; //协议域名称(唯一，或没有)
@@ -207,9 +248,16 @@ namespace com_mc
 		public ProtType type { get; set; } = 0; //数据类型,默认是u8（此处无效，在factory处设置为u64）
 		[CategoryAttribute("常规"), DescriptionAttribute("引用参数名")]
 		public string ref_name { get; set; } = "";//引用参数的名称
+
+		public ProtDom backend_var; //关联的后台变量
 		public ProtDom_PropDis(ProtDom v)
 		{
+			backend_var = v;
 			name = v.name; type = v.type; ref_name = v.ref_name;
+		}
+		public virtual void display_2_var() //从显示对象更新到后台变量
+		{
+			backend_var.name= name; backend_var.type= type; backend_var.ref_name = ref_name;
 		}
 		static public ProtDom_PropDis get_disobj(ProtDom v) //从协议域构造协议的显示对象
 		{
@@ -257,6 +305,13 @@ namespace com_mc
 			len = v.len; skip_n = v.skip_n; pro_k = v.pro_k; pro_b = v.pro_b; bit_st = v.bit_st; bit_len=v.bit_len; 
 			bit_singed = v.bit_singed!=0;
 		}
+		public override void display_2_var()
+		{
+			base.display_2_var();
+			var bv = backend_var as PD_Node;
+			bv.len = len; bv.skip_n=skip_n; bv.pro_k = pro_k; bv.pro_b = pro_b; bv.bit_st = bit_st; bv.bit_len = bit_len;
+			bv.bit_singed = bit_singed ? 1 : 0;
+		}
 	}
 	public class PD_Array_PropDis : ProtDom_PropDis //数组型叶子节点，包括未定义和字符串，输出类型只能是未定义或字符串
 	{
@@ -265,6 +320,12 @@ namespace com_mc
 		public PD_Array_PropDis(PD_Array v) : base(v)
 		{
 			len = v.len;
+		}
+		public override void display_2_var()
+		{
+			base.display_2_var();
+			var bv = backend_var as PD_Array;
+			bv.len = len;
 		}
 	}
 	public class PD_Str_PropDis : PD_Node_PropDis //字符型叶子节点，分为十进制和hex，输出类型只能是值类型
@@ -275,6 +336,12 @@ namespace com_mc
 		{
 			is_hex = v.str_type=="hex";
 		}
+		public override void display_2_var()
+		{
+			base.display_2_var();
+			var bv = backend_var as PD_Str;
+			bv.str_type = is_hex?"hex":"";
+		}
 	}
 	public class PD_Obj_PropDis : ProtDom_PropDis //协议对象
 	{
@@ -284,8 +351,15 @@ namespace com_mc
 		{
 			协议列表.AddRange(v.prot_list);
 		}
+		public override void display_2_var()
+		{
+			base.display_2_var();
+			var bv = backend_var as PD_Obj;
+			bv.prot_list.Clear();
+			bv.prot_list.AddRange(协议列表);
+		}
 	}
-	public class PD_Switch_PropDis : PD_Obj_PropDis //选择协议域方式
+	public class PD_Switch_PropDis : ProtDom_PropDis //选择协议域方式
 	{
 		[CategoryAttribute("常规"), DescriptionAttribute("索引值类型")]
 		public bool is_hex { get; set; } = false; //索引值类型hex或空
@@ -306,6 +380,19 @@ namespace com_mc
 				protname_map[item.Key]=item.Value;
 			}
 		}
+		public override void display_2_var()
+		{
+			base.display_2_var();
+			var bv = backend_var as PD_Switch;
+			bv.cfg_str_type=is_hex?"hex":"";
+			bv.ref_type = ref_prot;
+			bv.is_reset = is_reset ? 1 : 0;
+			bv.protname_map.Clear();
+			foreach (var item in protname_map)
+			{
+				bv.protname_map[item.Key] = item.Value;
+			}
+		}
 	}
 	public class PD_Loop_PropDis : PD_Obj_PropDis //重复协议域方式，与Obj域的区别在于仅第一个域有效，重复次数可配置可引用
 	{
@@ -318,6 +405,13 @@ namespace com_mc
 			ref_len = v.ref_len; 
 			if(v.ref_len=="") loop_n = (v.ref_para as ParaValue_Val).data.ds32;
 		}
+		public override void display_2_var()
+		{
+			base.display_2_var();
+			var bv = backend_var as PD_Loop;
+			bv.ref_len = ref_len;
+			(bv.ref_para as ParaValue_Val).data.ds32 = loop_n;
+		}
 	}
 	public class PD_LineSwitch_PropDis : PD_Obj_PropDis //重复协议域方式，与Obj域的区别在于仅第一个域有效，重复次数可配置可引用
 	{
@@ -326,6 +420,12 @@ namespace com_mc
 		public PD_LineSwitch_PropDis(PD_LineSwitch v) : base(v)
 		{
 			cur_encoding = v.cur_encoding;
+		}
+		public override void display_2_var()
+		{
+			base.display_2_var();
+			var bv = backend_var as PD_LineSwitch;
+			bv.cur_encoding=cur_encoding;
 		}
 	}
 
@@ -340,6 +440,12 @@ namespace com_mc
 		public PD_LineObj_PropDis(PD_LineObj v) : base(v)
 		{
 			head = v.head; col_n = v.col_n; split_char_list=v.split_char_list;
+		}
+		public override void display_2_var()
+		{
+			base.display_2_var();
+			var bv = backend_var as PD_LineObj;
+			bv.head = head; bv.col_n = col_n; bv.split_char_list=split_char_list;
 		}
 	}
 #endregion

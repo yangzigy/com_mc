@@ -13,16 +13,14 @@ using System.Web.Script.Serialization;
 namespace cslib
 {
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	public struct CMLOG_HEAD //日志帧头
+	public struct CMLOG_HEAD //日志帧头:8 Byte
 	{
 		public byte syn; //A0
-		public byte type; //
-		public byte len; //数据长度-1，总长度为len+7
-		public byte ms_l; //毫秒最低字节
-		public UInt16 ms_h; //毫秒高2字节，小端
+		public byte type; //高4bit为虚拟信道号
+		public UInt16 len; //数据长度，总长度为len+8
+		public int ms; //小端，最后一个字节是高位，可能为0
 		public bool type_bin { get { return (type & (1 << 0)) != 0; } set { type = (value ? type |= (1 << 0) : (byte)(type & (~(1 << 0)))); } } //是否为二进制
 		public int vir { get { return (type & (0x0f << 4)) >> 4; } set { type = (byte)((type & 0x0f) | ((value & 0x0f) << 4)); } } //虚拟信道号
-		public int ms { get { return ms_h * 256 + ms_l; } set { ms_l = (byte)(value & 0xff); ms_h = (UInt16)(value >> 8); } }
 	}
 	public class CCmlog_Vir_Info //cmlog日志的虚拟信道信息
 	{
@@ -142,10 +140,11 @@ namespace cslib
 			line_ms_list.Clear();
 			data_lines.Clear();
 			bin_lines.Clear();
+			line_cmlog_list.Clear();
 			for (int i = 0; i < org_data.Length - 6;) //将内存中的数据添加到行列表
 			{
 				CMLOG_HEAD h = (CMLOG_HEAD)Tool.BytesToStruct(org_data, i, typeof(CMLOG_HEAD));
-				int len = h.len + 1; //len这个域是长度-1
+				int len = h.len; //len这个域是长度
 				int ms = h.ms;
 				if (!cmlog_vir_info[h.vir].is_sel) //若没选中，需要跳过
 				{
@@ -291,8 +290,8 @@ namespace cslib
 						//head.vir = 0; //
 						//head.type_bin = true; //二进制
 						head.type = 0x0; //更高效
-						int rec_len = len <= 256 ? len : 256;
-						head.len = (byte)(rec_len - 1);
+						int rec_len = len <= 65535 ? len : 65535;
+						head.len = (UInt16)(rec_len);
 						head.ms = line_ms_list[i];
 						var tb = Tool.StructToBytes(head);
 						ret.AddRange(tb); //写入头部
@@ -373,8 +372,8 @@ namespace cslib
 				head.vir = vir; //
 				head.type_bin = type_bin; //二进制
 				//head.type = 0x11; //更高效
-				int rec_len = len <= 256 ? len : 256; //本次实际要写入的数据长度
-				head.len = (byte)(rec_len - 1);
+				int rec_len = len <= 65535 ? len : 65535; //本次实际要写入的数据长度
+				head.len = (UInt16)(rec_len);
 				int ms = (int)((DateTime.Now.Ticks - cur_time.Ticks) / 10000); //表示0001年1月1日午夜 12:00:00 以来所经历的 100 纳秒数
 				head.ms = ms;
 				var tb = Tool.StructToBytes(head);

@@ -64,13 +64,13 @@
 			<Label Grid.Row="0">二进制协议树：</Label>
 			<Button Grid.Row="1" Grid.Column="0">添加</Button>
 			<Button Grid.Row="1" Grid.Column="1">删除</Button>
-			<DataGrid Grid.Row="2" Name="dg_prot" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
-					  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" MouseDown="dg_prot_MouseDown" SelectedCellsChanged="dg_prot_SelectedCellsChanged">
-				<DataGrid.Columns>
-					<DataGridTextColumn Header="协议名" Width="150" Binding="{Binding name}" IsReadOnly="True"/>
-					<DataGridTextColumn Header="类型" Width="60" Binding="{Binding type}" IsReadOnly="True"/>
-				</DataGrid.Columns>
-			</DataGrid>
+			<TreeView Grid.Row="2" Name="tv_prot" Grid.Column="0" Grid.ColumnSpan="2" SelectedItemChanged="tv_prot_SelectedItemChanged" MouseDown="tv_prot_MouseDown" >
+				<TreeView.ItemTemplate>
+					<HierarchicalDataTemplate DataType="local:PEdit_Display" ItemsSource="{Binding sub}">
+						<TextBlock Text="{Binding name}"></TextBlock>
+					</HierarchicalDataTemplate>
+				</TreeView.ItemTemplate>
+			</TreeView>
 		</Grid>
 		<Grid Grid.Row="1" Grid.Column="2" Grid.RowSpan="2">
 			<GroupBox Grid.Column="0" BorderBrush="#FFA9AAAF" FontWeight="Normal">
@@ -86,7 +86,7 @@
 						<ColumnDefinition Width="2*"></ColumnDefinition>
 						<ColumnDefinition Width="2*"></ColumnDefinition>
 					</Grid.ColumnDefinitions>
-					<Button Grid.Row="0" Grid.Column="0">更新变量</Button>
+					<Button Grid.Row="0" Grid.Column="0" Click="bt_update_prop_Click">更新属性</Button>
 					<WindowsFormsHost Name="windowsFormsHost1" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
 						<my:PropertyGrid x:Name="pg_prot"></my:PropertyGrid>
 					</WindowsFormsHost>

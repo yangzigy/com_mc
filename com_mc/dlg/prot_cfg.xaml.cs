@@ -1,11 +1,13 @@
 ﻿using System;
 using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -98,17 +100,43 @@ namespace com_mc
 					break;
 			}
 		}
+		public string beautify_prot_json(string s) //美化输出的协议配置json
+		{
+			Regex reg = new Regex("({.*?})"); //最短匹配大括号
+			s = "{\n\t" + s.Substring(1, s.Length - 2) + "\n}"; //替换前后的大括号
+			s = reg.Replace(s, "\n\t\t$1");
+			s = s.Replace("]\n", "\n\t]\n");
+			return s;
+		}
 		private void mi_save_Click(object sender, RoutedEventArgs e) //存储协议配置
 		{
 			var ofd = new System.Windows.Forms.SaveFileDialog();
-			ofd.Filter = "*.txt|*.txt";
+			ofd.Filter = "*.prot|*.prot";
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-			string exs = System.IO.Path.GetExtension(ofd.FileName).Trim();
-			StreamWriter sw = new StreamWriter(ofd.FileName);
+			string para_fname=System.IO.Path.ChangeExtension(ofd.FileName,"para");
+			//生成字典
 			var js = para_prot.toJson();
-			string s = Tool.json_ser.Serialize(js);
+			Dictionary<string, object> v = new Dictionary<string, object>();
+			//首先保存协议文件
+			v["prot_roots"] = js["prot_roots"];
+			v["prot_dict"] = js["prot_dict"];
+			StreamWriter sw = new StreamWriter(ofd.FileName);
+			string s = Tool.json_ser.Serialize(v);
+			s = beautify_prot_json(s);
 			sw.Write(s);
 			sw.Close();
+			//然后保存参数文件
+			v.Clear();
+			v["para_dict"] = js["para_dict"];
+			sw = new StreamWriter(para_fname);
+			s = Tool.json_ser.Serialize(v);
+			s = beautify_prot_json(s);
+			sw.Write(s);
+			sw.Close();
+		}
+		private void mi_save_as_cur_Click(object sender, RoutedEventArgs e) //写入当前协议
+		{
+
 		}
 		private void dg_vir_MouseDown(object sender, MouseButtonEventArgs e) //参数列表的鼠标按下
 		{

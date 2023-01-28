@@ -22,6 +22,7 @@
 		<Menu Grid.Row="0" Grid.ColumnSpan="4" FontSize="16" VerticalAlignment="Center">
 			<MenuItem Header="打开当前协议" Tag="cur" Click="mi_open_Click"></MenuItem>
 			<MenuItem Header="打开协议文件" Tag="file" Click="mi_open_Click"></MenuItem>
+			<MenuItem Header="写入当前协议" Click="mi_save_as_cur_Click"></MenuItem>
 			<MenuItem Header="保存到文件" Click="mi_save_Click"></MenuItem>
 		</Menu>
 		<Grid Grid.Row="1" Grid.Column="0" Grid.RowSpan="2">
@@ -67,7 +68,10 @@
 			<TreeView Grid.Row="2" Name="tv_prot" Grid.Column="0" Grid.ColumnSpan="2" SelectedItemChanged="tv_prot_SelectedItemChanged" MouseDown="tv_prot_MouseDown" >
 				<TreeView.ItemTemplate>
 					<HierarchicalDataTemplate DataType="local:PEdit_Display" ItemsSource="{Binding sub}">
-						<TextBlock Text="{Binding name}"></TextBlock>
+						<StackPanel Orientation="Horizontal">
+							<TextBlock Text="{Binding name}"></TextBlock>
+							<TextBlock Text="{Binding type}" Margin="5,0,0,0" Background="LightGreen"></TextBlock>
+						</StackPanel>
 					</HierarchicalDataTemplate>
 				</TreeView.ItemTemplate>
 			</TreeView>

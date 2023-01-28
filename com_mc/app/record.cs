@@ -290,7 +290,7 @@ namespace cslib
 						//head.vir = 0; //
 						//head.type_bin = true; //二进制
 						head.type = 0x0; //更高效
-						int rec_len = len <= 65535 ? len : 65535;
+						int rec_len = len <= (65536 - 8) ? len : (65536 - 8); //为了总长64K以内，稍微小一点
 						head.len = (UInt16)(rec_len);
 						head.ms = line_ms_list[i];
 						var tb = Tool.StructToBytes(head);
@@ -372,7 +372,7 @@ namespace cslib
 				head.vir = vir; //
 				head.type_bin = type_bin; //二进制
 				//head.type = 0x11; //更高效
-				int rec_len = len <= 65535 ? len : 65535; //本次实际要写入的数据长度
+				int rec_len = len <= (65536-8) ? len : (65536 - 8); //本次实际要写入的数据长度(为了总长64K以内，稍微小一点)
 				head.len = (UInt16)(rec_len);
 				int ms = (int)((DateTime.Now.Ticks - cur_time.Ticks) / 10000); //表示0001年1月1日午夜 12:00:00 以来所经历的 100 纳秒数
 				head.ms = ms;

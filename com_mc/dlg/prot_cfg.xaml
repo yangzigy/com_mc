@@ -62,8 +62,8 @@
 				<ColumnDefinition Width="2*"></ColumnDefinition>
 				<ColumnDefinition Width="2*"></ColumnDefinition>
 			</Grid.ColumnDefinitions>
-			<Label Grid.Row="0">二进制协议树：</Label>
-			<Button Grid.Row="1" Grid.Column="0">添加</Button>
+			<Label Grid.Row="0">协议树：</Label>
+			<Button Grid.Row="1" Grid.Column="0" Click="bt_prot_add_Click">添加</Button>
 			<Button Grid.Row="1" Grid.Column="1">删除</Button>
 			<TreeView Grid.Row="2" Name="tv_prot" Grid.Column="0" Grid.ColumnSpan="2" SelectedItemChanged="tv_prot_SelectedItemChanged" MouseDown="tv_prot_MouseDown" >
 				<TreeView.ItemTemplate>
@@ -108,10 +108,10 @@
 				<ColumnDefinition Width="2*"></ColumnDefinition>
 			</Grid.ColumnDefinitions>
 			<Label Grid.Row="0">参数列表：</Label>
-			<Button Grid.Row="1" Grid.Column="0">添加</Button>
+			<Button Grid.Row="1" Grid.Column="0" Click="bt_para_add_Click">添加</Button>
 			<Button Grid.Row="1" Grid.Column="1">删除</Button>
-			<DataGrid Name="dg_vir" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
-					  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" MouseDown="dg_vir_MouseDown" SelectedCellsChanged="dg_vir_SelectedCellsChanged">
+			<DataGrid Name="dg_para" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
+					  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" MouseDown="dg_para_MouseDown" SelectedCellsChanged="dg_para_SelectedCellsChanged">
 				<DataGrid.Columns>
 					<DataGridTextColumn Header="变量名" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
 					<DataGridTextColumn Header="类型" Width="40" Binding="{Binding type}" IsReadOnly="True"/>

@@ -43,7 +43,7 @@ namespace com_mc
 			//v["id"]=id; //暂时不用
 			v["name"]=name;
 			if(type!=DataType.df) v["type"]=type;
-			if(len!=0) v["len"]=len;
+			if(len!= DATA_UNION.get_type_len(type)) v["len"]=len;
 			if (str_tab.Count > 0)
 			{
 				var ta = new ArrayList();

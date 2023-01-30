@@ -103,14 +103,22 @@ namespace com_mc
 			{
 				case "cur": //加载当前协议
 					{
-						var v = cur_prot.toJson(); //需要添加DataDes的额外配置
+						var v = cur_prot.toJson(); //DataDes的额外配置不在协议中写
 						load_prot_from_json(v);
+						Title = "Prot_Cfg_Window - 当前协议";
 					}
 					break;
 				case "file": //从文件加载协议
 					{
-						//object t = Tool.load_json_from_file<Dictionary<string, object>>(s);
-						//load_prot_from_json();
+						var ofd = new System.Windows.Forms.OpenFileDialog();
+						ofd.Filter = "*.prot|*.prot";
+						if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+						string para_fname = System.IO.Path.ChangeExtension(ofd.FileName, "para");
+						object jspara = Tool.load_json_from_file<Dictionary<string, object>>(para_fname);
+						object jsprot = Tool.load_json_from_file<Dictionary<string, object>>(ofd.FileName);
+						Tool.dictinary_update(ref jsprot, jspara); //更新配置
+						load_prot_from_json(jsprot as Dictionary<string, object>);
+						Title = "Prot_Cfg_Window - "+ System.IO.Path.GetFileNameWithoutExtension(ofd.FileName);
 					}
 					break;
 			}
@@ -151,7 +159,7 @@ namespace com_mc
 		}
 		private void mi_save_as_cur_Click(object sender, RoutedEventArgs e) //写入当前协议
 		{
-
+			var v = para_prot.toJson(); //
 		}
 #region 参数列表
 		private void dg_para_MouseDown(object sender, MouseButtonEventArgs e) //参数列表的鼠标按下

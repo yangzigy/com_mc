@@ -144,7 +144,7 @@ namespace com_mc
 						{
 							s += "*";
 						}
-						s += string.Format("{0}:	{1}", i, rplobj.data_lines[i]);
+						s += string.Format("{0}:{1}	{2}", i, rplobj.line_ms_list[i], rplobj.data_lines[i]);
 					}
 					tb_org_text.Text = s;
 				}

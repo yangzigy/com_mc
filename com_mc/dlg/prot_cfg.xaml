@@ -64,7 +64,7 @@
 			</Grid.ColumnDefinitions>
 			<Label Grid.Row="0">协议树：</Label>
 			<Button Grid.Row="1" Grid.Column="0" Click="bt_prot_add_Click">添加</Button>
-			<Button Grid.Row="1" Grid.Column="1">删除</Button>
+			<Button Grid.Row="1" Grid.Column="1" Click="bt_prot_del_Click">删除</Button>
 			<TreeView Grid.Row="2" Name="tv_prot" Grid.Column="0" Grid.ColumnSpan="2" SelectedItemChanged="tv_prot_SelectedItemChanged" MouseDown="tv_prot_MouseDown" >
 				<TreeView.ItemTemplate>
 					<HierarchicalDataTemplate DataType="local:PEdit_Display" ItemsSource="{Binding sub}">
@@ -109,7 +109,7 @@
 			</Grid.ColumnDefinitions>
 			<Label Grid.Row="0">参数列表：</Label>
 			<Button Grid.Row="1" Grid.Column="0" Click="bt_para_add_Click">添加</Button>
-			<Button Grid.Row="1" Grid.Column="1">删除</Button>
+			<Button Grid.Row="1" Grid.Column="1" Click="bt_para_del_Click">删除</Button>
 			<DataGrid Name="dg_para" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
 					  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" MouseDown="dg_para_MouseDown" SelectedCellsChanged="dg_para_SelectedCellsChanged">
 				<DataGrid.Columns>

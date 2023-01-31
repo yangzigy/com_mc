@@ -160,6 +160,7 @@ namespace com_mc
 		private void mi_save_as_cur_Click(object sender, RoutedEventArgs e) //写入当前协议
 		{
 			var v = para_prot.toJson(); //
+
 		}
 #region 参数列表
 		private void dg_para_MouseDown(object sender, MouseButtonEventArgs e) //参数列表的鼠标按下
@@ -202,6 +203,21 @@ namespace com_mc
 			}
 			dg_para_SelectedCellsChanged(null, null); //刷新属性显示
 		}
+		private void bt_para_del_Click(object sender, RoutedEventArgs e) //删除参数
+		{
+			if (dg_para.SelectedItem != null)
+			{
+				var ped = dg_para.SelectedItem as PEdit_Display;
+				string name = ped.name; //取得所选的名称
+				var obj = para_prot.para_dict[name]; //取得所选的对象
+				if (MessageBox.Show("确定删除？", "删除参数", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+				{
+					para_prot.para_dict.Remove(name);
+					update_paralist_display(); //刷新协议域
+					pg_prot.SelectedObject = null; //属性控件置空
+				}
+			}
+		}
 #endregion
 #region 协议树
 		private void tv_prot_MouseDown(object sender, MouseButtonEventArgs e) //协议树鼠标按下
@@ -216,7 +232,7 @@ namespace com_mc
 				tv_prot_SelectedItemChanged(null, null); //刷新属性显示
 			}
 		}
-		private void tv_prot_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+		private void tv_prot_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) //协议树的选择
 		{
 			if (tv_prot.SelectedItem !=null)
 			{
@@ -244,6 +260,21 @@ namespace com_mc
 				}
 			}
 			tv_prot_SelectedItemChanged(null, null); //刷新属性显示
+		}
+		private void bt_prot_del_Click(object sender, RoutedEventArgs e) //协议树的节点删除
+		{
+			if (tv_prot.SelectedItem != null)
+			{
+				var ped = tv_prot.SelectedItem as PEdit_Display;
+				string name = ped.name; //取得所选的名称
+				var obj = para_prot.prot_dict[name]; //取得所选的对象
+				if (MessageBox.Show("确定删除？", "删除协议域", MessageBoxButton.YesNo)==MessageBoxResult.Yes)
+				{
+					para_prot.prot_dict.Remove(name);
+					update_protlist_display(); //刷新协议域
+					pg_prot.SelectedObject = null; //属性控件置空
+				}
+			}
 		}
 #endregion
 		private void bt_update_prop_Click(object sender, RoutedEventArgs e) //更新属性点击
@@ -279,7 +310,7 @@ namespace com_mc
 			return s;
 		}
 	}
-#region 显示结构定义
+	#region 显示结构定义
 	public class PEdit_Display //参数值的列表显示结构，也可作为其他列表的显示结构
 	{
 		public string name { get; set; }

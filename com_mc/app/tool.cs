@@ -256,12 +256,12 @@ namespace cslib
 		{
 			StreamReader sr = new StreamReader(fn);
 			string sbuf = sr.ReadToEnd();
+			sr.Close();
 			//先把注释去了
 			Regex r = new Regex("//.*");
 			sbuf = r.Replace(sbuf, "");
 			//反串行化
 			var t = json_ser.Deserialize<T>(sbuf);
-			sr.Close();
 			return t;
 		}
 		static public void dictinary_update(ref object old, object v) //用新的值更新原来的字典

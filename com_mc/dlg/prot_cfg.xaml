@@ -71,6 +71,7 @@
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="{Binding name}"></TextBlock>
 							<TextBlock Text="{Binding type}" Margin="5,0,0,0" Background="LightGreen"></TextBlock>
+							<TextBlock Text="{Binding len, StringFormat={}: {0}B}"></TextBlock>
 						</StackPanel>
 					</HierarchicalDataTemplate>
 				</TreeView.ItemTemplate>

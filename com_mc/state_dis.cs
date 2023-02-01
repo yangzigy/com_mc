@@ -79,9 +79,6 @@ namespace com_mc
 				ctrl_cmd(item);
 			}
 #region 传感参数部分
-			chart1 = mainFGrid.Child as Chart;
-			chart1.Legends[0].DockedToChartArea = "ChartArea1";
-			chart1.Legends[0].BackColor = System.Drawing.Color.Transparent;
 			//从配置中加载参数
 			chart1.Series.Clear();
 			foreach (var item in commc.dset)

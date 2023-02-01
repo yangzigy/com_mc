@@ -326,6 +326,11 @@ namespace com_mc
 				case "csv": export_csv(); break;
 			}
 		}
+		private void tb_org_text_MouseWheel(object sender, MouseWheelEventArgs e) //原始数据显示框的鼠标滚轮
+		{
+			int d = e.Delta;
+			sl_cur_row.Value -= d/100.0;
+		}
 	}
 	public class CRpl_Para_Info //回放对话框中测量量参数信息，包括选择控件和输出缓存
 	{

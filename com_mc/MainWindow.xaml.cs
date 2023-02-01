@@ -16,6 +16,8 @@ using System.IO.Ports;
 using System.Windows.Forms.DataVisualization;
 using cslib;
 using System.Threading;
+using System.Windows.Forms.DataVisualization.Charting;
+
 namespace com_mc
 {
 	/// <summary>
@@ -51,6 +53,12 @@ namespace com_mc
 		{
 			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 			//初始化界面
+			chart1 = mainFGrid.Child as Chart;
+			chart1.Legends[0].DockedToChartArea = "ChartArea1";
+			chart1.Legends[0].BackColor = System.Drawing.Color.Transparent;
+			Dictionary<string, object> td = new Dictionary<string, object>();
+			td["type"] = "replay_filedlg";
+			rpl_win.rplobj = DataSrc.factory(td, rx_fun) as DataSrc_replay_filedlg; //记录回放对象
 			state_dis_ini();
 			//加载配置文件列表
 			cfglist = ConfigList.load(AppDomain.CurrentDomain.BaseDirectory + "/cm_cfgs.txt");
@@ -160,8 +168,7 @@ namespace com_mc
 			bt_open_datasrc.Content = "关闭端口";
 			btnConnCom_Click(bt_open_datasrc, null); //关闭数据源
 			DataSrc.dslist.Clear();
-			if(rpl_win.rplobj!=null) rpl_win.rplobj.close();
-			rpl_win.rplobj = null;
+			rpl_win.rplobj.close();
 			//开始配置
 			Config.config.plugin_path=Tool.relPath_2_abs(fname, Config.config.plugin_path);//把插件目录的位置变为绝对路径
 			//加载数据源
@@ -173,11 +180,9 @@ namespace com_mc
 					DataSrc.dslist.Add(ds);
 				}
 			}
-			Dictionary<string, object> td = new Dictionary<string, object>();
-			td["type"] = "replay_filedlg";
-			rpl_win.rplobj = DataSrc.factory(td, rx_fun) as DataSrc_replay_filedlg; //记录回放对象
 			DataSrc.dslist.Add(rpl_win.rplobj);
 			rpl_win.rplobj.open_cb = () => bt_replay_dlg_Click(null, null);
+			Dictionary<string, object> td = new Dictionary<string, object>();
 			td["type"] = "file";
 			var fo = DataSrc.factory(td, rx_fun) as DataSrc_file; //文件输入对象
 			DataSrc.dslist.Add(fo);
@@ -488,10 +493,7 @@ namespace com_mc
 			}
 			catch (Exception ee)
 			{
-
-				//throw;
 			}
-
 		}
 		private void Chart_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
 		{

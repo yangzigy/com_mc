@@ -7,6 +7,8 @@ using System.Web.Script.Serialization;
 using System.IO;
 using System.Windows;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using System.Windows.Markup.Localizer;
+
 namespace com_mc
 {
 	public enum ProtType //协议域类型，str之前必须兼容DataType
@@ -33,6 +35,7 @@ namespace com_mc
 		public ProtType type { get; set; } = 0; //数据类型,默认是u8（此处无效，在factory处设置为str）
 		public string ref_name { get; set; } = "";//引用参数的名称
 		public ParaValue ref_para=null; //引用的参数，没有引用会给内部对象，一定会有
+		public int len = 0; //缓存本域的数据长度
 		public ProtDom(Dictionary<string, object> v, ProtType t, MC_Prot pd) //从json构造对象
 		{ //这里遇到错误就throw出去，不想throw的才判断
 			p_mcp = pd;
@@ -58,7 +61,7 @@ namespace com_mc
 			var v = new Dictionary<string, object>();
 			//v["id"]=id; //暂时不用
 			v["name"] = name;
-			if (type != ProtType.str) v["type"] = type;
+			if (type != ProtType.str) v["type"] = type.ToString();
 			if (ref_name != "") v["ref_name"] = ref_name;
 			return v;
 		}
@@ -74,7 +77,6 @@ namespace com_mc
 	public class PD_Node : ProtDom //协议域叶子节点
 	{
 		public DATA_UNION data = new DATA_UNION(); //被协议域引用的时候可以直接用
-		public int len = 0; //缓存本域的数据长度
 		public int skip_n = 0; //处理完此列后，额外向后跳的字节数（文本行协议是列数）。例如文本行的一列要处理出多个参数，此处可填0。或者需要跳过一列，此处可填1
 		public double pro_k { get; set; } = 1; //处理变换kx+b
 		public double pro_b { get; set; } = 0;//处理变换kx+b
@@ -149,7 +151,6 @@ namespace com_mc
 	}
 	public class PD_Array : ProtDom //数组型叶子节点，包括未定义和字符串，输出类型只能是未定义或字符串
 	{
-		public int len = 0; //本域的数据长度
 		public PD_Array(Dictionary<string, object> v, ProtType t, MC_Prot pd) : base(v, t,pd)
 		{
 			len = (int)v["len"];
@@ -234,13 +235,30 @@ namespace com_mc
 				prot_list.Add(s);
 			}
 		}
-		public override void create_connection()
+		public override void create_connection() //递归调用，重复调用没事
 		{
+			len = 0;
+			prot_ref_list.Clear();
 			for (int i=0;i<prot_list.Count;i++) //对于每个协议名称，取得子协议的引用，提高引用效率
 			{
-				var p = p_mcp.prot_dict[prot_list[i]];
+				ProtDom p = null;
+				try
+				{
+					p=p_mcp.prot_dict[prot_list[i]];
+				}
+				catch (Exception e)
+				{
+					len = 0; break;
+				}
 				p.father_Dom = this; //给上层引用赋值
 				prot_ref_list.Add(p);
+				p.create_connection(); //递归调用，计算子节点的大小
+				var tp = p as PD_Node;
+				if(tp!=null) //若是叶子节点
+				{
+					len += tp.skip_n;
+				}
+				len += p.len;
 			}
 		}
 		public override Dictionary<string, object> toJson()
@@ -290,7 +308,8 @@ namespace com_mc
 		}
 		public override void create_connection()
 		{
-			ref_dom= p_mcp.prot_dict[ref_type] as PD_Node;
+			prot_map.Clear();
+			ref_dom = p_mcp.prot_dict[ref_type] as PD_Node;
 			foreach (var item in protname_map) //对于每个协议名称，取得子协议的引用，提高引用效率
 			{
 				var p = p_mcp.prot_dict[item.Value];
@@ -512,16 +531,16 @@ namespace com_mc
 					prot_dict[s] = factory(tv as Dictionary<string, object>, this); //构建参数
 				}
 			}
-			foreach (var item in prot_dict) //给每个协议域建立联系
-			{
-				item.Value.create_connection();
-			}
 			ArrayList l = v["prot_roots"] as ArrayList; //读取各协议族的根节点
 			foreach (var item in l)
 			{
 				string s=item as string;
 				prot_root_list.Add(s);
 				prot_root_obj_list.Add(prot_dict[s]);
+			}
+			foreach (var item in prot_dict) //给每个协议域建立联系
+			{
+				item.Value.create_connection(); //内部递归调用，所以应该会调用两次
 			}
 		}
 		public Dictionary<string, object> toJson() //使用json保存当前配置

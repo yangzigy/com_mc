@@ -110,7 +110,7 @@
 				<Button FontSize="16" Click="bt_replay_cur_Click">回放当前帧</Button>
 			</StackPanel>
 			<TextBox Grid.Row="3" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible" Name="tb_org_text"
-					 HorizontalContentAlignment="Left"></TextBox>
+					 HorizontalContentAlignment="Left" MouseWheel="tb_org_text_MouseWheel"></TextBox>
 		</Grid>
 		<UniformGrid Grid.Row="1" Grid.Column="1" Name="sp_val_list">
 		</UniformGrid>

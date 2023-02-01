@@ -48,7 +48,11 @@ namespace com_mc
 		}
 		public void load_prot_from_json(Dictionary<string, object> v) //从json加载协议
 		{
-			para_prot.fromJson(v); //将json转换为协议实体
+			try //转换过程中，不完整的协议配置会在建立联系的时候异常，对于现实来说无所谓
+			{
+				para_prot.fromJson(v); //将json转换为协议实体
+			}
+			catch { }
 
 			update_paralist_display(); //首先刷新参数字典
 			update_protlist_display(); //刷新协议域
@@ -99,28 +103,36 @@ namespace com_mc
 		private void mi_open_Click(object sender, RoutedEventArgs e) //打开协议处理
 		{
 			FrameworkElement fe = sender as FrameworkElement;
-			switch (fe.Tag)
+			try
 			{
-				case "cur": //加载当前协议
-					{
-						var v = cur_prot.toJson(); //DataDes的额外配置不在协议中写
-						load_prot_from_json(v);
-						Title = "Prot_Cfg_Window - 当前协议";
-					}
-					break;
-				case "file": //从文件加载协议
-					{
-						var ofd = new System.Windows.Forms.OpenFileDialog();
-						ofd.Filter = "*.prot|*.prot";
-						if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-						string para_fname = System.IO.Path.ChangeExtension(ofd.FileName, "para");
-						object jspara = Tool.load_json_from_file<Dictionary<string, object>>(para_fname);
-						object jsprot = Tool.load_json_from_file<Dictionary<string, object>>(ofd.FileName);
-						Tool.dictinary_update(ref jsprot, jspara); //更新配置
-						load_prot_from_json(jsprot as Dictionary<string, object>);
-						Title = "Prot_Cfg_Window - "+ System.IO.Path.GetFileNameWithoutExtension(ofd.FileName);
-					}
-					break;
+				switch (fe.Tag)
+				{
+					case "cur": //加载当前协议
+						{
+							if (cur_prot == null) throw new Exception("当前无协议");
+							var v = cur_prot.toJson(); //DataDes的额外配置不在协议中写
+							load_prot_from_json(v);
+							Title = "Prot_Cfg_Window - 当前协议";
+						}
+						break;
+					case "file": //从文件加载协议
+						{
+							var ofd = new System.Windows.Forms.OpenFileDialog();
+							ofd.Filter = "*.prot|*.prot";
+							if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+							string para_fname = System.IO.Path.ChangeExtension(ofd.FileName, "para");
+							object jspara = Tool.load_json_from_file<Dictionary<string, object>>(para_fname);
+							object jsprot = Tool.load_json_from_file<Dictionary<string, object>>(ofd.FileName);
+							Tool.dictinary_update(ref jsprot, jspara); //更新配置
+							load_prot_from_json(jsprot as Dictionary<string, object>);
+							Title = "Prot_Cfg_Window - "+ System.IO.Path.GetFileNameWithoutExtension(ofd.FileName);
+						}
+						break;
+				}
+			}
+			catch (Exception ee)
+			{
+				MessageBox.Show(ee.ToString(), "错误");
 			}
 		}
 		public string beautify_prot_json(string s) //美化输出的协议配置json
@@ -310,7 +322,7 @@ namespace com_mc
 			return s;
 		}
 	}
-	#region 显示结构定义
+#region 显示结构定义
 	public class PEdit_Display //参数值的列表显示结构，也可作为其他列表的显示结构
 	{
 		public string name { get; set; }
@@ -319,7 +331,7 @@ namespace com_mc
 		public List<PEdit_Display> sub { get; set; }=new List<PEdit_Display>(); //为了树形控件
 		public void add_ProtDom(ProtDom v) //递归加载协议域，形成树形结构
 		{
-			name = v.name; type = v.type.ToString();
+			name = v.name; type = v.type.ToString(); len = v.len.ToString();
 			var p = v as PD_Obj; 
 			if(p!=null) //若是Obj，具有子协议域
 			{
@@ -412,12 +424,14 @@ namespace com_mc
 		public ProtType type { get; set; } = 0; //数据类型,默认是u8（此处无效，在factory处设置为u64）
 		[CategoryAttribute("常规"), DescriptionAttribute("引用参数名")]
 		public string ref_name { get; set; } = "";//引用参数的名称
+		[CategoryAttribute("常规"), DescriptionAttribute("长度")]
+		public int len { get; set; } = 0; //数据长度
 
 		public ProtDom backend_var; //关联的后台变量
 		public ProtDom_PropDis(ProtDom v)
 		{
 			backend_var = v;
-			name = v.name; type = v.type; ref_name = v.ref_name;
+			name = v.name; type = v.type; ref_name = v.ref_name; len = v.len;
 		}
 		public virtual bool display_2_var() //从显示对象更新到后台变量
 		{

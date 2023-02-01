@@ -42,7 +42,7 @@ namespace com_mc
 			var v = new Dictionary<string, object>();
 			//v["id"]=id; //暂时不用
 			v["name"]=name;
-			if(type!=DataType.df) v["type"]=type;
+			if(type!=DataType.df) v["type"]=type.ToString();
 			if(len!= DATA_UNION.get_type_len(type)) v["len"]=len;
 			if (str_tab.Count > 0)
 			{

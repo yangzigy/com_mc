@@ -8,8 +8,8 @@
 		Title="Replay_Window" Height="450" Width="700" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
+			<RowDefinition Height="3*"></RowDefinition>
 			<RowDefinition Height="2*"></RowDefinition>
-			<RowDefinition Height="1*"></RowDefinition>
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="170"></ColumnDefinition>

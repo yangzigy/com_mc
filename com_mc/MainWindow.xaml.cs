@@ -121,13 +121,18 @@ namespace com_mc
 							}
 						}
 						//查看记录模式
-						if (checkb_rec_data.IsChecked==true)
+						if (checkb_rec_data.IsChecked == true)
 						{
 							if (rb_rec_text.IsChecked == true) rec_mod = 1;
 							else if (rb_rec_timetext.IsChecked == true) rec_mod = 2;
 							else if (rb_rec_cmlog.IsChecked == true) rec_mod = 3;
 						}
-						else rec_mod = 0;
+						else
+						{
+							rec_mod = 0;
+							rec_text.close(); //让日志从新记一个
+							rec_bin_file.close();
+						}
 					}
 					try
 					{
@@ -202,6 +207,13 @@ namespace com_mc
 			mc_ini(); //内部先清除上一个配置
 		}
 #region click
+		private void bt_load_config_Click(object sender, RoutedEventArgs e) //加载指定配置
+		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.txt|*.txt";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+			ini_by_config(ofd.FileName);
+		}
 		private void bt_save_curve_data_Click(object sender, RoutedEventArgs e) //保存曲线数据
 		{
 			var ofd = new System.Windows.Forms.SaveFileDialog();
@@ -340,11 +352,6 @@ namespace com_mc
 		private void bt_fitscreen_Click(object sender, RoutedEventArgs e) //适应屏幕
 		{
 			fit_screen();
-		}
-		private void cb_recdata_Click(object sender, RoutedEventArgs e) //存储日志的点击
-		{
-			rec_text.close(); //让日志从新记一个
-			rec_bin_file.close();
 		}
 		private void Chart_CursorPositionChanged(object sender, System.Windows.Forms.DataVisualization.Charting.CursorEventArgs e)
 		{ //此函数不进，不知道为啥

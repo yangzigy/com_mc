@@ -304,6 +304,7 @@ namespace com_mc
 		private void bt_replay_cur_Click(object sender, RoutedEventArgs e) //回放当前帧
 		{
 			if (rplobj.line_ms_list.Count <= 0) return;
+			if (rplobj.replay_line >= rplobj.data_lines.Count) return;
 			rplobj.replay_run_1_frame();
 		}
 		private void bt_update_vir_Click(object sender, RoutedEventArgs e) //更新选择

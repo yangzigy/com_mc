@@ -96,7 +96,7 @@ namespace com_mc
 		public override Dictionary<string, object> toJson()
 		{
 			var v=base.toJson();
-			if(len!=0) v["len"] = len;
+			if((type==ProtType.undef || type==ProtType.str) && len!=0) v["len"] = len;
 			if(skip_n != 0) v["skip_n"] = skip_n;
 			if(pro_k != 1) v["pro_k"] = (decimal)pro_k;
 			if(pro_b != 0) v["pro_b"] = (decimal)pro_b;

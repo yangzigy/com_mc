@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,8 @@ namespace com_mc
 		public TX_CB tx_cb = null; //上位机向设备发送的回调函数
 		public RX_BIN_CB rx_bin_cb = null; //上位机接收设备信息的回调函数
 
-		public Sync_head syn_head =null; //帧同步对象，插件中也可以不用
+		public List<Sync_head> binsyn_list =new List<Sync_head>(); //帧同步对象，插件中也可以不用
+		public Sync_head cur_binsyn= null; //当前有效的二进制帧同步对象
 		public Sync_Line syn_line = null; //帧同步对象，插件中也可以不用
 		//public virtual void ini(TX_CB tx,RX_CB rx, RX_BIN_CB  rxbin) //初始化，注册回调函数
 		public virtual void ini(TX_CB tx,RX_BIN_CB  rx) //初始化，注册回调函数
@@ -27,11 +29,17 @@ namespace com_mc
 		}
 		public virtual void fromJson(Dictionary<string, object> v) //从配置初始化，在ini之后
 		{
-			if (v.ContainsKey("syn_bin")) //若是二进制
+			binsyn_list.Clear();
+			if (v.ContainsKey("syn_bin")) //若有二进制
 			{
-				syn_head = new Sync_head();
-				syn_head.fromJson(v["syn_bin"] as Dictionary<string, object>);
-				syn_head.rx_bin_cb = rx_bin_cb;
+				ArrayList list = v["syn_bin"] as ArrayList;
+				foreach (var item in list)
+				{
+					var syn_head = new Sync_head();
+					syn_head.fromJson(item as Dictionary<string, object>);
+					syn_head.rx_bin_cb = rx_bin_cb;
+					binsyn_list.Add(syn_head);
+				}
 			}
 			if (v.ContainsKey("syn_line")) //若有文本行
 			{
@@ -40,14 +48,19 @@ namespace com_mc
 				syn_line.rx_bin_cb = rx_bin_cb;
 				//syn_line.rx_bin_cb = line_rx_from_bin;
 			}
-			else if(syn_head==null)//若都没配置，使用默认的文本行模式
+			else if(binsyn_list.Count<=0)//若都没配置，使用默认的文本行模式
 			{
 				syn_line = new Sync_Line();
 				syn_line.rx_bin_cb = rx_bin_cb;
 			}
-			if(syn_head!=null && syn_line!=null) //若是二进制、文本兼容模式
+			if(binsyn_list.Count > 0 && syn_line!=null) //若是二进制、文本兼容模式
 			{
-				syn_head.lostlock = syn_line.rec_byte;
+				//for(int i=0;i< binsyn_list.Count-1;i++) //依次调用各帧同步对象的失锁
+				//{
+				//	binsyn_list[i].lostlock = binsyn_list[i + 1].rec_byte;
+				//}
+				//binsyn_list[binsyn_list.Count-1].lostlock = syn_line.rec_byte;
+				binsyn_list[0].lostlock = syn_line.rec_byte;
 			}
 		}
 		public virtual void send_cmd(string s) //主程序发送指令
@@ -61,8 +74,29 @@ namespace com_mc
 		public virtual void rx_fun(byte[] buf) //接收数据函数
 		{
 			//无插件，做帧同步
-			if(syn_head!=null) syn_head.pro(buf,0, buf.Length);	
-			else syn_line.pro(buf,0, buf.Length);
+			//if (binsyn_list.Count > 0)
+			//{
+			//	for (int i = 0; i < buf.Length; i++)
+			//	{
+			//		if (cur_binsyn != null) //若有帧同步对象
+			//		{
+			//			if (cur_binsyn.rec_p == 0) cur_binsyn = null; //已经同步完成了，去掉
+			//		}
+			//		if (cur_binsyn != null) cur_binsyn.rec_byte(buf[i]); //若有帧同步对象
+			//		else //若需要找用哪个对象
+			//		{
+			//			foreach (var item in binsyn_list)
+			//			{
+			//				if (item.SYNC[0] == buf[i]) //若是这个对象
+			//				{
+
+			//				}
+			//			}
+			//		}
+			//	}
+			//}
+			if (binsyn_list.Count > 0) binsyn_list[0].pro(buf, 0, buf.Length);
+			else syn_line.pro(buf, 0, buf.Length);
 			//有插件，可进行协议转换
 			//……
 		}

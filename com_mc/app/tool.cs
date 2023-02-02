@@ -327,6 +327,7 @@ namespace cslib
 	public class LogFile //存储二进制数据的文件，根据配置创建文件路径，每隔固定时间重新建立文件
 	{
 		public BinaryWriter sw = null; //判断null确定是否在记录
+		public bool is_rec_file = true; //是否记录文件
 		public string fname_time_fmt = "yyyyMMdd_HHmmss"; //时间格式
 		public string ts_fmt="HHmmss.fff	"; //用于时间戳的时间格式，空则为不写时间戳
 		public bool is_stdout=true; //是否在stdout打印
@@ -342,6 +343,7 @@ namespace cslib
 		}
 		public virtual void create()
 		{
+			if (!is_rec_file) return; //如果不记录，就不创建
 			//建立文件夹
 			if (!Directory.Exists(basepath.FullName))
 			{
@@ -389,13 +391,13 @@ namespace cslib
 		{
 			if(sw==null) return ;
 			sw.Write(b, ind, len); //写入数据
+			sw.Flush();
 		}
 		public virtual void log_pass(string s) //原始文本写入
 		{
 			var b = Encoding.UTF8.GetBytes(s);
 			log_pass(b, 0, b.Length); //写入数据
 			if(is_stdout) Console.Write(s);
-			sw.Flush();
 		}
 		//带文件名更新写入
 		public void write(byte[] b, int ind, int len)

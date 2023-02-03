@@ -403,13 +403,15 @@ namespace com_mc
 }
 namespace cslib
 {
+	using com_mc;
 	public class DataSrc_replay_filedlg : DataSrc_replay //带时间戳的日志回放,打开文件对话框包裹
 	{
 		public DataSrc_replay_filedlg(RX_CB cb) : base(cb) { }
 		public override void open(string s)
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
-			ofd.Filter = "*.txt|*.txt|*.cmlog|*.cmlog";
+			//ofd.Filter = "*.txt|*.txt|*.cmlog|*.cmlog";
+			ofd.Filter = Config.config.logfile_ext;
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
 			string exs = Path.GetExtension(ofd.FileName).Trim();
 			if (exs == ".cmlog") is_bin = true;//若是二进制的

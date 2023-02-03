@@ -154,5 +154,75 @@ namespace com_mc
 			return true;
 		}
 	}
+
+	public class Sync_Prot : Sync_interfase //增量动态协议帧同步
+	{
+		public byte[] rec_buff = new byte[256];
+		public int rec_p = 0;//偏移指示
+		public ProtDom rootpd = null; //本协议族根节点的引用
+		public void fromJson(Dictionary<string, object> v)
+		{
+			
+		}
+		public int prot_root_id(int rootid = -1) //获取或设置本帧同步对象关联的协议族根节点的id（输入-1为查询，大于等于0为设置）
+		{
+			return 0;
+		}
+		public void pro(byte[] b, int off, int n)
+		{
+			for (int i = 0; i < n; i++) rec_byte(b[i + off]);
+		}
+		public void rec_byte(byte b)
+		{
+			int pback = 0; //回溯位置，在缓存中的偏移
+			int l = 0; //回溯长度
+			while (true)
+			{
+
+				//if (rec_p < SYNC.Length)//正在寻找包头
+				//{
+				//	rec_buff[rec_p++] = b;
+				//	if (b != SYNC[rec_p - 1])//引导字错误
+				//	{
+				//		for (int i = 0; i < rec_p; i++) lostlock_cb(rec_buff[i]);
+				//		rec_p = 0;
+				//	}
+				//}
+				//else if (rec_p == pre_offset)//可以改变包长
+				//{
+				//	rec_buff[rec_p++] = b;
+				//	pack_len = pre_pack(rec_buff, rec_p);
+				//}
+				//else//正常接收数据包
+				//{
+				//	rec_buff[rec_p++] = b;
+				//	if (rec_p >= pack_len)
+				//	{
+				//		int r = 0;
+				//		try //若用户处理异常，不影响帧同步
+				//		{
+				//			r = pro_pack(rec_buff, pack_len); //调用处理函数
+				//		}
+				//		catch { }
+				//		if (r != 0) //若接收不正确
+				//		{
+				//			if (l == 0) //若还没开始回溯
+				//			{
+				//				l = rec_p - 1; //回溯长度,用rec_p可能大于pack_len
+				//			}
+				//			pback = 1; //回溯位置
+				//		}
+				//		rec_p = 0;
+				//	}
+				//}
+				if (l != 0) //若有回溯任务
+				{
+					b = rec_buff[pback];
+					pback++; l--;
+				}
+				else return;
+			}
+		}
+	}
 }
 

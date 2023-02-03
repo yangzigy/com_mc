@@ -16,9 +16,7 @@ namespace com_mc
 		public RX_BIN_CB rx_bin_cb = null; //上位机接收设备信息的回调函数
 
 		public List<Sync_head> binsyn_list =new List<Sync_head>(); //帧同步对象，插件中也可以不用
-		public Sync_head cur_binsyn= null; //当前有效的二进制帧同步对象
 		public Sync_Line syn_line = null; //帧同步对象，插件中也可以不用
-		//public virtual void ini(TX_CB tx,RX_CB rx, RX_BIN_CB  rxbin) //初始化，注册回调函数
 		public virtual void ini(TX_CB tx,RX_BIN_CB  rx) //初始化，注册回调函数
 		{
 			tx_cb = tx;
@@ -55,12 +53,12 @@ namespace com_mc
 			}
 			if(binsyn_list.Count > 0 && syn_line!=null) //若是二进制、文本兼容模式
 			{
-				//for(int i=0;i< binsyn_list.Count-1;i++) //依次调用各帧同步对象的失锁
+				//for (int i = 0; i < binsyn_list.Count - 1; i++) //依次调用各帧同步对象的失锁
 				//{
 				//	binsyn_list[i].lostlock = binsyn_list[i + 1].rec_byte;
 				//}
-				//binsyn_list[binsyn_list.Count-1].lostlock = syn_line.rec_byte;
-				binsyn_list[0].lostlock = syn_line.rec_byte;
+				//binsyn_list[binsyn_list.Count - 1].lostlock = syn_line.rec_byte;
+				//binsyn_list[0].lostlock = syn_line.rec_byte;
 			}
 		}
 		public virtual void send_cmd(string s) //主程序发送指令
@@ -74,29 +72,34 @@ namespace com_mc
 		public virtual void rx_fun(byte[] buf) //接收数据函数
 		{
 			//无插件，做帧同步
-			//if (binsyn_list.Count > 0)
-			//{
-			//	for (int i = 0; i < buf.Length; i++)
-			//	{
-			//		if (cur_binsyn != null) //若有帧同步对象
-			//		{
-			//			if (cur_binsyn.rec_p == 0) cur_binsyn = null; //已经同步完成了，去掉
-			//		}
-			//		if (cur_binsyn != null) cur_binsyn.rec_byte(buf[i]); //若有帧同步对象
-			//		else //若需要找用哪个对象
-			//		{
-			//			foreach (var item in binsyn_list)
-			//			{
-			//				if (item.SYNC[0] == buf[i]) //若是这个对象
-			//				{
-
-			//				}
-			//			}
-			//		}
-			//	}
-			//}
-			if (binsyn_list.Count > 0) binsyn_list[0].pro(buf, 0, buf.Length);
-			else syn_line.pro(buf, 0, buf.Length);
+			if (binsyn_list.Count > 0) //二进制帧同步对象的处理
+			{
+				//for (int i = 0; i < buf.Length; i++) //调用时失锁的部分自然给文本处理了
+				//{
+				//	binsyn_list[0].rec_byte(buf[i]);
+				//	//查看是否有对象同步上了
+				//	for(int j=0;j<binsyn_list.Count;j++)
+				//	{
+				//		if (binsyn_list[j].rec_p>0) //找到了这个锁定的对象
+				//		{ //把他挪到头部，并修改失锁回调链
+				//			var tmp = binsyn_list[j];
+				//			binsyn_list[j] = binsyn_list[0];
+				//			binsyn_list[0] = tmp;
+				//			var tf = binsyn_list[j].lostlock;
+				//			binsyn_list[j].lostlock = binsyn_list[0].lostlock;
+				//			binsyn_list[0].lostlock = tf;
+				//			break;
+				//		}
+				//	}
+				//}
+				//简单的做，就是所有对象，包括文本，都做
+				foreach (var item in binsyn_list)
+				{
+					item.pro(buf, 0, buf.Length);
+				}
+				if(syn_line!=null) syn_line.pro(buf, 0, buf.Length); //文本处理
+			}
+			else syn_line.pro(buf, 0, buf.Length); //文本处理
 			//有插件，可进行协议转换
 			//……
 		}

@@ -4,11 +4,11 @@
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:com_mc"
-		mc:Ignorable="d" Loaded="Window_Loaded" ResizeMode="NoResize"
-		Title="Replay_Window" Height="450" Width="700" Closing="Window_Closing" FontSize="16">
+		mc:Ignorable="d" Loaded="Window_Loaded"
+		Title="Replay_Window" Height="500" Width="800" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="3*"></RowDefinition>
+			<RowDefinition Height="260"></RowDefinition>
 			<RowDefinition Height="2*"></RowDefinition>
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
@@ -112,7 +112,7 @@
 			<TextBox Grid.Row="3" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible" Name="tb_org_text"
 					 HorizontalContentAlignment="Left" MouseWheel="tb_org_text_MouseWheel"></TextBox>
 		</Grid>
-		<UniformGrid Grid.Row="1" Grid.Column="1" Name="sp_val_list">
+		<UniformGrid Grid.Row="1" Grid.Column="1" Name="sp_val_list" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
 		</UniformGrid>
 	</Grid>
 </Window>

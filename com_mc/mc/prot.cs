@@ -36,6 +36,7 @@ namespace com_mc
 		public string ref_name { get; set; } = "";//引用参数的名称
 		public ParaValue ref_para=null; //引用的参数，没有引用会给内部对象，一定会有
 		public int len = 0; //缓存本域的数据长度
+		public int is_exp = 0; //解算结果是否符合期望
 		public ProtDom(Dictionary<string, object> v, ProtType t, MC_Prot pd) //从json构造对象
 		{ //这里遇到错误就throw出去，不想throw的才判断
 			p_mcp = pd;

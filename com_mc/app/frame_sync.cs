@@ -49,7 +49,7 @@ namespace cslib
 	{
 		public byte[] SYNC={0xaa}; /// 同步字数组
 		public int pack_len=2;
-		public byte[] rec_buff=new byte[256];
+		public byte[] rec_buff=new byte[4069];
 		public int rec_p=0;//偏移指示
 		/// <summary>
 		/// 数据包中表示包长的字段所在位置
@@ -76,13 +76,10 @@ namespace cslib
 			{
 				if(rec_p<SYNC.Length)//正在寻找包头
 				{
-					if(b==SYNC[rec_p])//引导字正确
+					rec_buff[rec_p++] = b;
+					if (b!=SYNC[rec_p-1])//引导字错误
 					{
-						rec_buff[rec_p++] = b;
-					}
-					else
-					{
-						lostlock_cb(b);
+						for (int i = 0; i < rec_p; i++) lostlock_cb(rec_buff[i]);
 						rec_p=0;
 					}
 				}
@@ -115,7 +112,8 @@ namespace cslib
 				}
 				if(l!=0) //若有回溯任务
 				{
-					b=rec_buff[pback];
+					lostlock_cb(rec_buff[0]); //第一个同步字算是失锁
+					b =rec_buff[pback];
 					pback++; l--;
 				}
 				else return;

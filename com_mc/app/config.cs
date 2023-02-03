@@ -51,6 +51,7 @@ namespace com_mc
 		public int mv_w { get; set; } = 0; //主窗体宽
 		public int mv_h { get; set; } = 0;//主窗体高
 		public int bt_margin { get; set; } = 2; //按钮间距
+		public string logfile_ext = "*.txt|*.txt|*.cmlog|*.cmlog"; //配置文件扩展名
 		public Dictionary<string, object> syn_pro { get; set; } = new Dictionary<string, object>(); //帧同步处理
 		//数据结构
 		public Dictionary<string, object> para_cfg { get; set; } = new Dictionary<string, object>(); //参数配置

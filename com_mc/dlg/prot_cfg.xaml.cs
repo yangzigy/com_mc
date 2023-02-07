@@ -171,8 +171,8 @@ namespace com_mc
 		}
 		private void mi_save_as_cur_Click(object sender, RoutedEventArgs e) //写入当前协议
 		{
-			var v = para_prot.toJson(); //
-
+			var v = para_prot.toJson(); //对话框中的协议对象做成json
+			
 		}
 #region 参数列表
 		private void dg_para_MouseDown(object sender, MouseButtonEventArgs e) //参数列表的鼠标按下
@@ -563,8 +563,8 @@ namespace com_mc
 		public bool is_hex { get; set; } = false; //索引值类型hex或空
 		[CategoryAttribute("常规"), DescriptionAttribute("引用的协议域")]
 		public string ref_prot { get; set; } = "";//引用的协议域名称
-		[CategoryAttribute("常规"), DescriptionAttribute("分支后是否重新计数偏移")]
-		public bool is_reset { get; set; } = false;//
+		[CategoryAttribute("常规"), DescriptionAttribute("分支后前后跳过的字节数，向前为负")]
+		public int skip_n { get; set; } = 0;//
 		[CategoryAttribute("常规"), DescriptionAttribute("分支的值和对应的协议名")]
 		public Dictionary<int, string> protname_map { get; set; } = new Dictionary<int, string>(); //各协议描述符头部，由int对协议名进行索引
 
@@ -572,7 +572,7 @@ namespace com_mc
 		{
 			is_hex = v.cfg_str_type=="hex";
 			ref_prot = v.ref_type;
-			is_reset = v.is_reset != 0;
+			skip_n = v.skip_n;
 			foreach (var item in v.protname_map)
 			{
 				protname_map[item.Key]=item.Value;
@@ -584,7 +584,7 @@ namespace com_mc
 			var bv = backend_var as PD_Switch;
 			bv.cfg_str_type=is_hex?"hex":"";
 			bv.ref_type = ref_prot;
-			bv.is_reset = is_reset ? 1 : 0;
+			bv.skip_n = skip_n;
 			bv.protname_map.Clear();
 			foreach (var item in protname_map)
 			{

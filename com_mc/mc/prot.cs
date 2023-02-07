@@ -233,6 +233,17 @@ namespace com_mc
 			foreach (var item in list)
 			{
 				string s=item as string;
+				var tv = item as Dictionary<string, object>;
+				if(tv != null) //若是直接在此定义了简短的协议域
+				{
+					if (tv.ContainsKey("name")) s = tv["name"] as string; //若有指定名称
+					else
+					{
+						s = string.Format("{0}.{1}", name, prot_list.Count); //name.2 的形式
+						tv["name"] = s;
+					}
+					p_mcp.prot_dict[s] = MC_Prot.factory(tv,p_mcp); //构建参数
+				}
 				prot_list.Add(s);
 			}
 		}
@@ -285,7 +296,7 @@ namespace com_mc
 	{
 		public string ref_type = ""; //引用的协议域，用于确定包类型
 		public string cfg_str_type = ""; //配置中，协议索引的字符串类型。空为10进制，hex为10进制
-		public int is_reset = 0; //对子协议，是否复位解析位置（若是对多种协议的选择，可以从0开始，从新解析）
+		public int skip_n = 0; //对子协议，额外向后跳的字节数（若是对多种协议的选择，可以从0开始，从新解析）
 		public Dictionary<int, string> protname_map = new Dictionary<int, string>(); //各协议描述符头部，由int对协议名进行索引
 
 		public PD_Node ref_dom; //为了方便直接建立确定包类型的协议域
@@ -294,7 +305,7 @@ namespace com_mc
 		{
 			ref_type = v["ref_type"] as string;
 			if(v.ContainsKey("cfg_str_type")) cfg_str_type = v["cfg_str_type"] as string; //
-			if (v.ContainsKey("is_reset")) is_reset = (int)v["is_reset"];
+			if (v.ContainsKey("skip_n")) skip_n = (int)v["skip_n"];
 			var dict = v["prot_map"] as Dictionary<string, object>; //各协议由字典组织
 			foreach (var item in dict)
 			{
@@ -323,7 +334,7 @@ namespace com_mc
 			var v = base.toJson();
 			if (ref_type != "") v["ref_type"] = ref_type;
 			if (cfg_str_type != "") v["cfg_str_type"] = cfg_str_type;
-			if (is_reset != 0) v["is_reset"] = is_reset;
+			if (skip_n != 0) v["skip_n"] = skip_n;
 			Dictionary<string, object> vt=new Dictionary<string, object>();
 			string key_type = "";
 			if (cfg_str_type == "hex") key_type="X";//若是hex的字符格式
@@ -335,7 +346,7 @@ namespace com_mc
 		{
 			var para = ref_dom.ref_para as ParaValue_Val;
 			int ti = (int)para.data.du64; //此时是变换以后的
-			if (is_reset != 0) off = 0; //若是从新解析，只需将off给0
+			off += skip_n; //若是从新解析，只需将off给0
 			prot_map[ti].pro(b, ref off, n); //找到这个协议，调用
 		}
 	}

@@ -9,5 +9,5 @@ JLinkLog.txt
 JLinkSettings.ini
 RTE/
 obj/
-
+.vs/
 *.fb

@@ -42,7 +42,7 @@ namespace com_mc
 		}
 //配置内容
 		//显示控制
-		public string title_str { get; set; } = "通用上位机V1.2.1"; //软件标题
+		public string title_str { get; set; } = "通用上位机V1.2.2"; //软件标题
 		public int dis_data_len { get; set; } = 1000; //显示数据长度
 		public int ctrl_cols { get; set; } = 2; //控制按钮默认2列
 		public int svar_ui_h { get; set; } = 0; //传感变量显示区高度，为0则为自动

@@ -97,6 +97,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="app\cm_plugin.cs" />
+    <Compile Include="dlg\com_dlg.xaml.cs">
+      <DependentUpon>com_dlg.xaml</DependentUpon>
+    </Compile>
     <Compile Include="dlg\prot_cfg.xaml.cs" />
     <Compile Include="mc\com_mc_gui.cs" />
     <Compile Include="app\config.cs" />
@@ -114,6 +117,10 @@
     <Compile Include="mc\prot.cs" />
     <Compile Include="mc\sync.cs" />
     <Compile Include="state_dis.cs" />
+    <Page Include="dlg\com_dlg.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="dlg\help.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

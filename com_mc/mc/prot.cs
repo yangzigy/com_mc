@@ -110,7 +110,8 @@ namespace com_mc
 		public override void pro(byte[] b, ref int off, int n)  //n:off之后还有多长，off：数据起始位置
 		{
 			//先自己解析
-			int i=data.set_val(b,off,len);
+			n = len > n ? n : len;
+			int i=data.set_val(b,off,n);
 			off += i + skip_n;
 			set_para_val(); //设置参数数值
 		}
@@ -185,7 +186,7 @@ namespace com_mc
 		}
 		public override void pro(byte[] b, ref int off, int n) //在二进制流中取得字符
 		{
-			int str_len = len;
+			int str_len = len>n?n:len;
 			if(str_len == 0) //若不定长度,就按0为分割，确定字符串长度
 			{
 				for(;str_len<n;str_len++)
@@ -254,14 +255,8 @@ namespace com_mc
 			for (int i=0;i<prot_list.Count;i++) //对于每个协议名称，取得子协议的引用，提高引用效率
 			{
 				ProtDom p = null;
-				try
-				{
-					p=p_mcp.prot_dict[prot_list[i]];
-				}
-				catch (Exception e)
-				{
-					len = 0; break;
-				}
+				if (p_mcp.prot_dict.ContainsKey(prot_list[i])) p = p_mcp.prot_dict[prot_list[i]];
+				else throw new Exception(string.Format("无协议域: {0}", prot_list[i]));
 				p.father_Dom = this; //给上层引用赋值
 				prot_ref_list.Add(p);
 				p.create_connection(); //递归调用，计算子节点的大小
@@ -321,10 +316,13 @@ namespace com_mc
 		public override void create_connection()
 		{
 			prot_map.Clear();
-			ref_dom = p_mcp.prot_dict[ref_type] as PD_Node;
+			if(p_mcp.prot_dict.ContainsKey(ref_type)) ref_dom = p_mcp.prot_dict[ref_type] as PD_Node;
+			else throw new Exception(string.Format("无协议域: {0}", ref_type));
 			foreach (var item in protname_map) //对于每个协议名称，取得子协议的引用，提高引用效率
 			{
-				var p = p_mcp.prot_dict[item.Value];
+				ProtDom p;
+				if (p_mcp.prot_dict.ContainsKey(item.Value)) p = p_mcp.prot_dict[item.Value];
+				else throw new Exception(string.Format("无协议域: {0}", item.Value));
 				//p.father_Dom = this; //给上层引用赋值
 				prot_map[item.Key] = p;
 			}
@@ -346,7 +344,8 @@ namespace com_mc
 		{
 			var para = ref_dom.ref_para as ParaValue_Val;
 			int ti = (int)para.data.du64; //此时是变换以后的
-			off += skip_n; //若是从新解析，只需将off给0
+			off += skip_n; //若是从新解析，只需将off给0（给负偏移）
+			n -= skip_n; //off之后的长度相应的减少
 			prot_map[ti].pro(b, ref off, n); //找到这个协议，调用
 		}
 	}
@@ -378,7 +377,11 @@ namespace com_mc
 		public override void create_connection()
 		{
 			base.create_connection();
-			if (ref_len!="") ref_dom = p_mcp.prot_dict[ref_len] as PD_Node; //若有引用协议域
+			if (ref_len != "")
+			{
+				if(p_mcp.prot_dict.ContainsKey(ref_len)) ref_dom = p_mcp.prot_dict[ref_len] as PD_Node; //若有引用协议域
+				else throw new Exception(string.Format("无协议域: {0}", ref_len));
+			}
 		}
 		public override void pro(byte[] b, ref int off, int n)
 		{
@@ -430,7 +433,9 @@ namespace com_mc
 			protobj_list = new PD_Str[prot_list.Count];
 			for (int i=0;i<prot_list.Count;i++) //对于每个协议名称，取得子协议的引用，提高引用效率
 			{
-				var p = p_mcp.prot_dict[prot_list[i]];
+				ProtDom p;
+				if(p_mcp.prot_dict.ContainsKey(prot_list[i])) p = p_mcp.prot_dict[prot_list[i]];
+				else throw new Exception(string.Format("无协议域: {0}", prot_list[i]));
 				p.father_Dom = this; //给上层引用赋值
 				protobj_list[i]= p as PD_Str;
 			}
@@ -475,7 +480,9 @@ namespace com_mc
 			prot_dict.Clear();
 			for (int i = 0; i < prot_list.Count; i++) //对于每个协议名称，取得子协议的引用，提高引用效率
 			{
-				var p = p_mcp.prot_dict[prot_list[i]] as PD_LineObj;
+				PD_LineObj p;
+				if (p_mcp.prot_dict.ContainsKey(prot_list[i])) p=p_mcp.prot_dict[prot_list[i]] as PD_LineObj;
+				else throw new Exception(string.Format("无协议域: {0}", prot_list[i]));
 				if (p == null) throw new Exception(prot_list[i] + "应为PD_LineObj");
 				p.father_Dom = this; //给上层引用赋值
 				string s = p.head; //也可能是""
@@ -584,6 +591,7 @@ namespace com_mc
 			//prot_root = null;
 			//textline_dict.Clear();
 			para_dict.Clear();
+			prot_dict.Clear();
 			prot_root_list.Clear();
 			prot_root_obj_list.Clear();
 		}

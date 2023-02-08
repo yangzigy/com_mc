@@ -52,8 +52,10 @@ namespace com_mc
 			{
 				para_prot.fromJson(v); //将json转换为协议实体
 			}
-			catch { }
-
+			catch(Exception ex) 
+			{
+				MessageBox.Show(ex.Message,"加载错误");
+			}
 			update_paralist_display(); //首先刷新参数字典
 			update_protlist_display(); //刷新协议域
 			update_rootslist_display(); //刷新协议根节点列表
@@ -480,8 +482,6 @@ namespace com_mc
 	}
 	public class PD_Node_PropDis : ProtDom_PropDis //协议域叶子节点
 	{
-		[CategoryAttribute("常规"), DescriptionAttribute("长度")]
-		public int len { get; set; } = 0; //缓存本域的数据长度
 		[CategoryAttribute("常规"), DescriptionAttribute("额外向后跳的字节数（文本行协议是列数）")]
 		public int skip_n { get; set; } = 0; //处理完此列后，额外向后跳的字节数（文本行协议是列数）。例如文本行的一列要处理出多个参数，此处可填0。或者需要跳过一列，此处可填1
 		[CategoryAttribute("常规"), DescriptionAttribute("处理变换kx+b")]
@@ -510,8 +510,6 @@ namespace com_mc
 	}
 	public class PD_Array_PropDis : ProtDom_PropDis //数组型叶子节点，包括未定义和字符串，输出类型只能是未定义或字符串
 	{
-		[CategoryAttribute("常规"), DescriptionAttribute("长度")]
-		public int len { get; set; } = 0; //缓存本域的数据长度
 		public PD_Array_PropDis(PD_Array v) : base(v)
 		{
 			len = v.len;

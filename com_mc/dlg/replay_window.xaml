@@ -5,22 +5,36 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:com_mc"
 		mc:Ignorable="d" Loaded="Window_Loaded"
-		Title="Replay_Window" Height="500" Width="800" Closing="Window_Closing" FontSize="16">
+		Title="Replay_Window" Height="300" Width="800" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="260"></RowDefinition>
+			<RowDefinition Height="26"></RowDefinition>
 			<RowDefinition Height="2*"></RowDefinition>
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="170"></ColumnDefinition>
 			<ColumnDefinition Width="1*"></ColumnDefinition>
 		</Grid.ColumnDefinitions>
-		<Grid Grid.Row="0" Grid.Column="0" Grid.RowSpan="2">
+		<Menu Grid.Row="0" Grid.ColumnSpan="2">
+			<MenuItem FontSize="16" Header="导出">
+				<MenuItem FontSize="16" Name="bt_export_cmlog" Click="bt_export_Click" Tag="cmlog" Header="导出为cmlog"></MenuItem>
+				<MenuItem FontSize="16" Name="bt_export_org" Click="bt_export_Click" Tag="org" Header="导出原始数据"></MenuItem>
+				<MenuItem FontSize="16" Name="bt_export_timetext" Click="bt_export_Click" Tag="timetext" Header="导出带时间戳文本"></MenuItem>
+				<MenuItem FontSize="16" Name="bt_export_csv" Click="bt_export_Click" Tag="csv" Header="导出变量csv"></MenuItem>
+			</MenuItem>
+		</Menu>
+		<Grid Grid.Row="1" Grid.Column="0" Grid.RowSpan="2">
 			<Grid.RowDefinitions>
-				<RowDefinition Height="1*"></RowDefinition>
+				<RowDefinition Height="35"></RowDefinition>
 				<RowDefinition Height="1*"></RowDefinition>
 			</Grid.RowDefinitions>
-			<DataGrid Name="dg_vir" FontSize="12" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" AutoGenerateColumns="False">
+			<Grid Grid.Row="0">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="35"></RowDefinition>
+				</Grid.RowDefinitions>
+				<Button Grid.Row="0" FontSize="16" Name="bt_update_vir" Click="bt_update_vir_Click">更新选择</Button>
+			</Grid>
+			<DataGrid Grid.Row="1" Name="dg_vir" FontSize="12" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" AutoGenerateColumns="False">
 				<DataGrid.Columns>
 					<DataGridCheckBoxColumn Header="选中"  Binding="{Binding is_sel}" Width="34"/>
 					<DataGridTextColumn Header="信道" Binding="{Binding vir}" Width="34"/>
@@ -28,23 +42,8 @@
 					<DataGridTextColumn Header="长度" Binding="{Binding len}" Width="50"/>
 				</DataGrid.Columns>
 			</DataGrid>
-			<Grid Grid.Row="1">
-				<Grid.RowDefinitions>
-					<RowDefinition Height="35"></RowDefinition>
-					<RowDefinition Height="35"></RowDefinition>
-					<RowDefinition Height="35"></RowDefinition>
-					<RowDefinition Height="35"></RowDefinition>
-					<RowDefinition Height="35"></RowDefinition>
-					<RowDefinition Height="1*"></RowDefinition>
-				</Grid.RowDefinitions>
-				<Button Grid.Row="0" FontSize="16" Name="bt_update_vir" Click="bt_update_vir_Click">更新选择</Button>
-				<Button Grid.Row="1" FontSize="16" Name="bt_export_cmlog" Click="bt_export_Click" Tag="cmlog">导出为cmlog</Button>
-				<Button Grid.Row="2" FontSize="16" Name="bt_export_org" Click="bt_export_Click" Tag="org">导出原始数据</Button>
-				<Button Grid.Row="3" FontSize="16" Name="bt_export_timetext" Click="bt_export_Click" Tag="timetext">导出带时间戳文本</Button>
-				<Button Grid.Row="4" FontSize="16" Name="bt_export_csv" Click="bt_export_Click" Tag="csv">导出变量csv</Button>
-			</Grid>
 		</Grid>
-		<Grid Grid.Row="0" Grid.Column="1">
+		<Grid Grid.Row="1" Grid.Column="1">
 			<Grid.RowDefinitions>
 				<RowDefinition Height="35"></RowDefinition>
 				<RowDefinition Height="30"></RowDefinition>
@@ -53,7 +52,9 @@
 			</Grid.RowDefinitions>
 			<StackPanel Grid.Row="0" Orientation="Horizontal">
 				<Button Click="bt_replay_cmd_Click" Tag="home" ToolTip="至首" Width="30">
-					<Button.Background> <ImageBrush ImageSource="/pic/1.PNG" /> </Button.Background>
+					<Button.Background>
+						<ImageBrush ImageSource="/pic/1.PNG" />
+					</Button.Background>
 				</Button>
 				<Button Click="bt_replay_cmd_Click" Tag="pre" ToolTip="上一行" Width="30">
 					<Button.Background>
@@ -112,7 +113,5 @@
 			<TextBox Grid.Row="3" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible" Name="tb_org_text"
 					 HorizontalContentAlignment="Left" MouseWheel="tb_org_text_MouseWheel"></TextBox>
 		</Grid>
-		<UniformGrid Grid.Row="1" Grid.Column="1" Name="sp_val_list" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
-		</UniformGrid>
 	</Grid>
 </Window>

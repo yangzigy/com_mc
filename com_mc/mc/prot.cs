@@ -166,7 +166,7 @@ namespace com_mc
 		public override void pro(byte[] b, ref int off, int n) //n:off之后还有多长，off：数据起始位置
 		{
 			n = n >len ? len : n;
-			n=ref_para.set_val(b,off,n); //返回使用的字节数
+			ref_para.set_val(b,off,n); //返回使用的字节数
 			off += n;
 		}
 	}

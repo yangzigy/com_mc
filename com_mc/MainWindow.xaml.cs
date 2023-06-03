@@ -342,8 +342,10 @@ namespace com_mc
 					if(DataSrc.cur_ds!=null) DataSrc.cur_ds.close();
 				}
 			}
-			catch
-			{ }
+			catch(Exception ee)
+			{
+				MessageBox.Show("message: " + ee.Message);
+			}
 		}
 		private void clear_Click(object sender, RoutedEventArgs e) //清除数据
 		{

@@ -36,7 +36,19 @@
 			</Grid>
 			<DataGrid Grid.Row="1" Name="dg_vir" FontSize="12" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" AutoGenerateColumns="False">
 				<DataGrid.Columns>
-					<DataGridCheckBoxColumn Header="选中"  Binding="{Binding is_sel}" Width="34"/>
+					<DataGridCheckBoxColumn Header="选中" Binding="{Binding is_sel,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="34">
+						<DataGridCheckBoxColumn.ElementStyle>
+							<Style TargetType="CheckBox">
+							</Style>
+						</DataGridCheckBoxColumn.ElementStyle>
+					</DataGridCheckBoxColumn>
+					<!--<DataGridTemplateColumn Header="选中1" >
+						<DataGridTemplateColumn.CellTemplate>
+							<DataTemplate>
+								<CheckBox IsChecked="{Binding is_sel,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="34" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+							</DataTemplate>
+						</DataGridTemplateColumn.CellTemplate>
+					</DataGridTemplateColumn>-->
 					<DataGridTextColumn Header="信道" Binding="{Binding vir}" Width="34"/>
 					<DataGridTextColumn Header="帧数" Binding="{Binding frame_n}" Width="50"/>
 					<DataGridTextColumn Header="长度" Binding="{Binding len}" Width="50"/>

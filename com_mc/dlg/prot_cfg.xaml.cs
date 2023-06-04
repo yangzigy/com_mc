@@ -77,8 +77,16 @@ namespace com_mc
 		}
 		public void update_protlist_display() //更新协议树的显示
 		{
-			prot_treeobj.Clear();
-			foreach (var item in para_prot.prot_dict)
+			//首先保存当前treeview中的折叠状态
+			List<string> expand_list=new List<string>();
+			foreach (PEdit_Display item in tv_prot.Items)
+			{
+				TreeViewItem tvi = tv_prot.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
+				if (tvi.IsExpanded == true) expand_list.Add(item.name);
+			}
+			//从业务中重新构造显示数据结构
+			prot_treeobj.Clear(); //专门用于显示的数据结构
+			foreach (var item in para_prot.prot_dict) //从业务中重新构造
 			{
 				PEdit_Display tl = new PEdit_Display();
 				if (item.Key.IndexOf(".") >= 0) continue; //若有点，说明是局部变量，不显示
@@ -86,8 +94,15 @@ namespace com_mc
 				tl.add_ProtDom(item.Value);
 				prot_treeobj.Add(tl);
 			}
+			//刷新显示
 			tv_prot.ItemsSource = null;
 			tv_prot.ItemsSource = prot_treeobj;
+			//恢复折叠状态
+			foreach (PEdit_Display item in tv_prot.Items)
+			{
+				TreeViewItem tvi = tv_prot.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
+				if (expand_list.Exists(x => x == item.name)) tvi.IsExpanded = true;
+			}
 		}
 		public void update_rootslist_display() //刷新协议族根节点的显示
 		{

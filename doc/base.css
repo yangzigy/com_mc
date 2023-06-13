@@ -1,15 +1,15 @@
 body { counter-reset: hbody;}
-p {text-indent: 32px; font-size: 18px; }
-li {font-size: 18px; } /*列表样式*/
-pre { font-size: 18px; } /*列表样式*/
+p {text-indent: 32px; font-size: 16px; }
+li {font-size: 16px; } /*列表样式*/
+pre { font-size: 16px; } /*列表样式*/
 /**
  * 然后父标题初始化子标题的计数，下面以此类推。
  */
-h1 { counter-reset: h1; font-size: 24px; text-align: center;} /*标题*/
-h2 { counter-reset: h2; font-size: 24px; }
-h3 { counter-reset: h3; font-size: 20px; }
-h4 { counter-reset: h4; font-size: 18px; }
-h5 { counter-reset: h5; font-size: 18px; }
+h1 { counter-reset: h1; font-size: 24px; text-align: center; font-weight: bold;} /*标题*/
+h2 { counter-reset: h2; font-size: 24px; font-weight: bold;}
+h3 { counter-reset: h3; font-size: 20px; font-weight: bold;}
+h4 { counter-reset: h4; font-size: 18px; font-weight: bold;}
+h5 { counter-reset: h5; font-size: 18px; font-weight: bold;}
 /**
  * 接着在每个标题前面自动加上编号
  *

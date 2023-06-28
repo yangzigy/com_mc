@@ -534,6 +534,7 @@ namespace com_mc
 		static double past_ry;
 		private void Chart_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
+			chart1.Focus(); //为了解决不聚焦不能响应滚轮的问题
 			if(e.Button==System.Windows.Forms.MouseButtons.Left)
 			{
 				double rx = chart1.ChartAreas[0].AxisX.PixelPositionToValue(e.X);

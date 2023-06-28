@@ -107,7 +107,7 @@ namespace com_mc
 					{
 						BorderWidth = 2,
 						ChartArea = "ChartArea1",
-						ChartType = SeriesChartType.Line,
+						ChartType = SeriesChartType.FastLine,
 						//Color = System.Drawing.Color.Red,
 						Legend = "Legend1",
 						Name = ds.name,

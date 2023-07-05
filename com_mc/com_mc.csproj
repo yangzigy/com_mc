@@ -114,7 +114,10 @@
     </Compile>
     <Compile Include="mc\com_mc.cs" />
     <Compile Include="mc\para.cs" />
-    <Compile Include="mc\prot.cs" />
+    <Compile Include="mc\prot_ini.cs" />
+    <Compile Include="mc\prot_node.cs" />
+    <Compile Include="mc\prot_pro.cs" />
+    <Compile Include="mc\prot_text.cs" />
     <Compile Include="mc\sync.cs" />
     <Compile Include="state_dis.cs" />
     <Page Include="dlg\com_dlg.xaml">

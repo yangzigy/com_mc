@@ -330,14 +330,14 @@ namespace cslib
 		}
 #endregion
 	}
-#region 文本文件直接全部回放
+#region 原始数据文件直接全部回放
 	public class DataSrc_file : DataSrc //回放模式
 	{
 		public DataSrc_file(RX_CB cb) : base(cb) { name = "文件"; }
 		public override void open(string s)
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
-			ofd.Filter = "*.txt|*.txt";
+			ofd.Filter = "*.org|*.org";
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
 			FileStream sw = new FileStream(ofd.FileName,FileMode.Open);
 			byte[] buf = new byte[sw.Length];

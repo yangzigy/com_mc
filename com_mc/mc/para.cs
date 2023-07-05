@@ -55,12 +55,16 @@ namespace com_mc
 			}
 			return v;
 		}
-		public abstract int set_val(byte[] b, int off, int n); //从数据设定值,返回使用的字节数
-		public abstract int get_val(byte[] b, int off, int n); //向数据缓存中复制数据,返回使用的字节数
+		public ParaValue clone() //把自己复制一份
+		{
+			var v = factory(toJson());
+			return v;
+		}
 		public virtual void set_val(double d) { } //设置double值
 		public virtual void set_val(int d) { } //设置int值
 		public virtual double get_val() { return 0; }
 		public virtual int get_int() { return 0; }
+		public virtual void assign(ParaValue pv) { } //赋值
 
 		public delegate void CB(ParaValue pv);
 		static public void void_cb(ParaValue pv) { }
@@ -115,7 +119,7 @@ namespace com_mc
 			}
 			else return "type err";
 		}
-		public override int set_val(byte[] b, int off, int n) //从数据设定值
+		public int set_val(byte[] b, int off, int n) //从数据设定值
 		{
 			int i = 0;
 			if (len == 0) data = new byte[n]; //若没有指定长度，则使用外部长度
@@ -127,7 +131,7 @@ namespace com_mc
 			update_cb(this);
 			return i; //返回使用的字节数
 		}
-		public override int get_val(byte[] b, int off, int n) //向数据缓存中复制数据
+		public int get_val(byte[] b, int off, int n) //向数据缓存中复制数据
 		{
 			int i = 0;
 			for (; i < len && i < data.Length && i < n && off < b.Length; i++)
@@ -135,6 +139,12 @@ namespace com_mc
 				b[off] = data[i]; off++;
 			}
 			return i; //返回使用的字节数
+		}
+		public override void assign(ParaValue pv) //从另一个参数赋值
+		{
+			var p = pv as ParaValue_Str;
+			data = p.data.Clone() as byte[];  //只给数值，其他的不要覆盖
+			update_cb(this); //需要调参数的回调函数
 		}
 	}
 	public class ParaValue_Val : ParaValue //值类型
@@ -178,16 +188,6 @@ namespace com_mc
 			}
 			return s;
 		}
-		public override int set_val(byte[] b, int off, int n) //从数据设定值
-		{
-			int r = data.set_val(b, off, n);
-			update_cb(this);
-			return r;
-		}
-		public override int get_val(byte[] b, int off, int n) //向数据缓存中复制数据
-		{
-			return data.get_val(b, off, n);
-		}
 		public override void set_val(double d)
 		{
 			switch (type) //根据输出的类型给输出
@@ -219,6 +219,12 @@ namespace com_mc
 		public override int get_int()
 		{
 			return data.ds32;
+		}
+		public override void assign(ParaValue pv) //从另一个参数赋值
+		{
+			var p = pv as ParaValue_Val;
+			data = p.data; //只给数值，其他的不要覆盖
+			update_cb(this); //需要调参数的回调函数
 		}
 	}
 	[StructLayout(LayoutKind.Explicit)]

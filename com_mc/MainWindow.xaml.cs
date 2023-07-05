@@ -123,13 +123,23 @@ namespace com_mc
 						//查看记录模式
 						if (checkb_rec_data.IsChecked == true)
 						{
-							if (rb_rec_text.IsChecked == true) rec_mod = 1;
-							else if (rb_rec_timetext.IsChecked == true) rec_mod = 2;
+							if (rb_rec_org.IsChecked == true)
+							{
+								rec_mod = 0; //不记录
+								rec_text.suffix = ".org";
+								rec_mod = 1; //记录原始数据
+							}
+							else if (rb_rec_timetext.IsChecked == true)
+							{
+								rec_mod = 0; //不记录
+								rec_text.suffix = ".ttlog";
+								rec_mod = 2; //记录带时间戳的文本
+							}
 							else if (rb_rec_cmlog.IsChecked == true) rec_mod = 3;
 						}
 						else
 						{
-							rec_mod = 0;
+							rec_mod = 0; //不记录
 							rec_text.close(); //让日志从新记一个
 							rec_bin_file.close();
 						}
@@ -531,11 +541,11 @@ namespace com_mc
 		}
 		DateTime tm_left_down = DateTime.Now; //左键按下的时间
 		static double past_rx;
-		static double past_ry;
+		static double past_ry; //记录上次曲线区域的值（默认X、Y坐标轴下的）
 		private void Chart_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
 		{
 			chart1.Focus(); //为了解决不聚焦不能响应滚轮的问题
-			if(e.Button==System.Windows.Forms.MouseButtons.Left)
+			if (e.Button==System.Windows.Forms.MouseButtons.Left)
 			{
 				double rx = chart1.ChartAreas[0].AxisX.PixelPositionToValue(e.X);
 				double ry = chart1.ChartAreas[0].AxisY.PixelPositionToValue(e.Y);

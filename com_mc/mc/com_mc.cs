@@ -91,7 +91,7 @@ namespace com_mc
 		public void ini(Dictionary<string, object> v) //初始化测控体系，输入整个配置文件
 		{ //这里关心的：
 			mc_prot.fromJson(v); //初始化动态协议部分
-			foreach (var item in mc_prot.para_dict) //将参数列表复制到显示参数表
+			foreach (var item in mc_prot.para_dict_out) //将参数列表复制到显示参数表
 			{
 				DataDes td = new DataDes(item.Value);
 				td.name = item.Key;

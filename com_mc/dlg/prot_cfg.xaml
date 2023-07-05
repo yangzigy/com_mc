@@ -30,59 +30,11 @@
 				<RowDefinition Height="1*"></RowDefinition>
 				<RowDefinition Height="1*"></RowDefinition>
 			</Grid.RowDefinitions>
-			<Grid Grid.Row="0" Grid.Column="0">
-				<Grid.RowDefinitions>
-					<RowDefinition Height="30"></RowDefinition>
-					<RowDefinition Height="30"></RowDefinition>
-					<RowDefinition Height="1*"></RowDefinition>
-				</Grid.RowDefinitions>
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="2*"></ColumnDefinition>
-					<ColumnDefinition Width="2*"></ColumnDefinition>
-				</Grid.ColumnDefinitions>
-				<Label Grid.Row="0" Grid.ColumnSpan="2">协议族根节点列表：</Label>
-				<Button Grid.Row="1" Grid.Column="0">添加</Button>
-				<Button Grid.Row="1" Grid.Column="1">删除</Button>
-				<DataGrid Name="dg_roots_list" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
-						  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False">
-					<DataGrid.Columns>
-						<DataGridTextColumn Header="名称" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
-						<DataGridTextColumn Header="类型" Width="60" Binding="{Binding type}" IsReadOnly="True"/>
-					</DataGrid.Columns>
-				</DataGrid>
-			</Grid>
-		</Grid>
-		<Grid Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="30"></RowDefinition>
-				<RowDefinition Height="30"></RowDefinition>
-				<RowDefinition Height="1*"></RowDefinition>
-			</Grid.RowDefinitions>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="2*"></ColumnDefinition>
-				<ColumnDefinition Width="2*"></ColumnDefinition>
-			</Grid.ColumnDefinitions>
-			<Label Grid.Row="0">协议树：</Label>
-			<Button Grid.Row="1" Grid.Column="0" Click="bt_prot_add_Click">添加</Button>
-			<Button Grid.Row="1" Grid.Column="1" Click="bt_prot_del_Click">删除</Button>
-			<TreeView Grid.Row="2" Name="tv_prot" Grid.Column="0" Grid.ColumnSpan="2" SelectedItemChanged="tv_prot_SelectedItemChanged" MouseDown="tv_prot_MouseDown" >
-				<TreeView.ItemTemplate>
-					<HierarchicalDataTemplate DataType="local:PEdit_Display" ItemsSource="{Binding sub}">
-						<StackPanel Orientation="Horizontal">
-							<TextBlock Text="{Binding name}"></TextBlock>
-							<TextBlock Text="{Binding type}" Margin="5,0,0,0" Background="LightGreen"></TextBlock>
-							<TextBlock Text="{Binding len, StringFormat={}: {0}B}"></TextBlock>
-						</StackPanel>
-					</HierarchicalDataTemplate>
-				</TreeView.ItemTemplate>
-			</TreeView>
-		</Grid>
-		<Grid Grid.Row="1" Grid.Column="2" Grid.RowSpan="2">
-			<GroupBox Grid.Column="0" BorderBrush="#FFA9AAAF" FontWeight="Normal">
+			<GroupBox Grid.Row="0" Grid.Column="0">
 				<GroupBox.Header>
-					<TextBlock  Text ="协议配置"/>
+					<TextBlock  Text ="协议族根节点列表" FontWeight="Bold"/>
 				</GroupBox.Header>
-				<Grid Grid.Row="1" Grid.Column="3" Grid.RowSpan="2">
+				<Grid>
 					<Grid.RowDefinitions>
 						<RowDefinition Height="30"></RowDefinition>
 						<RowDefinition Height="1*"></RowDefinition>
@@ -91,34 +43,116 @@
 						<ColumnDefinition Width="2*"></ColumnDefinition>
 						<ColumnDefinition Width="2*"></ColumnDefinition>
 					</Grid.ColumnDefinitions>
-					<Button Grid.Row="0" Grid.Column="0" Click="bt_update_prop_Click">更新属性</Button>
-					<WindowsFormsHost Name="windowsFormsHost1" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
-						<my:PropertyGrid x:Name="pg_prot"></my:PropertyGrid>
-					</WindowsFormsHost>
+					<Button Grid.Row="0" Grid.Column="0">添加</Button>
+					<Button Grid.Row="0" Grid.Column="1">删除</Button>
+					<DataGrid Name="dg_roots_list" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
+						  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False">
+						<DataGrid.Columns>
+							<DataGridTextColumn Header="名称" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
+							<DataGridTextColumn Header="类型" Width="60" Binding="{Binding type}" IsReadOnly="True"/>
+						</DataGrid.Columns>
+					</DataGrid>
+				</Grid>
+			</GroupBox>
+			<GroupBox Grid.Row="1" Grid.Column="0">
+				<GroupBox.Header>
+					<TextBlock  Text ="文本协议" FontWeight="Bold"/>
+				</GroupBox.Header>
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="30"></RowDefinition>
+						<RowDefinition Height="1*"></RowDefinition>
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="2*"></ColumnDefinition>
+						<ColumnDefinition Width="2*"></ColumnDefinition>
+					</Grid.ColumnDefinitions>
+					<Button Grid.Row="0" Grid.Column="0">添加</Button>
+					<Button Grid.Row="0" Grid.Column="1">删除</Button>
+					<DataGrid Name="dg_text_switch" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
+						  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False">
+						<DataGrid.Columns>
+							<DataGridTextColumn Header="名称" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
+							<DataGridTextColumn Header="列数" Width="60" Binding="{Binding len}" IsReadOnly="True"/>
+						</DataGrid.Columns>
+					</DataGrid>
 				</Grid>
 			</GroupBox>
 		</Grid>
-		<Grid Grid.Row="1" Grid.Column="3" Grid.RowSpan="2">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="30"></RowDefinition>
-				<RowDefinition Height="30"></RowDefinition>
-				<RowDefinition Height="1*"></RowDefinition>
-			</Grid.RowDefinitions>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="2*"></ColumnDefinition>
-				<ColumnDefinition Width="2*"></ColumnDefinition>
-			</Grid.ColumnDefinitions>
-			<Label Grid.Row="0">参数列表：</Label>
-			<Button Grid.Row="1" Grid.Column="0" Click="bt_para_add_Click">添加</Button>
-			<Button Grid.Row="1" Grid.Column="1" Click="bt_para_del_Click">删除</Button>
-			<DataGrid Name="dg_para" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
+		<GroupBox Grid.Row="1" Grid.Column="1" Grid.RowSpan="2">
+			<GroupBox.Header>
+				<TextBlock  Text ="协议树" FontWeight="Bold"/>
+			</GroupBox.Header>
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="30"></RowDefinition>
+					<RowDefinition Height="1*"></RowDefinition>
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="2*"></ColumnDefinition>
+					<ColumnDefinition Width="3*"></ColumnDefinition>
+					<ColumnDefinition Width="2*"></ColumnDefinition>
+				</Grid.ColumnDefinitions>
+				<Button Grid.Row="0" Grid.Column="0" Click="bt_prot_add_Click">添加</Button>
+				<Button Grid.Row="0" Grid.Column="1" Click="bt_prot_addTop_Click">添加顶层节点</Button>
+				<Button Grid.Row="0" Grid.Column="2" Click="bt_prot_del_Click">删除</Button>
+				<TreeView Grid.Row="1" Name="tv_prot" Grid.Column="0" Grid.ColumnSpan="3" SelectedItemChanged="tv_prot_SelectedItemChanged" MouseDown="tv_prot_MouseDown" >
+					<TreeView.ItemTemplate>
+						<HierarchicalDataTemplate DataType="local:PEdit_Display" ItemsSource="{Binding sub}">
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="{Binding name}"></TextBlock>
+								<TextBlock Text="{Binding type}" Margin="5,0,0,0" Background="LightGreen"></TextBlock>
+								<TextBlock Text="{Binding len, StringFormat={}: {0}B}"></TextBlock>
+							</StackPanel>
+						</HierarchicalDataTemplate>
+					</TreeView.ItemTemplate>
+				</TreeView>
+			</Grid>
+		</GroupBox>
+		<GroupBox  Grid.Row="1" Grid.Column="2" Grid.RowSpan="2">
+			<GroupBox.Header>
+				<TextBlock  Text ="协议配置" FontWeight="Bold"/>
+			</GroupBox.Header>
+			<Grid Grid.Row="1" Grid.Column="3" Grid.RowSpan="2">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="30"></RowDefinition>
+					<RowDefinition Height="1*"></RowDefinition>
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="2*"></ColumnDefinition>
+					<ColumnDefinition Width="2*"></ColumnDefinition>
+				</Grid.ColumnDefinitions>
+				<Button Grid.Row="0" Grid.Column="0" Click="bt_update_prop_Click">更新属性</Button>
+				<WindowsFormsHost Name="windowsFormsHost1" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+					<my:PropertyGrid x:Name="pg_prot"></my:PropertyGrid>
+				</WindowsFormsHost>
+			</Grid>
+		</GroupBox>
+		<GroupBox Grid.Row="1" Grid.Column="3" Grid.RowSpan="2">
+			<GroupBox.Header>
+				<TextBlock  Text ="参数列表" FontWeight="Bold"/>
+			</GroupBox.Header>
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="30"></RowDefinition>
+					<RowDefinition Height="1*"></RowDefinition>
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="2*"></ColumnDefinition>
+					<ColumnDefinition Width="2*"></ColumnDefinition>
+				</Grid.ColumnDefinitions>
+				<Label Grid.Row="0">参数列表：</Label>
+				<Button Grid.Row="0" Grid.Column="0" Click="bt_para_add_Click">添加</Button>
+				<Button Grid.Row="0" Grid.Column="1" Click="bt_para_del_Click">删除</Button>
+				<DataGrid Name="dg_para" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" FontSize="14"  AutoGenerateColumns="False"
 					  CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" MouseDown="dg_para_MouseDown" SelectedCellsChanged="dg_para_SelectedCellsChanged">
-				<DataGrid.Columns>
-					<DataGridTextColumn Header="变量名" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
-					<DataGridTextColumn Header="类型" Width="40" Binding="{Binding type}" IsReadOnly="True"/>
-					<DataGridTextColumn Header="长度" Width="50" Binding="{Binding len}" IsReadOnly="True"/>
-				</DataGrid.Columns>
-			</DataGrid>
-		</Grid>
+					<DataGrid.Columns>
+						<DataGridTextColumn Header="变量名" Width="80" Binding="{Binding name}" IsReadOnly="True"/>
+						<DataGridTextColumn Header="类型" Width="40" Binding="{Binding type}" IsReadOnly="True"/>
+						<DataGridTextColumn Header="长度" Width="50" Binding="{Binding len}" IsReadOnly="True"/>
+					</DataGrid.Columns>
+				</DataGrid>
+			</Grid>
+		</GroupBox>
 	</Grid>
 </Window>

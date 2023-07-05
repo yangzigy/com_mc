@@ -71,7 +71,7 @@ namespace com_mc
 			{
 				commc.pro_obj = new CM_Plugin_Interface();
 			}
-			commc.pro_obj.ini(send_data, rx_pack); //无插件的情况，发送函数、接收函数
+			commc.pro_obj.ini(commc.mc_prot,send_data, rx_pack); //无插件的情况，发送函数、接收函数
 			commc.pro_obj.fromJson(Config.config.syn_pro); //帧同步部分初始化
 			//配置初始化指令
 			foreach (var item in Config.config.ctrl_cmds)
@@ -302,18 +302,30 @@ namespace com_mc
 		public void rx_fun(byte[] buf) //从数据源接收回调函数
 		{
 			rx_Byte_1_s += buf.Length;
-			commc.pro_obj.rx_fun(buf);
+			commc.pro_obj.rx_fun(buf); //给帧同步对象
 		}
 		public long ticks0 = DateTime.Now.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
-		public void rx_pack(byte[] b, int off, int n, int rootid) //从帧同步接收一包数据（二进制）
+		public void rx_pack(byte[] b, int off, int n, int rootid,bool is_inc) //帧同步对象回调：接收一包数据（二进制或文本）
 		{
+			var p = commc.mc_prot.text_root;
+			if (p != null && rootid == 0) p.pro(b, ref off, n); //文本的初步处理
 			var dop=Dispatcher.BeginInvoke((Action)(() => //给通用测控对象处理的同时做记录，最后同步
 			//Dispatcher.Invoke((Action)(() => //为了导出csv功能，单独回放一帧，阻塞等待结果
 			{
 				try
 				{
 					ticks0 = DateTime.Now.Ticks / 10000;//给传感变量刷新
-					commc.mc_prot.pro(b, off, n,rootid);
+					if (rootid == 0) //若是文本的
+					{
+						if (p == null) return;
+						p.pro(p.str_buf); //文本协议的处理，会把文本存在str_buf中
+					}
+					else if (is_inc)//如果是二进制的增量
+					{//commc.mc_prot.pro_inc(b, off, n); 
+					 //将此实体的参数更新到系统参数表中。
+						commc.mc_prot.after_inc(rootid);
+					}
+					else commc.mc_prot.pro_fix(b, off, n, rootid); //二进制的定长处理
 				}
 				catch (Exception ee)
 				{
@@ -321,17 +333,14 @@ namespace com_mc
 				}
 			}));
 			//此处记录与界面响应并行
-			var p = commc.mc_prot.prot_root_obj_list[rootid] as PD_LineSwitch;
 			switch (rec_mod)
 			{
-				case 1: rec_text.write(b, off, n); break;//纯文本记录: write为二进制的直接写入接口
-				case 2:
+				case 1: rec_text.write(b, off, n); break;//原始数据记录: write为二进制的直接写入接口
+				case 2://带时间戳文本记录
 					{
-						Encoding ed = Encoding.UTF8;
-						if (p != null) { ed = p.cur_encoding; } //若是文本协议，用协议描述中的编码器
-						string s = ed.GetString(b, off, n);
-						rec_text.log(s); //带时间戳的接口
-						break;//带时间戳文本记录
+						if (p == null) break;
+						rec_text.log(p.str_buf); //带时间戳的接口
+						break;
 					}
 				case 3: rec_bin_file.log_cmlog(b, off, n, rootid, p == null); break; //cmlog记录，输入协议族根节点号作为信道号，是否是二进制协议
 			}

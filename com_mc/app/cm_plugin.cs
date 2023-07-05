@@ -11,34 +11,27 @@ namespace com_mc
 	{
 		public delegate void TX_CB(byte[] b); //发送回调函数，主程序数据源接受任意格式二进制协议
 		//接收回调函数，主程序处理二进制协议，输入整个接收数组b、当前帧起始偏移off、帧长n，对应的协议族根节点号rootid
-		public delegate void RX_BIN_CB(byte[]b,int off,int n,int rootid);
+		public delegate void RX_BIN_CB(byte[]b,int off,int n,int rootid, bool is_inc);
 		public TX_CB tx_cb = null; //上位机向设备发送的回调函数
 		public RX_BIN_CB rx_bin_cb = null; //上位机接收设备信息的回调函数
 
-		public List<Sync_head> binsyn_list =new List<Sync_head>(); //帧同步对象，插件中也可以不用
+		public MC_Prot p_mcp = null; //动态协议对象的引用
 		public Sync_Line syn_line = null; //帧同步对象，插件中也可以不用
-		public virtual void ini(TX_CB tx,RX_BIN_CB  rx) //初始化，注册回调函数
+		public virtual void ini(MC_Prot pmc, TX_CB tx,RX_BIN_CB rx) //初始化，注册回调函数
 		{
+			p_mcp = pmc;
 			tx_cb = tx;
 			//rx_cb = rx;
 			rx_bin_cb = rx;
+			foreach(var it in p_mcp.prot_root_list) //为每个根节点帧同步对象的回调函数赋值
+			{
+				it.rx_bin_cb = rx_bin_cb;
+			}
 			//有插件，可做额外初始化
 			//……
 		}
 		public virtual void fromJson(Dictionary<string, object> v) //从配置初始化，在ini之后
 		{
-			binsyn_list.Clear();
-			if (v.ContainsKey("syn_bin")) //若有二进制
-			{
-				ArrayList list = v["syn_bin"] as ArrayList;
-				foreach (var item in list)
-				{
-					var syn_head = new Sync_head();
-					syn_head.fromJson(item as Dictionary<string, object>);
-					syn_head.rx_bin_cb = rx_bin_cb;
-					binsyn_list.Add(syn_head);
-				}
-			}
 			if (v.ContainsKey("syn_line")) //若有文本行
 			{
 				syn_line = new Sync_Line();
@@ -46,19 +39,10 @@ namespace com_mc
 				syn_line.rx_bin_cb = rx_bin_cb;
 				//syn_line.rx_bin_cb = line_rx_from_bin;
 			}
-			else if(binsyn_list.Count<=0)//若都没配置，使用默认的文本行模式
+			else if(p_mcp.prot_root_list.Count<=0)//若都没配置，使用默认的文本行模式
 			{
 				syn_line = new Sync_Line();
 				syn_line.rx_bin_cb = rx_bin_cb;
-			}
-			if(binsyn_list.Count > 0 && syn_line!=null) //若是二进制、文本兼容模式
-			{
-				//for (int i = 0; i < binsyn_list.Count - 1; i++) //依次调用各帧同步对象的失锁
-				//{
-				//	binsyn_list[i].lostlock = binsyn_list[i + 1].rec_byte;
-				//}
-				//binsyn_list[binsyn_list.Count - 1].lostlock = syn_line.rec_byte;
-				//binsyn_list[0].lostlock = syn_line.rec_byte;
 			}
 		}
 		public virtual void send_cmd(string s) //主程序发送指令
@@ -71,35 +55,12 @@ namespace com_mc
 		}
 		public virtual void rx_fun(byte[] buf) //接收数据函数
 		{
-			//无插件，做帧同步
-			if (binsyn_list.Count > 0) //二进制帧同步对象的处理
+			//无插件，做帧同步（有二进制就不用文本）
+			if (p_mcp.prot_root_list.Count > 0) //二进制帧同步对象的处理
 			{
-				//for (int i = 0; i < buf.Length; i++) //调用时失锁的部分自然给文本处理了
-				//{
-				//	binsyn_list[0].rec_byte(buf[i]);
-				//	//查看是否有对象同步上了
-				//	for(int j=0;j<binsyn_list.Count;j++)
-				//	{
-				//		if (binsyn_list[j].rec_p>0) //找到了这个锁定的对象
-				//		{ //把他挪到头部，并修改失锁回调链
-				//			var tmp = binsyn_list[j];
-				//			binsyn_list[j] = binsyn_list[0];
-				//			binsyn_list[0] = tmp;
-				//			var tf = binsyn_list[j].lostlock;
-				//			binsyn_list[j].lostlock = binsyn_list[0].lostlock;
-				//			binsyn_list[0].lostlock = tf;
-				//			break;
-				//		}
-				//	}
-				//}
-				//简单的做，就是所有对象，包括文本，都做
-				foreach (var item in binsyn_list)
-				{
-					item.pro(buf, 0, buf.Length);
-				}
-				if(syn_line!=null) syn_line.pro(buf, 0, buf.Length); //文本处理
+				p_mcp.pro_inc(buf,0,buf.Length);
 			}
-			else syn_line.pro(buf, 0, buf.Length); //文本处理
+			else syn_line.frame_syn_pro(buf, 0, buf.Length); //文本处理
 			//有插件，可进行协议转换
 			//……
 		}

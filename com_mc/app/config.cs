@@ -42,7 +42,7 @@ namespace com_mc
 		}
 //配置内容
 		//显示控制
-		public string title_str { get; set; } = "通用上位机V1.2.2"; //软件标题
+		public string title_str { get; set; } = "通用上位机V1.3.0"; //软件标题
 		public int dis_data_len { get; set; } = 1000; //显示数据长度
 		public int ctrl_cols { get; set; } = 2; //控制按钮默认2列
 		public int svar_ui_h { get; set; } = 0; //传感变量显示区高度，为0则为自动
@@ -51,7 +51,7 @@ namespace com_mc
 		public int mv_w { get; set; } = 0; //主窗体宽
 		public int mv_h { get; set; } = 0;//主窗体高
 		public int bt_margin { get; set; } = 2; //按钮间距
-		public string logfile_ext = "*.txt|*.txt|*.cmlog|*.cmlog"; //配置文件扩展名
+		public string logfile_ext = "带时间戳日志|*.ttlog;*.cmlog"; //配置文件扩展名
 		public Dictionary<string, object> syn_pro { get; set; } = new Dictionary<string, object>(); //帧同步处理
 		//数据结构
 		public Dictionary<string, object> para_cfg { get; set; } = new Dictionary<string, object>(); //参数配置

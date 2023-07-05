@@ -11,14 +11,14 @@ namespace com_mc
 	public interface Sync_interfase //帧同步接口
 	{
 		void fromJson(Dictionary<string, object> v); //初始化配置
-		void pro(byte[] b, int off, int n); //数据输入接口
-		int prot_root_id(int rootid = -1); //获取或设置本帧同步对象关联的协议族根节点的id（输入-1为查询，大于等于0为设置）
+		void frame_syn_pro(byte[] b, int off, int n); //数据输入接口
 	}
 	public enum CHECK_TYPE //数据包校验和的类型
 	{
 		none=0, //无校验
 		sum,crc16,modbuscrc //加和，crc-ccitt，modbus-crc
 	}
+#region 可配置帧同步库
 	public class Sync_head : Frame_Sync, Sync_interfase //帧头同步
 	{
 		public int ref_prot_root_id = 0; //关联的协议族根节点id，默认为0
@@ -78,12 +78,7 @@ namespace com_mc
 				}
 			}
 		}
-		public int prot_root_id(int rootid=-1) //获取或设置本帧同步对象关联的协议族根节点的id（输入-1为查询，大于等于0为设置）
-		{
-			if(rootid>=0) ref_prot_root_id = rootid;
-			return ref_prot_root_id;
-		}
-		public void pro(byte[] b, int off, int n)
+		public void frame_syn_pro(byte[] b, int off, int n)
 		{
 			for (int i = 0; i < n; i++)
 			{
@@ -110,7 +105,7 @@ namespace com_mc
 					if (sum != b[len - 1]) return 1;
 					break;
 				case CHECK_TYPE.crc16:
-					UInt16 crc=Tool.crc_ccitt(b, len-2);
+					UInt16 crc=Tool.crc_ccitt(b,0, len-2);
 					DATA_UNION d=new DATA_UNION();
 					d.du8=b[len-2];
 					d.du8_1=b[len - 1];
@@ -119,7 +114,7 @@ namespace com_mc
 				case CHECK_TYPE.modbuscrc:
 					break;
 			}
-			rx_bin_cb(b, 0, len, ref_prot_root_id);
+			rx_bin_cb(b, 0, len, ref_prot_root_id,false); //定长的调用，后级可直接调用协议实体的处理
 			return 0;
 		}
 		public override void lostlock_cb(byte b)
@@ -136,12 +131,7 @@ namespace com_mc
 		{
 			if (v.ContainsKey("prot_root_id")) ref_prot_root_id = (byte)(int)v["prot_root_id"]; //关联的协议族根节点id，默认为0
 		}
-		public int prot_root_id(int rootid = -1) //获取或设置本帧同步对象关联的协议族根节点的id（输入-1为查询，大于等于0为设置）
-		{
-			if (rootid >= 0) ref_prot_root_id = rootid;
-			return ref_prot_root_id;
-		}
-		public void pro(byte[] b, int off, int n)
+		public void frame_syn_pro(byte[] b, int off, int n)
 		{
 			for (int i = 0; i < n; i++)
 			{
@@ -150,75 +140,92 @@ namespace com_mc
 		}
 		public override bool pro_pack(byte[] b, int len)
 		{
-			rx_bin_cb(b, 0, len,ref_prot_root_id);
+			rx_bin_cb(b, 0, len,ref_prot_root_id,false);
 			return true;
 		}
 	}
-
+#endregion
 	public class Sync_Prot : Sync_interfase //增量动态协议帧同步
 	{
-		public byte[] rec_buff = new byte[256];
-		public int rec_p = 0;//偏移指示
-		public ProtDom rootpd = null; //本协议族根节点的引用
+		public byte[] rec_buff = new byte[1024 * 1024];
+		public int rec_p = 0;//偏移指示(输入数据的)
+		public int toff = 0; //偏移指示，处理数据的
+		public int ref_prot_root_id = 0; //关联的协议族根节点id，默认为0
+		public CM_Plugin_Interface.RX_BIN_CB rx_bin_cb = null;
+		public PD_Obj rootpd = null; //本协议族根实体的引用
+		public List<ParaValue> para_need_update = new List<ParaValue>(); //需要更新的参数列表
+		public Sync_Prot(PD_Obj pd)
+		{
+			rootpd = pd; //输入帧同步对象对应的根节点。
+			//遍历所有叶子节点，给叶子节点的参数列表赋值
+			set_para_update(rootpd);
+		}
+		public void set_para_update(ProtDom pd) //遍历所有叶子节点，给叶子节点的参数列表赋值
+		{
+			var pdo = pd as PD_Obj;
+			var pdn = pd as PD_Node;
+			if (pdo != null)
+			{
+				foreach (var item in pdo.prot_list) //如果是对象，就遍历他的所有子
+				{
+					set_para_update(item);
+				}
+			}
+			else if (pdn != null) //如果是节点，就给他赋值
+			{
+				pdn.para_need_update = para_need_update;
+			}
+		}
 		public void fromJson(Dictionary<string, object> v)
 		{
 			
 		}
-		public int prot_root_id(int rootid = -1) //获取或设置本帧同步对象关联的协议族根节点的id（输入-1为查询，大于等于0为设置）
-		{
-			return 0;
-		}
-		public void pro(byte[] b, int off, int n)
+		public void frame_syn_pro(byte[] b, int off, int n) //帧同步处理
 		{
 			for (int i = 0; i < n; i++) rec_byte(b[i + off]);
 		}
 		public void rec_byte(byte b)
 		{
 			int pback = 0; //回溯位置，在缓存中的偏移
-			int l = 0; //回溯长度
+			int back_n = 0; //回溯长度
 			while (true)
 			{
-
-				//if (rec_p < SYNC.Length)//正在寻找包头
-				//{
-				//	rec_buff[rec_p++] = b;
-				//	if (b != SYNC[rec_p - 1])//引导字错误
-				//	{
-				//		for (int i = 0; i < rec_p; i++) lostlock_cb(rec_buff[i]);
-				//		rec_p = 0;
-				//	}
-				//}
-				//else if (rec_p == pre_offset)//可以改变包长
-				//{
-				//	rec_buff[rec_p++] = b;
-				//	pack_len = pre_pack(rec_buff, rec_p);
-				//}
-				//else//正常接收数据包
-				//{
-				//	rec_buff[rec_p++] = b;
-				//	if (rec_p >= pack_len)
-				//	{
-				//		int r = 0;
-				//		try //若用户处理异常，不影响帧同步
-				//		{
-				//			r = pro_pack(rec_buff, pack_len); //调用处理函数
-				//		}
-				//		catch { }
-				//		if (r != 0) //若接收不正确
-				//		{
-				//			if (l == 0) //若还没开始回溯
-				//			{
-				//				l = rec_p - 1; //回溯长度,用rec_p可能大于pack_len
-				//			}
-				//			pback = 1; //回溯位置
-				//		}
-				//		rec_p = 0;
-				//	}
-				//}
-				if (l != 0) //若有回溯任务
+				rec_buff[rec_p++] = b;
+				int r = 0;
+				try //若用户处理异常，不影响帧同步
+				{
+					r = rootpd.pro(rec_buff, ref toff, rec_p-toff); //调用对应协议族的根节点
+				}
+				catch { }
+				if (r == 2) //若接收不正确
+				{
+					para_need_update.Clear();
+					rootpd.reset_state(); //没错的域没有被复位，这里统一复位
+					if (back_n == 0) //若还没开始回溯
+					{
+						back_n = rec_p - 1; //回溯长度
+					}
+					pback = 1; //回溯位置
+					toff = 0;
+					rec_p = 0;
+				}
+				if(r==0) //若正确接收
+				{
+					//首先调用rx函数，记录
+					rx_bin_cb(rec_buff,0,rec_p, ref_prot_root_id,true); //增量输入，已经解析完成了，后级只需更新参数即可
+					para_need_update.Clear();
+					//恢复状态
+					toff = 0;
+					rec_p = 0;
+					rootpd.reset_state(); //正确接收以后内部复位，此处保险
+				}
+				else //若没有接收完成
+				{
+				}
+				if (back_n != 0) //若有回溯任务
 				{
 					b = rec_buff[pback];
-					pback++; l--;
+					pback++; back_n--;
 				}
 				else return;
 			}

@@ -108,14 +108,14 @@ namespace cslib
 			0x6E17,0x7E36,0x4E55,0x5E74,0x2E93,0x3EB2,0x0ED1,0x1EF0
 		};
 		static public UInt16 crc_ccitt_start_value = 0; //初始值
-		static public UInt16 crc_ccitt(byte[] p, int n)
+		static public UInt16 crc_ccitt(byte[] p,int off, int n)
 		{
 			UInt16 crc;
 			int i;
 			crc = crc_ccitt_start_value; //初始值
 			for (i = 0; i < n; i++)
 			{
-				crc = (UInt16)((crc << 8) ^ crc_ccitt_tab[((crc >> 8) ^ p[i]) & 0x00FF]);
+				crc = (UInt16)((crc << 8) ^ crc_ccitt_tab[((crc >> 8) ^ p[i+off]) & 0x00FF]);
 			}
 			return crc;
 		}

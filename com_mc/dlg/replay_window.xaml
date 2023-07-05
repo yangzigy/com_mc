@@ -49,9 +49,9 @@
 							</DataTemplate>
 						</DataGridTemplateColumn.CellTemplate>
 					</DataGridTemplateColumn>-->
-					<DataGridTextColumn Header="信道" Binding="{Binding vir}" Width="34"/>
-					<DataGridTextColumn Header="帧数" Binding="{Binding frame_n}" Width="50"/>
-					<DataGridTextColumn Header="长度" Binding="{Binding len}" Width="50"/>
+					<DataGridTextColumn Header="信道" Binding="{Binding vir}" Width="34" IsReadOnly="True"/>
+					<DataGridTextColumn Header="帧数" Binding="{Binding frame_n}" Width="50" IsReadOnly="True"/>
+					<DataGridTextColumn Header="长度" Binding="{Binding len}" Width="50" IsReadOnly="True"/>
 				</DataGrid.Columns>
 			</DataGrid>
 		</Grid>
@@ -123,7 +123,7 @@
 				<Button FontSize="16" Click="bt_replay_cur_Click">回放当前帧</Button>
 			</StackPanel>
 			<TextBox Grid.Row="3" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible" Name="tb_org_text"
-					 HorizontalContentAlignment="Left" MouseWheel="tb_org_text_MouseWheel"></TextBox>
+					 HorizontalContentAlignment="Left" PreviewMouseWheel="tb_org_text_MouseWheel"></TextBox>
 		</Grid>
 	</Grid>
 </Window>

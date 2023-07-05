@@ -1,0 +1,46 @@
+{ 
+	"prot_roots": ["ROOT_aa","ROOT_eb"], //协议族根节点配置，注意先后顺序
+
+	"struct_dict": //协议域字典
+	{ //在外边直接定义的默认是结构体，不用写obj出来
+		"aa":{"type":"check","mode":"fix8","str_type":"hex","fix":"aa"},
+		"eb":{"type":"check","mode":"fix16","str_type":"hex","fix":"02eb"},
+		"crc":{"type":"check","mode":"crc16"},
+		"S_AA01": { "prot_list": //01包
+		[
+			"aa", {"type":"u8"},
+			{"type":"s16","ref_name":"电压","pro_k":0.1,"skip_n":2},
+			{"type":"s16","ref_name":"电流","pro_k":0.1},
+			{"type":"u16","ref_name":"强度","pro_k":0.1},
+			{"type":"s16","ref_name":"期望温度","pro_k":0.1},
+			{"type":"s16","ref_name":"温度","pro_k":0.1,"skip_n":1},
+			{"type":"u32","ref_name":"模式","bit_st":9,"bit_len":2,"skip_n":-4},
+			{"type":"u32","ref_name":"输出","bit_st":6,"bit_len":1,"skip_n":-4},
+			{"type":"u32","ref_name":"温控","bit_st":15,"bit_len":1,"skip_n":-1},
+			"crc"
+		]},
+		"02_sw_1":{"type":"u8","ref_name":"指令结果"},
+		"02_sw_2":{"type":"u16","ref_name":"i_off","pro_k":0.1},
+		"pt":{"type":"u8"}, //1或2
+		"02_loop_obj_sw":{"type":"sw","ref_type":"../pt","prot_map":
+			{ "1":"02_sw_1", "2":"02_sw_2" }},
+		"S_AA02": { "prot_list": //02包
+		[
+			"aa", {"type":"u8"},
+			{"type":"loop","loop_n":2,"prot_list": [ "pt","02_loop_obj_sw" ]},
+			"crc" 
+		]},
+	//根节点的分支选择
+		"aa_sw":{"ref_type":"../_1","skip_n":-2,"prot_map":
+			{"1":"S_AA01","2":"S_AA02"}},
+	//aa根节点（实现协议帧选择）
+		"ROOT_aa":{"prot_list":["aa",{"type":"u8"},"aa_sw"]},
+	//eb根节点（实现协议帧选择）
+		"ROOT_eb":{"prot_list":
+		[
+			"eb",
+			{"type":"loop","loop_n":2,"prot_list": [ "pt","02_loop_obj_sw" ]},
+			"crc" 
+		]}
+	}
+}

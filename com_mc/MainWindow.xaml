@@ -30,9 +30,9 @@
 							<RowDefinition></RowDefinition>
 							<RowDefinition></RowDefinition>
 						</Grid.RowDefinitions>
-						<RadioButton Grid.Row="0" Name="rb_rec_text">纯文本</RadioButton>
-						<RadioButton Grid.Row="1" Name="rb_rec_timetext" IsChecked="True">带时间戳文本</RadioButton>
-						<RadioButton Grid.Row="2" Name="rb_rec_cmlog">cmlog</RadioButton>
+						<RadioButton Grid.Row="0" Name="rb_rec_org">原始数据(org)</RadioButton>
+						<RadioButton Grid.Row="1" Name="rb_rec_timetext" IsChecked="True">带时间戳文本(ttlog)</RadioButton>
+						<RadioButton Grid.Row="2" Name="rb_rec_cmlog">带时间戳文本二进制混合(cmlog)</RadioButton>
 					</Grid>
 				</GroupBox>
 			</MenuItem>
@@ -133,7 +133,8 @@
 			</Grid.RowDefinitions>
 			<WindowsFormsHost Grid.Row="0" Name="mainFGrid" Margin="0,0,0,0">
 				<Chr:Chart Name="myChart" CursorPositionChanged="Chart_CursorPositionChanged"
-						   MouseMove="Chart_MouseMove" MouseWheel="Chart_MouseWheel" MouseDown="Chart_MouseDown" MouseUp="Chart_MouseUp">
+						   MouseMove="Chart_MouseMove" MouseWheel="Chart_MouseWheel"
+						   MouseDown="Chart_MouseDown" MouseUp="Chart_MouseUp">
 					<Chr:Chart.Annotations>
 						<Chr:TextAnnotation/>
 					</Chr:Chart.Annotations>

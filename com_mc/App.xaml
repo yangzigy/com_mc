@@ -67,7 +67,11 @@
 					</Setter.Value>
 				</Setter>
 			</Style>
-			<!--<Style TargetType="{x:Type ToggleButton}"></Style>-->
+			<Style TargetType="{x:Type GroupBox}">
+				<Setter Property="BorderThickness" Value="2,2,2,2" />
+				<Setter Property="BorderBrush" Value="#FFA9AAAF" />
+				<Setter Property="Foreground" Value="#FF517FE1" />
+			</Style>
 			<Style TargetType="{x:Type TextBox}">
 				<Setter Property="VerticalContentAlignment" Value="Center" />
 				<Setter Property="HorizontalContentAlignment" Value="Right"/>

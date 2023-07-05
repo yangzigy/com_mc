@@ -1,0 +1,28 @@
+{
+	"tl_root": {"prot_list":["tl0","tl1","tl2"]},
+	"struct_dict":
+	{
+		"tl0":{"col_n":8,"prot_list":
+		[
+			{"ref_name":"电压","skip_n":1},
+			{"ref_name":"电流"},
+			{"ref_name":"强度"},
+			{"ref_name":"期望温度"},
+			{"ref_name":"温度","skip_n":1},
+			{"ref_name":"模式","str_type":"hex","bit_st":9,"bit_len":2,"skip_n":-1},
+			{"ref_name":"输出","str_type":"hex","bit_st":6,"bit_len":1,"skip_n":-1},
+			{"ref_name":"温控","str_type":"hex","bit_st":15,"bit_len":1}
+		]},
+		"空":{},
+		"tl1":{"col_n":2,"head":"$r","prot_list":
+		[
+			"空",
+			{"ref_name":"指令结果"}
+		]},
+		"tl2":{"col_n":2,"head":"$@:3:1:0:16","prot_list":
+		[
+			"空",
+			{"ref_name":"i_off","pro_k":0.1}
+		]}
+	}
+}

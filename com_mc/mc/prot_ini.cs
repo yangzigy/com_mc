@@ -7,7 +7,7 @@ using System.Web.Script.Serialization;
 using System.IO;
 using System.Windows;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
-using System.Windows.Markup.Localizer;
+using cslib;
 
 namespace com_mc
 {
@@ -81,15 +81,18 @@ namespace com_mc
 			ArrayList list = v["prot_list"] as ArrayList;
 			foreach (var item in list)
 			{
-				string s=item as string; //直接给了这个协议域的名称，需要是之前定义过的，在结构列表中找。
+				string s = item as string; //直接给了这个协议域的名称，需要是之前定义过的，在结构列表中找。
 				var tv = item as JD;
-				if(tv != null) //若是直接在此定义了简短的协议域
-				{
-					if (tv.ContainsKey("name")) s = tv["name"] as string; //若有指定名称
-					else s = string.Format("_{0}", prot_list.Count); //_2的形式，生成默认成员名称
+				if (tv == null) //若是定义的复用的结构，
+				{ //此时应该把结构名变成实体名，否则多个同结构实体会重名。把JD复制一遍，去掉name
+					tv = p_mcp.struct_dict[s] as JD;
+					tv = Tool.jd_clone(tv) as JD;
+					tv.Remove("name");
 				}
-				else tv = p_mcp.struct_dict[s] as JD; //若是定义的复用的结构
-				var p=gennerate_sub(s, tv); //递归生成子节点
+				//else //若是把子协议域直接写出来，则tv已经有东西了
+				if (tv.ContainsKey("name")) s = tv["name"] as string; //若有指定名称
+				else s = string.Format("_{0}", prot_list.Count); //_2的形式，生成默认成员名称
+				var p=gennerate_sub(s, tv); //递归生成子节点，s为名称
 				var tp = p as PD_Node;
 				if (tp != null) //若是叶子节点
 				{
@@ -111,12 +114,17 @@ namespace com_mc
 		}
 		public ProtDom get_pd(string path) //根据相对路径获取协议域引用
 		{
+			int i = 0;
 			int ind = path.IndexOf('/');
 			if (ind < 0)
 			{
 				if (prot_dict.ContainsKey(path)) //若直接就是本级路径
 				{
 					return prot_dict[path];
+				}
+				else if (path.StartsWith("_") && int.TryParse(path.Substring(1), out i)) //如果是_2的形式，可以直接提取数字
+				{
+					return prot_list[i];
 				}
 				throw new Exception(string.Format("路径错误:{0}:{1}",name,path));
 			}
@@ -125,6 +133,13 @@ namespace com_mc
 			else if(prot_dict.ContainsKey(ts)) //若是子节点
 			{
 				return (prot_dict[ts] as PD_Obj).get_pd(path.Substring(ind+1));
+			}
+			else if(ts.StartsWith("_")) //如果是_2的形式，可以直接提取数字
+			{
+				if(int.TryParse(ts.Substring(1), out i))
+				{
+					return (prot_list[i] as PD_Obj).get_pd(path.Substring(ind + 1));
+				}
 			}
 			throw new Exception(string.Format("路径错误:{0}:{1}", name, path));
 		}
@@ -185,7 +200,7 @@ namespace com_mc
 	{
 		public JD struct_dict = new JD(); //用结构名称查询结构字典，用于结构复用
 
-		public Dictionary<string, ParaValue> para_dict = new Dictionary<string, ParaValue>(); //参数字典
+		public Dictionary<string, ParaValue> para_dict = new Dictionary<string, ParaValue>(); //自己用的参数字典
 		public Dictionary<string, ParaValue> para_dict_out = new Dictionary<string, ParaValue>(); //输出的参数字典
 
 		public List<Sync_Prot> prot_root_list = new List<Sync_Prot>(); //协议族根节点列表，树形组织所有实体。直接用帧同步对象来做引用（在cmlog日志中id从1开始）
@@ -217,7 +232,7 @@ namespace com_mc
 				foreach (var item in struct_dict) //把name给到字典里
 				{
 					var tv = item.Value as JD;
-					tv["name"] = item.Key;
+					if(!tv.ContainsKey("name")) tv["name"] = item.Key;
 				}
 				if (v.ContainsKey("prot_roots"))
 				{

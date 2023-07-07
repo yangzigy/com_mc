@@ -13,6 +13,7 @@ using System.Web.Script.Serialization;
 
 namespace cslib
 {
+	using JD = Dictionary<string, object>;
 	public static class Tool
 	{
 		//struct转换为byte[]
@@ -266,9 +267,9 @@ namespace cslib
 		}
 		static public void dictinary_update(ref object old, object v) //用新的值更新原来的字典
 		{
-			var objv = v as Dictionary<string, object>;
+			var objv = v as JD;
 			var arrv = v as ArrayList;
-			var objold=old as Dictionary<string, object>;
+			var objold=old as JD;
 			var arrold = old as ArrayList;
 			int type_v = 0; //0为值，1为对象，2为数组
 			int type_old = 0; //0为值，1为对象，2为数组
@@ -302,6 +303,34 @@ namespace cslib
 				arrold.AddRange(arrv);
 			}
 		}
+		//json字典的深度复制，结构会深度复制，叶子节点的内容不一定，例如string不会，int会
+		static public object jd_clone(object v) //输入为本节点名称，JD、叶子节点（string int等）、arraylist
+		{
+			var arrv = v as ArrayList;
+			var vobj = v as JD;
+			if (arrv != null) //若是数组
+			{
+				var newarr = new ArrayList();
+				foreach (var item in arrv)
+				{
+					//首先判断是否有子节点
+					var tv = jd_clone(item);
+					newarr.Add(tv);
+				}
+				return newarr;
+			}
+			else if (vobj != null) //若是字典
+			{
+				JD jout = new JD();
+				foreach (var item in vobj)
+				{
+					var tv = jd_clone(item.Value);
+					jout[item.Key] = tv;
+				}
+				return jout;
+			}
+			else return v; //若是节点
+		}
 		static public string relPath_2_abs(string basefn,string fn) //相对路径转绝对路径,输入基准路径、待转换路径
 		{
 			if (fn.IndexOf(":") <= 0 && (!fn.StartsWith("/"))) //若不是绝对路径
@@ -315,7 +344,7 @@ namespace cslib
 		{
 			return (uint)(DateTime.Now - new DateTime(1970, 1, 1)).TotalSeconds;
 		}
-		static public T json_get<T>(Dictionary<string, object> dict, string s, T dft) //获得对象，若不存在，则取默认值
+		static public T json_get<T>(JD dict, string s, T dft) //获得对象，若不存在，则取默认值
 		{
 			if (dict.ContainsKey(s))
 			{
@@ -452,7 +481,7 @@ namespace cslib
 	public abstract class DataSrc //数据源
 	{
 		static public JavaScriptSerializer json_ser = new JavaScriptSerializer();
-		static public DataSrc factory(Dictionary<string, object> v,RX_CB cb) //简单工厂
+		static public DataSrc factory(JD v,RX_CB cb) //简单工厂
 		{
 			string s = (string)v["type"];
 			Type t = Type.GetType("cslib.DataSrc_" + s); //数据源类的命名规则
@@ -468,7 +497,7 @@ namespace cslib
 		{
 			rx_event = cb;
 		}
-		virtual public void fromDict(Dictionary<string, object> v) //从配置加载数据源对象
+		virtual public void fromDict(JD v) //从配置加载数据源对象
 		{
 			if(v.ContainsKey("name")) name = (string)v["name"];
 		}
@@ -496,7 +525,7 @@ namespace cslib
 		public bool is_open = false; //是否在开的状态，若关闭，也不用重连了
 		public IPEndPoint rmt_addr = new IPEndPoint(0, 0); //接收到数据后，对方的地址
 		public DataSrc_udp(RX_CB cb) : base(cb) { }
-		public override void fromDict(Dictionary<string, object> v)
+		public override void fromDict(JD v)
 		{
 			base.fromDict(v);
 			cfg.ip = (string)v["ip"];
@@ -599,7 +628,7 @@ namespace cslib
 				rx_event(buf);
 			};
 		}
-		public override void fromDict(Dictionary<string, object> v)
+		public override void fromDict(JD v)
 		{
 			base.fromDict(v);
 			if (v.ContainsKey("uart_b")) uart_b = (int)v["uart_b"];

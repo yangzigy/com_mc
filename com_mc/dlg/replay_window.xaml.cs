@@ -13,7 +13,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Xml.Linq;
-using com_mc.dlg;
 using cslib;
 
 namespace com_mc
@@ -185,7 +184,7 @@ namespace com_mc
 		}
 		public void export_org() //导出为原始数据
 		{
-			save_file("*.txt|*.txt|*.dat|*.dat", () => rplobj.export_org().ToArray() );
+			save_file("*.org|*.org", () => rplobj.export_org().ToArray() );
 		}
 		public void export_cmlog() //将当前选中的数据导出成cmlog格式
 		{
@@ -193,7 +192,7 @@ namespace com_mc
 		}
 		public void export_timetext() //将当前选中的数据导出成带时间戳文本格式
 		{
-			save_file("*.txt|*.txt", () => rplobj.export_timetext().ToArray() );
+			save_file("*.ttlog|*.ttlog", () => rplobj.export_timetext().ToArray() );
 		}
 		public void export_csv() //将当前选中的数据导出成csv
 		{

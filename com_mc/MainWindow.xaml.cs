@@ -597,5 +597,23 @@ namespace com_mc
 			pre_left.X = -1; //变为无效
 		}
 #endregion
+#region 工具click
+		private void mi_log_tools_Click(object sender, RoutedEventArgs e) //日志数据格式转换
+		{
+			FrameworkElement fe = sender as FrameworkElement;
+			switch (fe.Tag)
+			{
+				case "cmlog_time": //cmlog修改基准时间戳
+					Log_Tools.fun_cmlog_time();
+					break;
+				case "hex2bin": //hex原始数据转二进制
+					Log_Tools.fun_hex2bin();
+					break;
+				case "bin2text": //二进制原始数据转文本
+					Log_Tools.fun_bin2text();
+					break;
+			}
+		}
+#endregion
 	}
 }

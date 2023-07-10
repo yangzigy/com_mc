@@ -241,7 +241,7 @@ namespace com_mc
 					foreach (var item in li) //对于每一个根
 					{
 						string s = item as string;
-						PD_Obj obj = factory(struct_dict[s] as Dictionary<string, object>, void_obj) as PD_Obj; //根节点递归建立
+						PD_Obj obj = factory(struct_dict[s] as JD, void_obj) as PD_Obj; //根节点递归建立
 						if (obj == null) throw new Exception("根节点不是obj");
 						prot_root_list.Add(new Sync_Prot(obj)); //建立帧同步对象
 						prot_root_list[prot_root_list.Count - 1].ref_prot_root_id = prot_root_list.Count; //给参考通道号赋值
@@ -250,7 +250,7 @@ namespace com_mc
 			//4、初始化文本协议
 				if(v.ContainsKey("tl_root"))
 				{
-					var tv = v["tl_root"] as Dictionary<string, object>;
+					var tv = v["tl_root"] as JD;
 					tv["type"] = "text";
 					text_root = factory(tv, void_obj) as PD_LineSwitch;
 					//由于文本协议不是增量输入，所以构建完成后，需要把协议域所引用的参数改成para_dict_out
@@ -294,7 +294,7 @@ namespace com_mc
 			List<string> rootlist, //3、二进制根节点名称列表
 			List<string> textlinelist) //4、文本行协议列表
 		{
-			Dictionary<string, object> v = new Dictionary<string, object>();
+			JD v = new JD();
 		//1、参数字典
 			var t = new ArrayList();
 			foreach (var item in para_d)

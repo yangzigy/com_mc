@@ -97,6 +97,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="app\cm_plugin.cs" />
+    <Compile Include="app\log_tools.cs" />
     <Compile Include="dlg\com_dlg.xaml.cs">
       <DependentUpon>com_dlg.xaml</DependentUpon>
     </Compile>

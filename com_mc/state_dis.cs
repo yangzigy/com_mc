@@ -71,7 +71,7 @@ namespace com_mc
 			{
 				commc.pro_obj = new CM_Plugin_Interface();
 			}
-			commc.pro_obj.ini(commc.mc_prot,send_data, rx_pack); //无插件的情况，发送函数、接收函数
+			commc.pro_obj.ini(commc.mc_prot,send_data, rx_pack); //注册发送函数、接收函数
 			commc.pro_obj.fromJson(Config.config.syn_pro); //帧同步部分初始化
 			//配置初始化指令
 			foreach (var item in Config.config.ctrl_cmds)

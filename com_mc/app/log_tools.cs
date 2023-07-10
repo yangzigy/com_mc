@@ -146,8 +146,7 @@ namespace com_mc
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
 			string fin = ofd.FileName;
 			string fout = Path.GetDirectoryName(ofd.FileName) + "/" +
-							Path.GetFileNameWithoutExtension(fin) + "_m" +
-							Path.GetExtension(fin);
+							Path.GetFileNameWithoutExtension(fin) + "_m.txt";
 
 			Com_Dlg cdlg = new Com_Dlg(); //获取输入的对话框
 			Grid subgrid = new Grid(); //控件容器
@@ -275,10 +274,10 @@ namespace com_mc
 						case 5: s += string.Format("{0} ", (Int16)Tool.BytesToStruct(org_data, ind, typeof(Int16))); break; //s16
 						case 6: s += string.Format("{0} ", (Int32)Tool.BytesToStruct(org_data, ind, typeof(Int32))); break; //s32
 						case 7: s += string.Format("{0} ", (Int64)Tool.BytesToStruct(org_data, ind, typeof(Int64))); break; //s64
-						case 8: s += string.Format("{0:X00} ", org_data[ind]); break; //hex8
-						case 9: s += string.Format("{0:X00} ", (UInt16)Tool.BytesToStruct(org_data, ind, typeof(UInt16))); break; //hex16
-						case 10: s += string.Format("{0:X00} ", (UInt32)Tool.BytesToStruct(org_data, ind, typeof(UInt32))); break; //hex32
-						case 11: s += string.Format("{0:X00} ", (UInt64)Tool.BytesToStruct(org_data, ind, typeof(UInt64))); break; //hex64
+						case 8: s += string.Format("{0:X02} ", org_data[ind]); break; //hex8
+						case 9: s += string.Format("{0:X04} ", (UInt16)Tool.BytesToStruct(org_data, ind, typeof(UInt16))); break; //hex16
+						case 10: s += string.Format("{0:X08} ", (UInt32)Tool.BytesToStruct(org_data, ind, typeof(UInt32))); break; //hex32
+						case 11: s += string.Format("{0:X016} ", (UInt64)Tool.BytesToStruct(org_data, ind, typeof(UInt64))); break; //hex64
 						case 12: s += string.Format("{0} ", (float)Tool.BytesToStruct(org_data, ind, typeof(float))); break; //float
 						case 13: s += string.Format("{0} ", (double)Tool.BytesToStruct(org_data, ind, typeof(double))); break; //double
 						default: continue;

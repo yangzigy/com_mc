@@ -22,7 +22,7 @@
 		"02_sw_1":{"type":"u8","ref_name":"指令结果"},
 		"02_sw_2":{"type":"u16","ref_name":"i_off","pro_k":0.1},
 		"pt":{"type":"u8"}, //1或2
-		"02_loop_obj_sw":{"type":"sw","ref_type":"../pt","prot_map":
+		"02_loop_obj_sw":{"type":"sw","ref_type":"../_0","prot_map":
 			{ "1":"02_sw_1", "2":"02_sw_2" }},
 		"S_AA02": { "prot_list": //02包
 		[

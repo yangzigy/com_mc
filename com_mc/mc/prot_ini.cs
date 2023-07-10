@@ -216,7 +216,7 @@ namespace com_mc
 			void_v["type"] = "obj";
 			void_obj = factory(void_v, null) as PD_Obj;
 			void_obj.p_mcp = this; //主要就为了给这个赋值
-			//try
+			try
 			{
 			//1、最先初始化参数字典，后边协议初始化要引用
 				ArrayList list = v["para_dict"] as ArrayList;
@@ -267,8 +267,9 @@ namespace com_mc
 					}
 				}
 			}
-			//catch (Exception e)
+			catch (Exception e)
 			{
+				MessageBox.Show("message: " + e.Message);
 			}
 		}
 		public JD toJson() //使用json保存当前配置

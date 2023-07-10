@@ -25,7 +25,7 @@ namespace com_mc
 			InitializeComponent();
 			mgrid = grid_main;
 		}
-		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+		public void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
 			e.Cancel = true;
 			Visibility = Visibility.Hidden;

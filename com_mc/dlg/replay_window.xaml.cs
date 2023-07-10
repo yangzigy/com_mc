@@ -229,6 +229,8 @@ namespace com_mc
 				try
 				{
 					MainWindow.mw.commc.mc_prot = para_prot; //把软件中用的协议对象替换掉，借用软件的数据流
+					MainWindow.mw.commc.pro_obj.ini(para_prot, MainWindow.mw.send_data, MainWindow.mw.rx_pack); //注册发送函数、接收函数
+
 					for (int i = rplobj.replay_st; i < rplobj.replay_end; i++)
 					{
 						//首先清空所有变量的标志
@@ -266,6 +268,7 @@ namespace com_mc
 				finally
 				{
 					MainWindow.mw.commc.mc_prot = tmp_commc_prot; //把软件中用的协议对象换回来
+					MainWindow.mw.commc.pro_obj.ini(tmp_commc_prot, MainWindow.mw.send_data, MainWindow.mw.rx_pack); //注册发送函数、接收函数
 				}
 				byte[] b = Encoding.UTF8.GetBytes(s);
 				return b;

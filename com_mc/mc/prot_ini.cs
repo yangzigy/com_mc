@@ -49,8 +49,9 @@ namespace com_mc
 			if(v.ContainsKey("ref_name"))
 			{
 				ref_name = (string)v["ref_name"];
-				if (!p_mcp.para_dict.ContainsKey(ref_name)) throw new Exception("无此参数："+ref_name); //引用的参数不对
-				ref_para = p_mcp.para_dict[ref_name]; //参数表先于协议加载
+				//引用参数不对不能崩，只能添加到错误列表
+				if (!p_mcp.para_dict.ContainsKey(ref_name)) { }// throw new Exception("无此参数："+ref_name); //引用的参数不对
+				else ref_para = p_mcp.para_dict[ref_name]; //参数表先于协议加载
 				return;
 			}
 			//没有引用参数，说明是协议内部结构数据

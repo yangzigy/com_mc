@@ -75,6 +75,25 @@ namespace com_mc
 				}
 			//2、构造结构定义
 				struct_dict = v["struct_dict"] as JD;
+				//这里需要给每个顶层结构都实例化一下
+				MC_Prot tmcp = new MC_Prot();
+				//先构造一个空的obj
+				JD void_v = new JD();
+				void_v["type"] = "obj";
+				PD_Obj void_obj = MC_Prot.factory(void_v, null) as PD_Obj;
+				void_obj.p_mcp = tmcp; //主要就为了给这个赋值
+				tmcp.struct_dict = struct_dict;
+				foreach (var item in struct_dict) //把name给到字典里
+				{
+					var tv = item.Value as JD;
+					if (!tv.ContainsKey("name")) tv["name"] = item.Key;
+					MC_Prot.prot_json_set_type(tv);
+					try //根节点引用的顶层switch是必然报错的，因为引用路径带有相对结构
+					{
+						var obj = MC_Prot.factory(item.Value as JD, void_obj); //顶层节点初始化但不使用，就为了让他把配置json补齐
+					}
+					catch { }
+				}
 			//3、根节点初始化
 				rootlist.Clear();
 				if (v.ContainsKey("prot_roots"))
@@ -99,9 +118,9 @@ namespace com_mc
 					}
 				}
 			}
-			catch (Exception ex) 
+			catch (Exception ex)
 			{
-				MessageBox.Show(ex.Message,"加载错误");
+				MessageBox.Show(ex.Message, "加载错误");
 			}
 			update_paralist_display(); //首先刷新参数字典
 			update_protlist_display(); //刷新协议域
@@ -219,9 +238,9 @@ namespace com_mc
 							object jsprot = Tool.load_json_from_file<Dictionary<string, object>>(ofd.FileName);
 							Tool.dictinary_update(ref jsprot, jspara); //更新配置
 							//从文件来的是省略json域的，需要实例化一下，然后再转换回来
-							MC_Prot tmcp = new MC_Prot();
-							tmcp.fromJson(jsprot as JD);
-							jsprot = tmcp.toJson();
+							//MC_Prot tmcp = new MC_Prot();
+							//tmcp.fromJson(jsprot as JD); //这样不够，因为只有根节点下边被实例化补充了，而协议显示编辑并不用根节点。
+							//jsprot = tmcp.toJson();
 							load_prot_from_json(jsprot as JD);
 							Title = "Prot_Cfg_Window - "+ System.IO.Path.GetFileNameWithoutExtension(ofd.FileName);
 						}

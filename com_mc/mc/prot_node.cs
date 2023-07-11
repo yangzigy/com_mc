@@ -31,7 +31,8 @@ namespace com_mc
 			if (v.ContainsKey("skip_n")) skip_n = (int)v["skip_n"];
 			len = DATA_UNION.get_type_len((DataType)type);
 			//更新输入结构
-			v["len"] = len;
+			if (len != 0 || (!v.ContainsKey("len"))) v["len"] = len; //说明是知名结构，配置的len无效；或没配过
+			len=(int)v["len"]; //此时配置一定有且是对的
 		}
 		//输入二进制值 处理成对应的类型后变换，然后根据输出类型，构造对应的二进制数，若有浮点变整型，需要四舍五入，通过set_val二进制接口传出  
 		public override int pro(byte[] b, ref int off, int n)  //n:off之后还有多长，off：数据起始位置

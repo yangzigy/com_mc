@@ -31,24 +31,11 @@ namespace com_mc
 		public ImageBrush resume_bkimg = new ImageBrush(); //恢复图标
 		public ImageBrush suspend_bkimg = new ImageBrush(); //暂停图标
 		public Dictionary<string, CRpl_Para_Info> para_info_dict = new Dictionary<string, CRpl_Para_Info>(); //所有测量量的显示
-		public Com_Dlg export_csv_dlg=new Com_Dlg(); //导出csv对话框
-		ScrollViewer sv_csvdlg = new ScrollViewer(); //导出csv对话框中的ScrollViewer
-		StackPanel sp_csvdlg = new StackPanel(); //导出csv对话框中的StackPanel
+		
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
 			resume_bkimg.ImageSource = new BitmapImage(new Uri("pack://application:,,,/pic/3.PNG"));
 			suspend_bkimg.ImageSource = new BitmapImage(new Uri("pack://application:,,,/pic/3.1.PNG"));
-
-			sp_csvdlg.Orientation=Orientation.Vertical; //垂直排布
-			sv_csvdlg.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-			sv_csvdlg.Content = sp_csvdlg;
-			export_csv_dlg.grid_main.Children.Add(sv_csvdlg);
-			Grid.SetColumn(sv_csvdlg, 0);
-			Grid.SetRow(sv_csvdlg, 0);
-			Grid.SetRowSpan(sv_csvdlg, 2);
-			export_csv_dlg.Height = 500;
-			export_csv_dlg.Width = 300;
-			export_csv_dlg.Title = "选择导出的变量";
 			//加载新的回放文件
 			new_file_loaded();
 		}
@@ -77,19 +64,6 @@ namespace com_mc
 			if (rplobj.is_bin) //若是文本的，没有更新选择按钮
 			{
 				bt_update_vir.IsEnabled= true;
-			}
-			//加载所有协议的参数
-			sp_csvdlg.Children.Clear();
-			para_info_dict.Clear();
-			foreach (var item in MainWindow.mw.commc.dset)
-			{
-				CRpl_Para_Info info = new CRpl_Para_Info();
-				info.cb = new CheckBox();
-				info.cb.Content = item.Value.name;
-				info.cb.Background = Brushes.LightCoral;
-				info.cb.Margin = new Thickness(2, 2, 2, 0);
-				para_info_dict[item.Key] = info;
-				sp_csvdlg.Children.Add(info.cb);
 			}
 		}
 		private void bt_replay_cmd_Click(object sender, RoutedEventArgs e) //回放指令
@@ -196,8 +170,34 @@ namespace com_mc
 		}
 		public void export_csv() //将当前选中的数据导出成csv
 		{
-			export_csv_dlg.ShowDialog();
-			if (export_csv_dlg.rst==false) return;
+			//首先建立导出对话框
+			Com_Dlg export_csv_dlg = new Com_Dlg(); //导出csv对话框
+			ScrollViewer sv_csvdlg = new ScrollViewer(); //导出csv对话框中的ScrollViewer
+			StackPanel sp_csvdlg = new StackPanel(); //导出csv对话框中的StackPanel
+			sp_csvdlg.Orientation = Orientation.Vertical; //垂直排布
+			sv_csvdlg.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+			sv_csvdlg.Content = sp_csvdlg;
+			export_csv_dlg.grid_main.Children.Add(sv_csvdlg);
+			Grid.SetColumn(sv_csvdlg, 0);
+			Grid.SetRow(sv_csvdlg, 0);
+			Grid.SetRowSpan(sv_csvdlg, 2);
+			export_csv_dlg.Height = 500;
+			export_csv_dlg.Width = 300;
+			export_csv_dlg.Title = "选择导出的变量";
+			//在对话框中加入参数列表
+			para_info_dict.Clear();
+			foreach (var item in MainWindow.mw.commc.dset)
+			{
+				CRpl_Para_Info info = new CRpl_Para_Info();
+				info.cb = new CheckBox();
+				info.cb.Content = item.Value.name;
+				info.cb.Background = Brushes.LightCoral;
+				info.cb.Margin = new Thickness(2, 2, 2, 0);
+				para_info_dict[item.Key] = info;
+				sp_csvdlg.Children.Add(info.cb);
+			}
+			if (export_csv_dlg.ShowDialog()==false) return;
+
 			save_file("*.csv|*.csv", () =>
 			{
 				MC_Prot para_prot = new MC_Prot(); //变量和协议的整体 

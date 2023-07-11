@@ -46,10 +46,10 @@ namespace com_mc
 			if (v.ContainsKey("id")) id = (int)v["id"];
 			if (v.ContainsKey("name")) name = (string)v["name"];
 			type = t;
-			while(v.ContainsKey("ref_name"))
+			if(v.ContainsKey("ref_name"))
 			{
 				ref_name = (string)v["ref_name"];
-				if (!p_mcp.para_dict.ContainsKey(ref_name)) break; //引用的参数不对，按没有算
+				if (!p_mcp.para_dict.ContainsKey(ref_name)) throw new Exception("无此参数："+ref_name); //引用的参数不对
 				ref_para = p_mcp.para_dict[ref_name]; //参数表先于协议加载
 				return;
 			}
@@ -85,6 +85,7 @@ namespace com_mc
 				var tv = item as JD;
 				if (tv == null) //若是定义的复用的结构，
 				{ //此时应该把结构名变成实体名，否则多个同结构实体会重名。把JD复制一遍，去掉name
+					if (!p_mcp.struct_dict.ContainsKey(s)) throw new Exception("无顶层协议："+s);
 					tv = p_mcp.struct_dict[s] as JD;
 					tv = Tool.jd_clone(tv) as JD;
 					tv.Remove("name");
@@ -233,6 +234,7 @@ namespace com_mc
 				{
 					var tv = item.Value as JD;
 					if(!tv.ContainsKey("name")) tv["name"] = item.Key;
+					prot_json_set_type(tv);
 				}
 				if (v.ContainsKey("prot_roots"))
 				{
@@ -331,18 +333,22 @@ namespace com_mc
 			para_dict_out.Clear();
 			prot_root_list.Clear();
 		}
-		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
-		public static ProtDom factory(JD v, PD_Obj pd) //构建工厂，输入配置，测控协议对象
+		static public void prot_json_set_type(JD v) //在json配置中为协议域设置省略的type
 		{
-			ProtType t = ProtType.str; //默认类型,str的不需要写type这个域
 			if (v.ContainsKey("type")) { }
-			else if(v.ContainsKey("prot_list")) //若没指定type，但有子节点
+			else if (v.ContainsKey("prot_list")) //若没指定type，但有子节点
 			{
 				if (v.ContainsKey("col_n")) v["type"] = "tline"; //若是文本行协议
 				else v["type"] = "obj"; //若是obj
 			}
 			else if (v.ContainsKey("prot_map")) v["type"] = "sw"; //switch也能从属性确定
 			else v["type"] = "str"; //既没有显式指定，也不是obj，按默认的来
+		}
+		public static JavaScriptSerializer json_ser = new JavaScriptSerializer();
+		public static ProtDom factory(JD v, PD_Obj pd) //构建工厂，输入配置，测控协议对象
+		{
+			ProtType t = ProtType.str; //默认类型,str的不需要写type这个域
+			prot_json_set_type(v);
 			string s = json_ser.Serialize(v["type"]); //这样取得的字符串带"
 			t = json_ser.Deserialize<ProtType>(s); //取得参数类型，enum类型的反串行化需要字符串带"
 			switch (t) //若是基础类型

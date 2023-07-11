@@ -197,7 +197,7 @@ namespace com_mc
 		private void mi_open_Click(object sender, RoutedEventArgs e) //打开协议处理
 		{
 			FrameworkElement fe = sender as FrameworkElement;
-			try
+			//try
 			{
 				switch (fe.Tag)
 				{
@@ -228,10 +228,10 @@ namespace com_mc
 						break;
 				}
 			}
-			catch (Exception ee)
-			{
-				MessageBox.Show(ee.ToString(), "错误");
-			}
+			//catch (Exception ee)
+			//{
+			//	MessageBox.Show(ee.ToString(), "错误");
+			//}
 		}
 		public string beautify_prot_json(string s) //美化输出的协议配置json
 		{

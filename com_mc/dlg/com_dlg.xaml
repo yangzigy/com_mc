@@ -4,7 +4,7 @@
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		mc:Ignorable="d"
-		Title="com_dlg" Height="120" Width="300" FontSize="14" Closing="Window_Closing">
+		Title="com_dlg" Height="120" Width="300" FontSize="14" ><!--Closing="Window_Closing"-->
 	<Grid Name="grid_main">
 		<Grid.RowDefinitions>
 			<RowDefinition></RowDefinition>

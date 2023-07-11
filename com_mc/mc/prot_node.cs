@@ -64,7 +64,7 @@ namespace com_mc
 			//最后给引用的参数
 			ParaValue_Val p = (ParaValue_Val)ref_para; //二进制为值类型，输出也必然是值类型
 			p.set_val(d);
-			if (para_need_update != null) para_need_update.Add(p);
+			if (para_need_update != null && p.name!="") para_need_update.Add(p);
 		}
 		static UInt64[] masktab = new UInt64[] //bit位数的掩码，0~64bit
 		{
@@ -105,7 +105,7 @@ namespace com_mc
 				var tref = ref_para as ParaValue_Str;
 				tref.set_val(b, off, str_len);
 				off += str_len;
-				if (para_need_update != null) para_need_update.Add(tref);
+				if (para_need_update != null && tref.name != "") para_need_update.Add(tref);
 				return 0;
 			}
 			string s = Encoding.UTF8.GetString(b, off, str_len);
@@ -120,7 +120,7 @@ namespace com_mc
 				byte[] vs = Encoding.UTF8.GetBytes(s);
 				var tref = ref_para as ParaValue_Str;
 				tref.set_val(vs, 0, vs.Length);
-				if (para_need_update != null) para_need_update.Add(tref);
+				if (para_need_update != null && tref.name != "") para_need_update.Add(tref);
 			}
 			else //值类型
 			{
@@ -184,8 +184,18 @@ namespace com_mc
 				case CheckMode.fix32: if (data.du32 != fix) return 2; break;
 				case CheckMode.fix64: if (data.du64 != fix) return 2; break;
 				case CheckMode.sum8:
+					{
+						byte sum = 0;
+						for(int st=st_pos;st< pre_off;st++) sum += b[st];
+						if (sum != data.du8) return 2;
+					}
 					break;
 				case CheckMode.sum16:
+					{
+						UInt16 sum = 0;
+						for (int st = st_pos; st < pre_off; st++) sum += b[st];
+						if (sum != data.du16) return 2;
+					}
 					break;
 				case CheckMode.crc16:
 					{

@@ -161,7 +161,7 @@ namespace com_mc
 			subgrid.RowDefinitions.Add(new RowDefinition());
 			subgrid.ColumnDefinitions.Add(new ColumnDefinition());
 			subgrid.ColumnDefinitions.Add(new ColumnDefinition());
-			cdlg.Height = 300;
+			cdlg.Height = 260;
 			//第一列：描述文本
 			Label lb_col = new Label();	lb_col.Content = "列数";
 			subgrid.Children.Add(lb_col);
@@ -258,7 +258,6 @@ namespace com_mc
 			StreamWriter sw = new StreamWriter(fout);
 			uint end = l_ava + (uint)st;
 			string s = "";
-			//for (int i = st; i < end; i+=(int)type_len)
 			int ind = (int)st; //当前偏移
 			for (int row = 0; row < rows; row++)
 			{
@@ -288,7 +287,6 @@ namespace com_mc
 				sw.WriteLine(s);
 				s = "";
 			}
-			//if(s!="") sw.WriteLine(s);//若有没输出的列，这里输出
 			sw.Close();
 		}
 	}

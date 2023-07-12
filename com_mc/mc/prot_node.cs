@@ -217,6 +217,10 @@ namespace com_mc
 					}
 					break;
 				case CheckMode.mdcrc16:
+					{
+						UInt16 crc = Tool.GetModbusCRC16(b, st_pos, pre_off);
+						if (crc != data.du16) return 2;
+					}
 					break;
 				case CheckMode.crc32:
 					{

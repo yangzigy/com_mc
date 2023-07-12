@@ -120,6 +120,20 @@ namespace cslib
 			}
 			return crc;
 		}
+		static public UInt16 GetModbusCRC16(byte[] p, int off, int n)
+		{
+			uint j, i, crc = 0xFFFF;
+			for (j = 0; j < n; j++)
+			{
+				crc = crc ^ (uint)(p[j+ off]);
+				for (i = 0; i < 8; i++)
+				{
+					if ((crc & 1) != 0) crc = (crc >> 1) ^ 0xA001;
+					else crc = crc >> 1;
+				}
+			}
+			return (UInt16)crc;
+		}
 		static public uint[] Crc32Table = new uint[]
 		{
 			0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA,

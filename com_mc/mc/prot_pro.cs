@@ -27,6 +27,7 @@ namespace com_mc
 			int pre_off = off; //上次偏移位置
 			for (; pro_ind < prot_list.Count; pro_ind++)
 			{
+				if (n <= 0) return 1; //若已经没有输入数据了，就返回未完成
 				int r=prot_list[pro_ind].pro(b, ref off, n); //递归调用
 				if (r != 0) return r; //若没完成，或者出错，如实返回
 				n -= off - pre_off; //增加了多少字节，总字节数相应减掉
@@ -119,7 +120,7 @@ namespace com_mc
 			//所以应该每个根节点设置一个缓存
 			for (int i = 0; i < prot_root_list.Count; i++) //对于每一个根实体
 			{
-				prot_root_list[i].frame_syn_pro(b,off,n); //
+				prot_root_list[i].frame_syn_pro(b,off,n); //是否提取接收正确的情况，reset其他？
 			}
 		}
 		//增量输入处理完成后刷新参数

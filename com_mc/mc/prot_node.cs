@@ -11,6 +11,7 @@ using cslib;
 
 namespace com_mc
 {
+	using JD = Dictionary<string, object>;
 	public class PD_Node : ProtDom //协议域叶子节点
 	{
 		public DATA_UNION data = new DATA_UNION(); //被协议域引用的时候可以直接用
@@ -85,9 +86,14 @@ namespace com_mc
 	public class PD_Str : PD_Node
 	{
 		public string str_type = ""; //空为10进制，hex：16进制
+		public bool is_res = false; //是否是保留域，不处理
 		public PD_Str(Dictionary<string, object> v, ProtType t, PD_Obj pd) : base(v, t,pd)
 		{
 			if(v.ContainsKey("str_type")) str_type=v["str_type"] as string;
+			if (!v.ContainsKey("ref_name")) //若没有引用参数
+			{
+				is_res = true; //按不处理来算
+			}
 		}
 		public override int pro(byte[] b, ref int off, int n) //在二进制流中取得字符
 		{
@@ -101,6 +107,11 @@ namespace com_mc
 				if (str_len == n) return 1;//没找到，不完整，下次从新解
 			}
 			if (str_len > n) return 1;//没找到，不完整，下次从新解
+			if (is_res)
+			{
+				off += str_len;
+				return 0; //不处理
+			}
 			if (ref_para.type == DataType.undef || ref_para.type == DataType.str) //若输出是串
 			{
 				var tref = ref_para as ParaValue_Str;
@@ -116,6 +127,7 @@ namespace com_mc
 		}
 		public void pro_str(string s) //处理字符串输入
 		{
+			if (is_res) return; //不处理
 			if (ref_para.type == DataType.undef || ref_para.type == DataType.str) //串型的输出
 			{
 				byte[] vs = Encoding.UTF8.GetBytes(s);
@@ -207,6 +219,10 @@ namespace com_mc
 				case CheckMode.mdcrc16:
 					break;
 				case CheckMode.crc32:
+					{
+						UInt32 crc = Tool.cal_crc32(b, st_pos, pre_off);
+						if (crc != data.du32) return 2;
+					}
 					break;
 				default:
 					break;

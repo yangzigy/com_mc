@@ -46,12 +46,12 @@ namespace com_mc
 	//命令部分
 	public enum CmdType //指令类型
 	{
-		bt, //按键
-		text, //文本框
-		sw, //开关
-		rpl_bool, //带回复的指令
-		label, //文本控件
-		para, //参数型
+		bt, //按键	CCmd_Button
+		text, //文本框	CCmd_Text
+		sw, //开关	CCmd_Switch
+		rpl_bool, //带回复的指令	CCmd_rpl_bool
+		label, //文本控件	CCmd_label
+		para, //参数型	CCmd_para
 	}
 	public class CmdDes //指令描述
 	{

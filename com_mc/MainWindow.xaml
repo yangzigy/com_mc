@@ -39,8 +39,8 @@
 			<MenuItem Header="工具">
 				<MenuItem Header="hex原始数据转二进制" Click="mi_log_tools_Click" Tag="hex2bin"></MenuItem>
 				<MenuItem Header="二进制原始数据转文本" Click="mi_log_tools_Click" Tag="bin2text"></MenuItem>
-				<MenuItem Header="原始数据转cmlog" IsEnabled="false"></MenuItem>
-				<MenuItem Header="cmlog文件合并" IsEnabled="false"></MenuItem>
+				<MenuItem Header="原始数据转cmlog" Click="mi_log_tools_Click" Tag="org2cmlog" IsEnabled="false"></MenuItem>
+				<MenuItem Header="cmlog文件合并" Click="mi_log_tools_Click" Tag="merge_cmlog" IsEnabled="false"></MenuItem>
 				<MenuItem Header="cmlog修改基准时间戳" Click="mi_log_tools_Click" Tag="cmlog_time"></MenuItem>
 			</MenuItem>
 			<MenuItem Header="显示">

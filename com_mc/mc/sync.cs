@@ -196,7 +196,7 @@ namespace com_mc
 				{
 					r = rootpd.pro(rec_buff, ref toff, rec_p-toff); //调用对应协议族的根节点
 				}
-				catch { }
+				catch { r = 2; }
 				if (r == 2) //若接收不正确
 				{
 					para_need_update.Clear();

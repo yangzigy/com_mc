@@ -298,8 +298,6 @@ namespace com_mc
 											//从回放后台读取起止值，重新设置界面
 				sl_cur_row.Minimum = rplobj.replay_st;
 				sl_cur_row.Maximum = rplobj.replay_end;
-				//tb_replay_st.Text = rplobj.replay_st.ToString();
-				//tb_replay_end.Text = rplobj.replay_end.ToString();
 			}
 			catch (Exception ee)
 			{ }
@@ -350,7 +348,7 @@ namespace com_mc
 		private void tb_org_text_MouseWheel(object sender, MouseWheelEventArgs e) //原始数据显示框的鼠标滚轮
 		{
 			int d = e.Delta;
-			sl_cur_row.Value -= Math.Round(d/100.0);
+			sl_cur_row.Value -= Math.Round(d/100.0); //如不取整会导致上下振
 		}
 	}
 	public class CRpl_Para_Info //回放对话框中测量量参数信息，包括选择控件和输出缓存

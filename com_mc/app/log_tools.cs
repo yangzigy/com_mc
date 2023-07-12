@@ -11,6 +11,7 @@ namespace com_mc
 {
 	static public class Log_Tools //日志数据文件的工具功能
 	{
+#region cmlog修改基准时间戳
 		static public void fun_cmlog_time() //cmlog修改基准时间戳
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
@@ -68,6 +69,8 @@ namespace com_mc
 			}
 			fsout.Close();
 		}
+#endregion
+#region hex原始数据转二进制
 		static public bool ishex(char c) //判断输入是否是hex字符(只需判断小写字母即可)
 		{
 			if (char.IsDigit(c)) return true;
@@ -139,6 +142,8 @@ namespace com_mc
 		{
 			1,2,4,8,1,2,4,8,1,2,4,8,4,4
 		};
+#endregion
+#region 二进制原始数据转文本
 		static public void fun_bin2text() //二进制原始数据转文本
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
@@ -289,5 +294,26 @@ namespace com_mc
 			}
 			sw.Close();
 		}
+#endregion
+#region 原始数据转cmlog
+		static public void fun_org2cmlog() //原始数据转cmlog
+		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.*|*.*";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			string fin = ofd.FileName;
+			string fout = Path.GetDirectoryName(ofd.FileName) + "/" + Path.GetFileNameWithoutExtension(fin) + "_m.cmlog";
+		}
+#endregion
+#region cmlog文件合并
+		static public void fun_merge_cmlog() //cmlog文件合并
+		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.cmlog|*.cmlog";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			string fin = ofd.FileName;
+			string fout = Path.GetDirectoryName(ofd.FileName) + "/" + Path.GetFileNameWithoutExtension(fin) + "_m.cmlog";
+		}
+#endregion
 	}
 }

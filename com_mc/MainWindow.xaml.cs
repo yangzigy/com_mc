@@ -524,7 +524,7 @@ namespace com_mc
 				else if (t > 0.5f) t = 0.5f; //t为正，缩小范围，相当于放大
 				double lx = axis_x_max - axis_x_min;
 				double ly = axis_y_max - axis_y_min; //长度
-													 //判断是否过大过小（以最佳显示范围为基准）
+				//判断是否过大过小（以最佳显示范围为基准）
 				if (lx > 2 * (curv_x_max - curv_x_min) && t < 0 &&
 					ly > 2 * (curv_y_max - curv_y_min) && t < 0) return;
 				if (lx < 1 && t > 0) return;
@@ -611,6 +611,12 @@ namespace com_mc
 					break;
 				case "bin2text": //二进制原始数据转文本
 					Log_Tools.fun_bin2text();
+					break;
+				case "org2cmlog": //原始数据转cmlog
+					Log_Tools.fun_org2cmlog();
+					break;
+				case "merge_cmlog": //cmlog文件合并
+					Log_Tools.fun_merge_cmlog();
 					break;
 			}
 		}

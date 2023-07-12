@@ -97,7 +97,6 @@ namespace com_mc
 				if (ds.val.type == DataType.str || ds.val.type == DataType.undef) //字符型的，不让选择曲线
 				{
 					ds.is_val = false;
-					//cb.IsEnabled = false;
 				}
 				else //曲线型的
 				{

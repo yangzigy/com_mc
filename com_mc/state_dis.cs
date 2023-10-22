@@ -320,8 +320,7 @@ namespace com_mc
 						p.pro(p.str_buf); //文本协议的处理，会把文本存在str_buf中
 					}
 					else if (is_inc)//如果是二进制的增量
-					{//commc.mc_prot.pro_inc(b, off, n); 
-					 //将此实体的参数更新到系统参数表中。
+					{ //遍历所有需要刷新的参数，刷新到输出参数列表para_dict_out。
 						commc.mc_prot.after_inc(rootid);
 					}
 					else commc.mc_prot.pro_fix(b, off, n, rootid); //二进制的定长处理

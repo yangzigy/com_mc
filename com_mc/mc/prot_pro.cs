@@ -15,12 +15,24 @@ namespace com_mc
 	{
 		public virtual void reset_state() //复位为待处理状态
 		{
-			pro_ind = 0;
-			foreach (var item in prot_list) //对下级进行递归
+			//pro_ind = 0;
+			//foreach (var item in prot_list) //对下级进行递归
+			//{
+			//	var to = item as PD_Obj; //如果是一个协议组织对象
+			//	if (to != null) to.reset_state();
+			//}
+			int end_n = prot_list.Count;
+			//为了提高效率，只复位已经处理的部分。但子类不能这样处理。而且上次执行正确的话，必须全复位(在执行正确的处理时做)
+			if (this.GetType() == typeof(PD_Obj) && end_n > pro_ind)
 			{
-				var to = item as PD_Obj; //如果是一个协议组织对象
+				end_n = pro_ind + 1; 
+			}
+			for (int i = 0; i < end_n; i++)
+			{
+				var to = prot_list[i] as PD_Obj; //只复位协议组织对象
 				if (to != null) to.reset_state();
 			}
+			pro_ind = 0;
 		}
 		public override int pro(byte[] b, ref int off, int n) //对于增量输入，需要记录上次处理到哪了
 		{
@@ -33,7 +45,8 @@ namespace com_mc
 				n -= off - pre_off; //增加了多少字节，总字节数相应减掉
 				pre_off = off;
 			}
-			pro_ind = 0; //执行正确完成了
+			//pro_ind = 0; //执行正确完成了
+			reset_state(); //执行正确完成了，还需要清内部的switch
 			return 0;
 		}
 	}
@@ -101,7 +114,7 @@ namespace com_mc
 	}
 	public partial class MC_Prot //测控参数体系的实现
 	{
-		//固定数据调用
+		//固定数据调用，跟增量是一个处理函数，只是一次给所有的数据
 		public void pro_fix(byte[] b,int off,int n,int rootid) //特定协议族处理一帧数据，缓存，偏移，长度（off之后）
 		{
 			rootid -= 1; //二进制的根节点id是从1开始，0是文本
@@ -110,7 +123,7 @@ namespace com_mc
 			{
 				var po = prot_root_list[rootid].rootpd;
 				po.reset_state(); //复位为待处理状态
-				po.pro(b,ref off, n); //调用对应协议族的根节点
+				po.pro(b,ref off, n); //调用对应协议族的根节点，跟增量是一个处理函数，只是一次给所有的数据
 			}
 		}
 		//增量数据调用
@@ -123,13 +136,13 @@ namespace com_mc
 				prot_root_list[i].frame_syn_pro(b,off,n); //是否提取接收正确的情况，reset其他？
 			}
 		}
-		//增量输入处理完成后刷新参数
+		//增量输入处理完成后刷新参数，遍历所有需要刷新的参数，刷新到输出参数列表para_dict_out
 		public void after_inc(int rootid)
 		{
 			rootid -= 1; //二进制的根节点id是从1开始，0是文本
 			if (rootid < 0 || rootid >= prot_root_list.Count) return; //对指定的根节点进行处理
 			var pu = prot_root_list[rootid].para_need_update;
-			foreach (var item in pu)
+			foreach (var item in pu) //遍历所有需要刷新的参数，刷新到输出参数列表para_dict_out
 			{
 				if(para_dict_out.ContainsKey(item.name)) para_dict_out[item.name].assign(item); //给参数列表赋值
 			}

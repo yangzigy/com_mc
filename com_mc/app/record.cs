@@ -107,9 +107,10 @@ namespace cslib
 			{
 				state = 1; //初始化为暂停状态
 				set_replay_pos(0);
-				try
+				
+				while (true)
 				{
-					while (true)
+					try
 					{
 						switch (state)
 						{
@@ -125,12 +126,12 @@ namespace cslib
 								break;
 							default: throw new Exception("终止");//终止
 						}
-						Thread.Sleep(20);
 					}
-				}
-				catch (Exception e)
-				{
-					state = 0;
+					catch (Exception e)
+					{
+						//state = 0;
+					}
+					Thread.Sleep(20);
 				}
 			});
 			if (open_cb != null) open_cb(); //调用事件

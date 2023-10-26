@@ -31,15 +31,14 @@
 							<RowDefinition></RowDefinition>
 						</Grid.RowDefinitions>
 						<RadioButton Grid.Row="0" Name="rb_rec_org">原始数据(org)</RadioButton>
-						<RadioButton Grid.Row="1" Name="rb_rec_timetext" IsChecked="True">带时间戳文本(ttlog)</RadioButton>
-						<RadioButton Grid.Row="2" Name="rb_rec_cmlog">带时间戳文本二进制混合(cmlog)</RadioButton>
+						<RadioButton Grid.Row="1" Name="rb_rec_timetext">带时间戳文本(ttlog)</RadioButton>
+						<RadioButton Grid.Row="2" Name="rb_rec_cmlog" IsChecked="True">带时间戳文本二进制混合(cmlog)</RadioButton>
 					</Grid>
 				</GroupBox>
 			</MenuItem>
 			<MenuItem Header="工具">
 				<MenuItem Header="hex原始数据转二进制" Click="mi_log_tools_Click" Tag="hex2bin"></MenuItem>
 				<MenuItem Header="二进制原始数据转文本" Click="mi_log_tools_Click" Tag="bin2text"></MenuItem>
-				<MenuItem Header="原始数据转cmlog" Click="mi_log_tools_Click" Tag="org2cmlog" IsEnabled="false"></MenuItem>
 				<MenuItem Header="cmlog文件合并" Click="mi_log_tools_Click" Tag="merge_cmlog" IsEnabled="false"></MenuItem>
 				<MenuItem Header="cmlog修改基准时间戳" Click="mi_log_tools_Click" Tag="cmlog_time"></MenuItem>
 			</MenuItem>
@@ -102,7 +101,7 @@
 					<ComboBox Grid.Column="0" Margin="5,5" Height="35" Name="cb_datasrc" VerticalAlignment="Center" VerticalContentAlignment="Center"></ComboBox>
 					<Button Grid.Column="1" Name="bt_open_datasrc" Click="btnConnCom_Click" FontSize="18" Content="打开端口"></Button>
 					<Button Grid.Column="0" Grid.Row="1" Click="bt_refresh_uart_Click" Name="bt_refresh_uart" FontSize="18" Content="刷新串口"></Button>
-					<CheckBox Grid.Column="1" Grid.Row="1" Name="checkb_rec_data" VerticalAlignment="Center" FontSize="18">保存数据</CheckBox>
+					<CheckBox Grid.Column="1" Grid.Row="1" Name="checkb_rec_data" VerticalAlignment="Center" FontSize="18">记录</CheckBox>
 					<CheckBox Grid.Column="0" Grid.Row="2" Name="cb_fit_screen" IsChecked="True" VerticalAlignment="Center" FontSize="18">适应屏幕</CheckBox>
 					<Button Grid.Column="1" Grid.Row="2" Name="bt_clear" Click="clear_Click" FontSize="18">清曲线</Button>
 					<Border Name="bd_dft_and_cfg" Grid.Row="3" Grid.ColumnSpan="2" BorderThickness="2" BorderBrush="Black"></Border>

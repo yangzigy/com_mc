@@ -295,24 +295,16 @@ namespace com_mc
 			sw.Close();
 		}
 #endregion
-#region 原始数据转cmlog
-		static public void fun_org2cmlog() //原始数据转cmlog
-		{
-			var ofd = new System.Windows.Forms.OpenFileDialog();
-			ofd.Filter = "*.*|*.*";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
-			string fin = ofd.FileName;
-			string fout = Path.GetDirectoryName(ofd.FileName) + "/" + Path.GetFileNameWithoutExtension(fin) + "_m.cmlog";
-		}
-#endregion
 #region cmlog文件合并
 		static public void fun_merge_cmlog() //cmlog文件合并
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
 			ofd.Filter = "*.cmlog|*.cmlog";
+			ofd.Multiselect= true;
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
-			string fin = ofd.FileName;
-			string fout = Path.GetDirectoryName(ofd.FileName) + "/" + Path.GetFileNameWithoutExtension(fin) + "_m.cmlog";
+			string[] filelist = ofd.FileNames;
+			//List<byte[]> 
+			//string fout = Path.GetDirectoryName(ofd.FileName) + "/" + Path.GetFileNameWithoutExtension(fin) + "_m.cmlog";
 		}
 #endregion
 	}

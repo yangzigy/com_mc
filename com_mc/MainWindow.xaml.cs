@@ -121,21 +121,40 @@ namespace com_mc
 							}
 						}
 						//查看记录模式
+						int tmp_rec_mod = 0; //临时的记录格式
+						if (rb_rec_org.IsChecked == true)
+						{
+							tmp_rec_mod = 1; //记录原始数据
+							if (checkb_rec_data.Content as string != "记录org") checkb_rec_data.Content = "记录org";
+						}
+						else if (rb_rec_timetext.IsChecked == true)
+						{
+							tmp_rec_mod = 2; //记录带时间戳的文本
+							if (checkb_rec_data.Content as string != "记录ttlog") checkb_rec_data.Content = "记录ttlog";
+						}
+						else if (rb_rec_cmlog.IsChecked == true)
+						{
+							tmp_rec_mod = 3;
+							if (checkb_rec_data.Content as string != "记录cmlog") checkb_rec_data.Content = "记录cmlog";
+						}
+						//设置记录
 						if (checkb_rec_data.IsChecked == true)
 						{
-							if (rb_rec_org.IsChecked == true)
+							switch (tmp_rec_mod)
 							{
-								rec_mod = 0; //不记录
-								rec_text.suffix = ".org";
-								rec_mod = 1; //记录原始数据
+								case 1:
+									rec_mod = 0; //先停止记录
+									rec_text.suffix = ".org";
+									rec_mod = 1; //记录原始数据
+									break;
+								case 2:
+									rec_mod = 0; //先停止记录
+									rec_text.suffix = ".ttlog";
+									rec_mod = 2; //记录带时间戳的文本
+									break;
+								case 3: rec_mod = 3; break;
+								default: break;
 							}
-							else if (rb_rec_timetext.IsChecked == true)
-							{
-								rec_mod = 0; //不记录
-								rec_text.suffix = ".ttlog";
-								rec_mod = 2; //记录带时间戳的文本
-							}
-							else if (rb_rec_cmlog.IsChecked == true) rec_mod = 3;
 						}
 						else
 						{
@@ -144,7 +163,7 @@ namespace com_mc
 							rec_bin_file.close();
 						}
 					}
-					try
+					try //回放对话框的显示处理
 					{
 						rpl_win.poll(); //10Hz
 					}

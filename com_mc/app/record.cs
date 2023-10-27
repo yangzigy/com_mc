@@ -55,7 +55,7 @@ namespace cslib
 		// 2、当前回放时间ms数
 		public int replay_line=0; //回放位置
 		public int replay_ms = 0; //回放的时间进度，单位ms
-		public DateTime pre_replay_ms=DateTime.Now; //上次更新回放时间的点
+		public DateTime pre_replay_ms=DateTime.UtcNow; //上次更新回放时间的点
 		public int cur_line_ms = 0; //当前回放行的ms数
 
 		public byte[] org_data= null; //cmlog的原始数据记录
@@ -216,13 +216,13 @@ namespace cslib
 			if (ind < replay_st || ind >= replay_end) return;
 			replay_line = ind;
 			replay_ms = line_ms_list[ind]; //起始的时间位置在第一个数据处
-			pre_replay_ms = DateTime.Now; //此时为时间基准
+			pre_replay_ms = DateTime.UtcNow; //此时为时间基准
 		}
 		public void update_replay_ms() //累加回放时间
 		{
-			var d = (DateTime.Now - pre_replay_ms).TotalMilliseconds; //距上次更新的间隔时间
+			var d = (DateTime.UtcNow - pre_replay_ms).TotalMilliseconds; //距上次更新的间隔时间
 			replay_ms += (int)(d* time_X); //用于倍速
-			pre_replay_ms = DateTime.Now; //此时为时间基准
+			pre_replay_ms = DateTime.UtcNow; //此时为时间基准
 		}
 		public override void close()
 		{
@@ -234,7 +234,7 @@ namespace cslib
 			if(state==1) //若暂停了
 			{
 				state = 2;
-				pre_replay_ms = DateTime.Now; //此时为时间基准
+				pre_replay_ms = DateTime.UtcNow; //此时为时间基准
 			}
 		}
 		public void suspend() //暂停
@@ -356,12 +356,12 @@ namespace cslib
 #region 二进制带时间戳日志记录
 	public class BinDataFile : LogFile //二进制协议
 	{
-		public DateTime cur_time = DateTime.Now; //记录文件创建时间
+		public DateTime cur_time = DateTime.UtcNow; //记录文件创建时间
 		public BinDataFile() { suffix = ".cmlog"; }
 		public override void create()
 		{
 			base.create();
-			cur_time = DateTime.Now; //父类中只有UTC秒的记录
+			cur_time = DateTime.UtcNow; //父类中只有UTC秒的记录
 		}
 		public override void log_pass(byte[] b, int ind, int len) //
 		{
@@ -380,7 +380,7 @@ namespace cslib
 				//head.type = 0x11; //更高效
 				int rec_len = len <= (65536-8) ? len : (65536 - 8); //本次实际要写入的数据长度(为了总长64K以内，稍微小一点)
 				head.len = (UInt16)(rec_len);
-				int ms = (int)((DateTime.Now.Ticks - cur_time.Ticks) / 10000); //表示0001年1月1日午夜 12:00:00 以来所经历的 100 纳秒数
+				int ms = (int)((DateTime.UtcNow.Ticks - cur_time.Ticks) / 10000); //表示0001年1月1日午夜 12:00:00 以来所经历的 100 纳秒数
 				head.ms = ms;
 				var tb = Tool.StructToBytes(head);
 				sw.Write(tb); //写入头部

@@ -35,7 +35,7 @@ namespace com_mc
 		public object[] invokeobj=new object[2];
 		public Dictionary<string, Series> series_map=new Dictionary<string, Series>();
 		public Dictionary<string, CheckBox> checkb_map = new Dictionary<string, CheckBox>();
-		public long st_ms= DateTime.Now.Ticks/10000; //曲线起始ms
+		public long st_ms= DateTime.UtcNow.Ticks/10000; //曲线起始ms
 		public long x_tick=0; //x轴数值
 		public string x_axis_id=""; //x轴的索引变量名，空则使用时间
 		public int is_first =1;
@@ -303,7 +303,7 @@ namespace com_mc
 			rx_Byte_1_s += buf.Length;
 			commc.pro_obj.rx_fun(buf); //给帧同步对象
 		}
-		public long ticks0 = DateTime.Now.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
+		public long ticks0 = DateTime.UtcNow.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
 		public void rx_pack(byte[] b, int off, int n, int rootid,bool is_inc) //帧同步对象回调：接收一包数据（二进制或文本）
 		{
 			var p = commc.mc_prot.text_root;
@@ -313,7 +313,7 @@ namespace com_mc
 			{
 				try
 				{
-					ticks0 = DateTime.Now.Ticks / 10000;//给传感变量刷新
+					ticks0 = DateTime.UtcNow.Ticks / 10000;//给传感变量刷新
 					if (rootid == 0) //若是文本的
 					{
 						if (p == null) return;
@@ -403,7 +403,7 @@ namespace com_mc
 			{
 				seri.Value.Points.Clear();
 			}
-			st_ms = DateTime.Now.Ticks / 10000;
+			st_ms = DateTime.UtcNow.Ticks / 10000;
 			x_tick=0;
 		}
 	}

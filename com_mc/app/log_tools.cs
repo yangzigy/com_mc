@@ -13,65 +13,6 @@ namespace com_mc
 {
 	static public class Log_Tools //日志数据文件的工具功能
 	{
-#region cmlog修改基准时间戳
-		static public void fun_cmlog_time() //cmlog修改基准时间戳
-		{
-			var ofd = new System.Windows.Forms.OpenFileDialog();
-			ofd.Filter = "*.cmlog|*.cmlog";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
-			string fin = ofd.FileName;
-			string fout = Path.GetDirectoryName(ofd.FileName)+"/"+ Path.GetFileNameWithoutExtension(fin)+"_m.cmlog";
-			
-			Com_Dlg cdlg = new Com_Dlg(); //获取输入的对话框
-			//给对话框添加内容：
-			Label lb = new Label(); //
-			lb.Content = "输入起始时间（ms）";
-			lb.FontSize = 14;
-			lb.VerticalAlignment = VerticalAlignment.Center;
-			TextBox tb = new TextBox();
-			tb.Text = "0";
-			cdlg.mgrid.Children.Add(lb);
-			Grid.SetColumn(lb, 0);
-			Grid.SetRow(lb, 0);
-			cdlg.mgrid.Children.Add(tb);
-			Grid.SetColumn(tb, 1);
-			Grid.SetRow(tb, 0);
-
-			if (cdlg.ShowDialog() == false) return;
-			int stms = 0;
-			bool r=int.TryParse(tb.Text,out stms);
-			if(r==false || stms<0)
-			{
-				MessageBox.Show("输入非正整数");
-				return;
-			}
-			//拿到了输入输出文件，起始时间
-			FileStream fs = new FileStream(fin, FileMode.Open, FileAccess.Read);
-			byte[] org_data = new byte[fs.Length];
-			fs.Read(org_data, 0, org_data.Length);
-			fs.Close();
-			//打开输出文件
-			FileStream fsout = new FileStream(fout, FileMode.Create, FileAccess.Write);
-			//开始转换
-			int first_ms = -1;
-			for (int i = 0; i < org_data.Length - 6;) //将内存中的数据添加到行列表
-			{
-				CMLOG_HEAD h = (CMLOG_HEAD)Tool.BytesToStruct(org_data, i, typeof(CMLOG_HEAD));
-				int len = h.len; //len这个域是长度
-				int ms = h.ms;
-				if (first_ms < 0) first_ms = ms; //第一个ms值
-				i += Marshal.SizeOf(h);
-
-				h.ms = h.ms - first_ms + stms;
-
-				var temp = Tool.StructToBytes(h);
-				fsout.Write(temp,0, temp.Length); //写入头部
-				fsout.Write(org_data, i, len); //写入数据
-				i += len;
-			}
-			fsout.Close();
-		}
-#endregion
 #region hex原始数据转二进制
 		static public bool ishex(char c) //判断输入是否是hex字符(只需判断小写字母即可)
 		{
@@ -135,8 +76,8 @@ namespace com_mc
 			}
 			fsout.Close();
 		}
-#endregion
-#region 二进制原始数据转文本
+		#endregion
+#region 二进制原始数据转文本(二进制文件提取)
 		static public string[] bin2text_type_tab = new string[] //转换类型的名称
 		{ // 0     1     2     3     4    5     6     7
 			"u8","u16","u32","u64","s8","s16","s32","s64",
@@ -412,7 +353,7 @@ namespace com_mc
 				var temp = Tool.StructToBytes(rowdata.h);
 				fsout.Write(temp, 0, temp.Length); //写入头部
 				fsout.Write(rowdata.b, 0, rowdata.b.Length); //写入数据
-															 //输出的这个文件，继续取得一帧
+				//输出的这个文件，继续取得一帧
 				cm_files[min_pos].cmlog_get_fram();
 			}
 			fsout.Close();
@@ -440,6 +381,139 @@ namespace com_mc
 
 				cur_row= r;
 			}
+		}
+#endregion
+#region cmlog信道号修改
+		static public void fun_cmlog_vir_change() //cmlog信道号修改
+		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.*|*.*";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			string fin = ofd.FileName;
+			string fout = Path.GetDirectoryName(fin) + "/" +
+							Path.GetFileNameWithoutExtension(fin) + "_m.cmlog";
+
+			List<TextBox> tb_list = new List<TextBox>(); //目标信道号控件列表
+
+			Com_Dlg cdlg = new Com_Dlg(); //获取输入的对话框
+			cdlg.Width = 200;
+			Grid subgrid = new Grid(); //控件容器
+			cdlg.mgrid.Children.Add(subgrid);
+			Grid.SetColumn(subgrid, 0);
+			Grid.SetRow(subgrid, 0);
+			Grid.SetColumnSpan(subgrid, 2);
+			subgrid.ColumnDefinitions.Add(new ColumnDefinition());
+			subgrid.ColumnDefinitions.Add(new ColumnDefinition()); //2列
+			for (int i=0;i<16;i++) //16个虚拟信道,16行
+			{
+				subgrid.RowDefinitions.Add(new RowDefinition());
+
+				Label lb_col = new Label(); lb_col.Content = string.Format("信道{0}",i);
+				subgrid.Children.Add(lb_col);
+				Grid.SetRow(lb_col, i); Grid.SetColumn(lb_col, 0);
+
+				TextBox tb_col = new TextBox(); tb_col.Text = string.Format("{0}", i);
+				subgrid.Children.Add(tb_col);
+				Grid.SetRow(tb_col, i); Grid.SetColumn(tb_col, 1);
+
+				tb_list.Add(tb_col);
+			}
+			cdlg.Height = 500;
+
+			//弹出对话框，输入
+			if (cdlg.ShowDialog() == false) return;
+
+			//构造信道号转换数组
+			int[] vir_change = new int[tb_list.Count];
+			for(int i=0;i<tb_list.Count;i++)
+			{
+				vir_change[i] = i;
+				int.TryParse(tb_list[i].Text, out vir_change[i]);
+			}
+
+			//打开输入文件
+			CMLOG_FILE cf = new CMLOG_FILE();
+			FileStream fs = new FileStream(fin, FileMode.Open, FileAccess.Read);
+			cf.filedata = new byte[fs.Length];
+			fs.Read(cf.filedata, 0, cf.filedata.Length);
+			fs.Close();
+
+			//打开输出文件
+			FileStream fsout = new FileStream(fout, FileMode.Create, FileAccess.Write);
+
+			//遍历读入数据的每一帧
+			while (true)
+			{
+				cf.cmlog_get_fram();
+				if (cf.cur_row == null) break;
+				var rowdata = cf.cur_row;
+				//修改信道号
+				rowdata.h.vir = vir_change[rowdata.h.vir];
+				//写入文件
+				var temp = Tool.StructToBytes(rowdata.h);
+				fsout.Write(temp, 0, temp.Length); //写入头部
+				fsout.Write(rowdata.b, 0, rowdata.b.Length); //写入数据
+			}
+			fsout.Close();
+		}
+#endregion
+#region cmlog修改基准时间戳
+		static public void fun_cmlog_time() //cmlog修改基准时间戳
+		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.cmlog|*.cmlog";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			string fin = ofd.FileName;
+			string fout = Path.GetDirectoryName(ofd.FileName) + "/" + Path.GetFileNameWithoutExtension(fin) + "_m.cmlog";
+
+			Com_Dlg cdlg = new Com_Dlg(); //获取输入的对话框
+										  //给对话框添加内容：
+			Label lb = new Label(); //
+			lb.Content = "输入起始时间（ms）";
+			lb.FontSize = 14;
+			lb.VerticalAlignment = VerticalAlignment.Center;
+			TextBox tb = new TextBox();
+			tb.Text = "0";
+			cdlg.mgrid.Children.Add(lb);
+			Grid.SetColumn(lb, 0);
+			Grid.SetRow(lb, 0);
+			cdlg.mgrid.Children.Add(tb);
+			Grid.SetColumn(tb, 1);
+			Grid.SetRow(tb, 0);
+
+			if (cdlg.ShowDialog() == false) return;
+			int stms = 0;
+			bool r = int.TryParse(tb.Text, out stms);
+			if (r == false || stms < 0)
+			{
+				MessageBox.Show("输入非正整数");
+				return;
+			}
+			//拿到了输入输出文件，起始时间
+			FileStream fs = new FileStream(fin, FileMode.Open, FileAccess.Read);
+			byte[] org_data = new byte[fs.Length];
+			fs.Read(org_data, 0, org_data.Length);
+			fs.Close();
+			//打开输出文件
+			FileStream fsout = new FileStream(fout, FileMode.Create, FileAccess.Write);
+			//开始转换
+			int first_ms = -1;
+			for (int i = 0; i < org_data.Length - 6;) //将内存中的数据添加到行列表
+			{
+				CMLOG_HEAD h = (CMLOG_HEAD)Tool.BytesToStruct(org_data, i, typeof(CMLOG_HEAD));
+				int len = h.len; //len这个域是长度
+				int ms = h.ms;
+				if (first_ms < 0) first_ms = ms; //第一个ms值
+				i += Marshal.SizeOf(h);
+
+				h.ms = h.ms - first_ms + stms;
+
+				var temp = Tool.StructToBytes(h);
+				fsout.Write(temp, 0, temp.Length); //写入头部
+				fsout.Write(org_data, i, len); //写入数据
+				i += len;
+			}
+			fsout.Close();
 		}
 #endregion
 	}

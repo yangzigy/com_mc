@@ -558,7 +558,7 @@ namespace com_mc
 				set_chart1_range(); //设置曲线显示区
 			}
 		}
-		DateTime tm_left_down = DateTime.Now; //左键按下的时间
+		DateTime tm_left_down = DateTime.UtcNow; //左键按下的时间
 		static double past_rx;
 		static double past_ry; //记录上次曲线区域的值（默认X、Y坐标轴下的）
 		private void Chart_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -588,7 +588,7 @@ namespace com_mc
 				set_legend(rx); //根据横坐标设置曲线图例值
 				//左键按下
 				pre_left = new Point(e.X, e.Y);
-				tm_left_down = DateTime.Now; //左键按下的时间
+				tm_left_down = DateTime.UtcNow; //左键按下的时间
 			}
 		}
 		private void Chart_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -596,7 +596,7 @@ namespace com_mc
 			if(pre_left.X>=0)
 			{
 				if (e.X == pre_left.X && e.Y == pre_left.Y) goto End;
-				if ((DateTime.Now - tm_left_down).TotalMilliseconds < 300) goto End; //若点击时间短
+				if ((DateTime.UtcNow - tm_left_down).TotalMilliseconds < 300) goto End; //若点击时间短
 				try
 				{
 					double rx = chart1.ChartAreas[0].AxisX.PixelPositionToValue(e.X);
@@ -635,7 +635,7 @@ namespace com_mc
 					Log_Tools.fun_merge_cmlog();
 					break;
 				case "cmlog_vir": //cmlog信道号修改
-					//Log_Tools.fun_file_merge();
+					Log_Tools.fun_cmlog_vir_change();
 					break;
 				case "cmlog_time": //cmlog修改基准时间戳
 					Log_Tools.fun_cmlog_time();

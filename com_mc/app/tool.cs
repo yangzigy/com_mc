@@ -356,7 +356,7 @@ namespace cslib
 		}
 		static public uint get_UTC() //获取当前utc时间
 		{
-			return (uint)(DateTime.Now - new DateTime(1970, 1, 1)).TotalSeconds;
+			return (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
 		}
 		static public T json_get<T>(JD dict, string s, T dft) //获得对象，若不存在，则取默认值
 		{
@@ -414,12 +414,12 @@ namespace cslib
 		}
 		public void update_file_name()
 		{
-			//uint t = (uint)(DateTime.Now.Ticks / 10000000); //表示0001年1月1日午夜 12:00:00 以来所经历的 100 纳秒数
+			//uint t = (uint)(DateTime.UtcNow.Ticks / 10000000); //表示0001年1月1日午夜 12:00:00 以来所经历的 100 纳秒数
 			uint t = Tool.get_UTC();
 			uint t_h = (t / restart_T) * restart_T; //整数记录点
 			if (pre_utc < t_h || sw == null) //到了整数时间或文件还没建立
 			{
-				DateTime cur_time = DateTime.Now;
+				DateTime cur_time = DateTime.UtcNow;
 				filename = basepath.FullName + "/" + prefix + cur_time.ToString(fname_time_fmt) + suffix;
 				create();
 			}
@@ -463,7 +463,7 @@ namespace cslib
 			if(!s.EndsWith("\n")) s+="\n"; //带换行
 			if(ts_fmt!="") //若要写时间戳
 			{
-				string tmp_time = DateTime.Now.ToString(ts_fmt); //时间戳
+				string tmp_time = DateTime.UtcNow.ToString(ts_fmt); //时间戳
 				s=tmp_time+s;
 			}
 			write(s);

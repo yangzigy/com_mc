@@ -22,6 +22,11 @@ namespace cslib
 		public bool type_bin { get { return (type & (1 << 0)) != 0; } set { type = (value ? type |= (1 << 0) : (byte)(type & (~(1 << 0)))); } } //是否为二进制
 		public int vir { get { return (type & (0x0f << 4)) >> 4; } set { type = (byte)((type & 0x0f) | ((value & 0x0f) << 4)); } } //虚拟信道号
 	}
+	public class CMLOG_ROW //cmlog行定义
+	{
+		public CMLOG_HEAD h; //行中的头部
+		public byte[] b; //行中的数据
+	}
 	public class CCmlog_Vir_Info //cmlog日志的虚拟信道信息
 	{
 		public bool is_sel { get; set; } = true; //是否选中了

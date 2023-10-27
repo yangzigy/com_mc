@@ -622,20 +622,23 @@ namespace com_mc
 			FrameworkElement fe = sender as FrameworkElement;
 			switch (fe.Tag)
 			{
-				case "cmlog_time": //cmlog修改基准时间戳
-					Log_Tools.fun_cmlog_time();
-					break;
 				case "hex2bin": //hex原始数据转二进制
 					Log_Tools.fun_hex2bin();
 					break;
-				case "bin2text": //二进制原始数据转文本
+				case "bin2text": //二进制原始数据转文本（二进制文件提取）
 					Log_Tools.fun_bin2text();
 					break;
-				case "org2cmlog": //原始数据转cmlog
-					Log_Tools.fun_org2cmlog();
+				case "file_merge": //文件合并
+					Log_Tools.fun_file_merge();
 					break;
 				case "merge_cmlog": //cmlog文件合并
 					Log_Tools.fun_merge_cmlog();
+					break;
+				case "cmlog_vir": //cmlog信道号修改
+					//Log_Tools.fun_file_merge();
+					break;
+				case "cmlog_time": //cmlog修改基准时间戳
+					Log_Tools.fun_cmlog_time();
 					break;
 			}
 		}

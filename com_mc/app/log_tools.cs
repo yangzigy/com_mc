@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using cslib;
+using System.Drawing;
+
 namespace com_mc
 {
 	static public class Log_Tools //日志数据文件的工具功能
@@ -133,27 +135,29 @@ namespace com_mc
 			}
 			fsout.Close();
 		}
+#endregion
+#region 二进制原始数据转文本
 		static public string[] bin2text_type_tab = new string[] //转换类型的名称
-		{
+		{ // 0     1     2     3     4    5     6     7
 			"u8","u16","u32","u64","s8","s16","s32","s64",
-			"hex8","hex16","hex32","hex64","float","dobule"
+		//    8       9      10       11      12     13       14
+			"hex8","hex16","hex32","hex64","float","dobule","bin"
 		};
 		static public uint[] bin2text_type_len = new uint[] //转换类型的长度
 		{
-			1,2,4,8,1,2,4,8,1,2,4,8,4,4
+			1,2,4,8,1,2,4,8,1,2,4,8,4,4,1
 		};
-#endregion
-#region 二进制原始数据转文本
 		static public void fun_bin2text() //二进制原始数据转文本
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
 			ofd.Filter = "*.*|*.*";
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
 			string fin = ofd.FileName;
-			string fout = Path.GetDirectoryName(ofd.FileName) + "/" +
-							Path.GetFileNameWithoutExtension(fin) + "_m.txt";
+			string fout = Path.GetDirectoryName(fin) + "/" +
+							Path.GetFileNameWithoutExtension(fin) + "_m";
 
 			Com_Dlg cdlg = new Com_Dlg(); //获取输入的对话框
+			cdlg.Width= 400;
 			Grid subgrid = new Grid(); //控件容器
 			cdlg.mgrid.Children.Add(subgrid);
 			Grid.SetColumn(subgrid, 0);
@@ -176,15 +180,15 @@ namespace com_mc
 			subgrid.Children.Add(lb_type);
 			Grid.SetRow(lb_type, 1); Grid.SetColumn(lb_type, 0);
 
-			Label lb_st = new Label(); lb_st.Content = "起始(B)";
+			Label lb_st = new Label(); lb_st.Content = "方阵起始偏移(B)";
 			subgrid.Children.Add(lb_st);
 			Grid.SetRow(lb_st, 2); Grid.SetColumn(lb_st, 0);
 
-			Label lb_rowdis = new Label(); lb_rowdis.Content = "行间距(0为列宽)";
+			Label lb_rowdis = new Label(); lb_rowdis.Content = "方阵宽/行间距(0为列宽)";
 			subgrid.Children.Add(lb_rowdis);
 			Grid.SetRow(lb_rowdis, 3); Grid.SetColumn(lb_rowdis, 0);
 
-			Label lb_row = new Label(); lb_row.Content = "行数(0为至尾)";
+			Label lb_row = new Label(); lb_row.Content = "提取行数(0为至尾)";
 			subgrid.Children.Add(lb_row);
 			Grid.SetRow(lb_row, 4); Grid.SetColumn(lb_row, 0);
 			//第二列：输入数值
@@ -259,52 +263,183 @@ namespace com_mc
 				MessageBox.Show("数据不是类型的整数倍");
 				return;
 			}
-			//打开输出文件
-			StreamWriter sw = new StreamWriter(fout);
-			uint end = l_ava + (uint)st;
-			string s = "";
-			int ind = (int)st; //当前偏移
-			for (int row = 0; row < rows; row++)
+			//若是二进制的
+			if (type == 14) //14为二进制
 			{
-				for (int col = 0; col < cols && ind<org_data.Length; col++)
+				//修改文件扩展名，为之前的扩展名
+				string ext = Path.GetExtension(fin);
+				fout += ext;
+				FileStream fsout = new FileStream(fout, FileMode.Create, FileAccess.Write);
+				uint end = l_ava + (uint)st;
+				int ind = (int)st; //当前偏移
+				for (int row = 0; row < rows; row++)
 				{
-					switch (type)
+					for (int col = 0; col < cols && ind < org_data.Length; col++)
 					{
-						case 0: s += string.Format("{0} ", org_data[ind]); break; //u8
-						case 1: s += string.Format("{0} ", (UInt16)Tool.BytesToStruct(org_data, ind, typeof(UInt16))); break; //u16
-						case 2: s += string.Format("{0} ", (UInt32)Tool.BytesToStruct(org_data, ind, typeof(UInt32))); break; //u32
-						case 3: s += string.Format("{0} ", (UInt64)Tool.BytesToStruct(org_data, ind, typeof(UInt64))); break; //u64
-						case 4: s += string.Format("{0} ", (sbyte)org_data[ind]); break; //s8
-						case 5: s += string.Format("{0} ", (Int16)Tool.BytesToStruct(org_data, ind, typeof(Int16))); break; //s16
-						case 6: s += string.Format("{0} ", (Int32)Tool.BytesToStruct(org_data, ind, typeof(Int32))); break; //s32
-						case 7: s += string.Format("{0} ", (Int64)Tool.BytesToStruct(org_data, ind, typeof(Int64))); break; //s64
-						case 8: s += string.Format("{0:X02} ", org_data[ind]); break; //hex8
-						case 9: s += string.Format("{0:X04} ", (UInt16)Tool.BytesToStruct(org_data, ind, typeof(UInt16))); break; //hex16
-						case 10: s += string.Format("{0:X08} ", (UInt32)Tool.BytesToStruct(org_data, ind, typeof(UInt32))); break; //hex32
-						case 11: s += string.Format("{0:X016} ", (UInt64)Tool.BytesToStruct(org_data, ind, typeof(UInt64))); break; //hex64
-						case 12: s += string.Format("{0} ", (float)Tool.BytesToStruct(org_data, ind, typeof(float))); break; //float
-						case 13: s += string.Format("{0} ", (double)Tool.BytesToStruct(org_data, ind, typeof(double))); break; //double
-						default: continue;
+						fsout.WriteByte(org_data[ind]);
+						ind++;
 					}
-					ind+=(int)type_len;
+					ind += (int)(row_dis - w); //行结束，跳到下一行起始
 				}
-				ind += (int)(row_dis-w); //行结束，跳到下一行起始
-				sw.WriteLine(s);
-				s = "";
+				fsout.Close();
 			}
-			sw.Close();
+			else //按文本打开输出文件
+			{
+				fout += ".txt";
+				StreamWriter sw = new StreamWriter(fout);
+				string s = "";
+				int ind = (int)st; //当前偏移
+				for (int row = 0; row < rows; row++)
+				{
+					for (int col = 0; col < cols && ind < org_data.Length; col++)
+					{
+						switch (type)
+						{
+							case 0: s += string.Format("{0} ", org_data[ind]); break; //u8
+							case 1: s += string.Format("{0} ", (UInt16)Tool.BytesToStruct(org_data, ind, typeof(UInt16))); break; //u16
+							case 2: s += string.Format("{0} ", (UInt32)Tool.BytesToStruct(org_data, ind, typeof(UInt32))); break; //u32
+							case 3: s += string.Format("{0} ", (UInt64)Tool.BytesToStruct(org_data, ind, typeof(UInt64))); break; //u64
+							case 4: s += string.Format("{0} ", (sbyte)org_data[ind]); break; //s8
+							case 5: s += string.Format("{0} ", (Int16)Tool.BytesToStruct(org_data, ind, typeof(Int16))); break; //s16
+							case 6: s += string.Format("{0} ", (Int32)Tool.BytesToStruct(org_data, ind, typeof(Int32))); break; //s32
+							case 7: s += string.Format("{0} ", (Int64)Tool.BytesToStruct(org_data, ind, typeof(Int64))); break; //s64
+							case 8: s += string.Format("{0:X02} ", org_data[ind]); break; //hex8
+							case 9: s += string.Format("{0:X04} ", (UInt16)Tool.BytesToStruct(org_data, ind, typeof(UInt16))); break; //hex16
+							case 10: s += string.Format("{0:X08} ", (UInt32)Tool.BytesToStruct(org_data, ind, typeof(UInt32))); break; //hex32
+							case 11: s += string.Format("{0:X016} ", (UInt64)Tool.BytesToStruct(org_data, ind, typeof(UInt64))); break; //hex64
+							case 12: s += string.Format("{0} ", (float)Tool.BytesToStruct(org_data, ind, typeof(float))); break; //float
+							case 13: s += string.Format("{0} ", (double)Tool.BytesToStruct(org_data, ind, typeof(double))); break; //double
+							default: continue;
+						}
+						ind += (int)type_len;
+					}
+					ind += (int)(row_dis - w); //行结束，跳到下一行起始
+					sw.WriteLine(s);
+					s = "";
+				}
+				sw.Close();
+			}
+		}
+#endregion
+#region 文件合并
+		static public void fun_file_merge() //文件合并
+		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.*|*.*";
+			ofd.Title = "选择第1个文件";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			string fin1 = ofd.FileName;
+			ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.*|*.*";
+			ofd.Title = "选择第2个文件";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			string fin2 = ofd.FileName;
+			//输出文件
+			string fout = Path.GetDirectoryName(fin1) + "/" +
+							Path.GetFileNameWithoutExtension(fin1) + "_m" + 
+							Path.GetExtension(fin1);
+			//打开第一个文件
+			FileStream fs = new FileStream(fin1, FileMode.Open, FileAccess.Read);
+			byte[] org_data = new byte[fs.Length];
+			fs.Read(org_data, 0, org_data.Length);
+			fs.Close();
+			//写入输出
+			FileStream fsout = new FileStream(fout, FileMode.Create, FileAccess.Write);
+			fsout.Write(org_data,0, org_data.Length);
+			//打开第二个文件
+			fs = new FileStream(fin2, FileMode.Open, FileAccess.Read);
+			org_data = new byte[fs.Length];
+			fs.Read(org_data, 0, org_data.Length);
+			fs.Close();
+			fsout.Write(org_data, 0, org_data.Length);
+			//关闭输出文件
+			fsout.Close();
 		}
 #endregion
 #region cmlog文件合并
-		static public void fun_merge_cmlog() //cmlog文件合并
+		static public void fun_merge_cmlog() //cmlog文件合并（同一文件夹下）
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
 			ofd.Filter = "*.cmlog|*.cmlog";
 			ofd.Multiselect= true;
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
-			string[] filelist = ofd.FileNames;
-			//List<byte[]> 
-			//string fout = Path.GetDirectoryName(ofd.FileName) + "/" + Path.GetFileNameWithoutExtension(fin) + "_m.cmlog";
+			string[] filelist = ofd.FileNames; //待合并的各个日志文件
+			if(filelist.Length <= 1 ) { return; } //如果只有一个文件，不工作
+			string fout = Path.GetDirectoryName(ofd.FileName) + "/" + "merge_out.cmlog";
+			//合并算法：
+			//	每个文件读出一个当前行
+			//	找到时间戳最小的那个，写入输出文件
+			//	使用过一行的文件，再出一行，重复以上步骤
+			List<CMLOG_FILE> cm_files=new List<CMLOG_FILE>(); //各文件
+			foreach (var item in filelist)
+			{
+				CMLOG_FILE f=new CMLOG_FILE();
+				
+				//读文件
+				FileStream fs = new FileStream(item, FileMode.Open, FileAccess.Read);
+				f.filedata = new byte[fs.Length];
+				fs.Read(f.filedata, 0, f.filedata.Length);
+				fs.Close();
+
+				f.cmlog_get_fram(); //取得一帧数据
+				cm_files.Add(f);
+			}
+			//打开输出文件
+			FileStream fsout = new FileStream(fout, FileMode.Create, FileAccess.Write);
+			//开始转换
+			while (true) //
+			{
+				bool has_data = false; //有数据标志
+				int min_ms = int.MaxValue;
+				int min_pos = -1;
+				for (int i=0;i< cm_files.Count;i++)
+				{
+					var item = cm_files[i];
+					if(item.cur_row!=null) //是否有数据
+					{
+						has_data = true;
+						if(item.cur_row.h.ms < min_ms) //找最小值
+						{
+							min_ms=item.cur_row.h.ms;
+							min_pos = i;
+						}
+					}
+				}
+				if (!has_data) { break; }
+				if (min_pos < 0) continue;
+				//写入文件
+				var rowdata = cm_files[min_pos].cur_row;
+				var temp = Tool.StructToBytes(rowdata.h);
+				fsout.Write(temp, 0, temp.Length); //写入头部
+				fsout.Write(rowdata.b, 0, rowdata.b.Length); //写入数据
+															 //输出的这个文件，继续取得一帧
+				cm_files[min_pos].cmlog_get_fram();
+			}
+			fsout.Close();
+		}
+		public class CMLOG_FILE //cmlog的文件类，提供文件读取操作
+		{
+			public CMLOG_ROW cur_row=null; //当前读出的行
+			public byte[] filedata = null; //文件中的所有数据
+			public int off = 0; //当前读取的位置
+			public void cmlog_get_fram() //从cmlog数据中读取一个帧
+			{
+				if (off > filedata.Length - 8)
+				{
+					cur_row = null;
+					return;
+				}
+
+				CMLOG_ROW r = new CMLOG_ROW();
+				r.h = (CMLOG_HEAD)Tool.BytesToStruct(filedata, off, typeof(CMLOG_HEAD));
+				off += Marshal.SizeOf(r.h);
+
+				r.b = new byte[r.h.len];
+				Array.Copy(filedata, off, r.b, 0, r.h.len); //输出数据
+				off += r.h.len;
+
+				cur_row= r;
+			}
 		}
 #endregion
 	}

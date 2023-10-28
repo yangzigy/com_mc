@@ -113,9 +113,9 @@ namespace cslib
 				state = 1; //初始化为暂停状态
 				set_replay_pos(0);
 				
-				while (true)
+				try
 				{
-					try
+					while (true)
 					{
 						switch (state)
 						{
@@ -131,12 +131,12 @@ namespace cslib
 								break;
 							default: throw new Exception("终止");//终止
 						}
+						Thread.Sleep(20);
 					}
-					catch (Exception e)
-					{
-						//state = 0;
-					}
-					Thread.Sleep(20);
+				}
+				catch (Exception e)
+				{
+					//state = 0;
 				}
 			});
 			if (open_cb != null) open_cb(); //调用事件
@@ -187,17 +187,21 @@ namespace cslib
 		}
 		public void try_to_play()
 		{
-			while (replay_line < replay_end)
+			try
 			{
-				update_replay_ms(); //更新回放时间
-				if (replay_ms > line_ms_list[replay_line]) //若回放时间大于数据时间，发出
+				while (replay_line < replay_end)
 				{
-					replay_run_1_frame();
-					replay_line++;
+					update_replay_ms(); //更新回放时间
+					if (replay_ms > line_ms_list[replay_line]) //若回放时间大于数据时间，发出
+					{
+						replay_run_1_frame();
+						replay_line++;
+					}
+					else break;
+					if (state == 3) break;//若是单帧播放
 				}
-				else break;
-				if (state == 3) break;//若是单帧播放
 			}
+			catch (Exception e) { }
 		}
 		public void replay_run_1_frame() //回放当前帧，不更新状态，慎重调用
 		{

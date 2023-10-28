@@ -248,7 +248,12 @@ namespace com_mc
 			var ofd = new System.Windows.Forms.SaveFileDialog();
 			ofd.Filter = "*.csv|*.csv";
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-			StreamWriter sw = new StreamWriter(ofd.FileName);
+			StreamWriter sw = null;
+			try
+			{
+				sw = new StreamWriter(ofd.FileName);
+			}
+			catch (Exception ex) { MessageBox.Show(ex.Message); return; }
 			//由于x轴一定是整数，所以按x轴作为索引。取得曲线的x轴极值坐标
 			fit_screen_data();
 			Int64 i = 0;
@@ -267,27 +272,40 @@ namespace com_mc
 			s = s.Substring(0, s.Length - 1);
 			sw.WriteLine(s);
 			var mi = new int[cv_id.Count]; //各曲线的索引
-			for (i = (Int64)curv_x_min; i < curv_x_max; i++) //i为横坐标值
+			for (i = (Int64)curv_x_min; i < curv_x_max; i++) //i为横坐标值，同一个ms值只采一次
 			{
 				s = "";
-				int flag = 0;
+				int flag = 0; //是否有曲线输出了值
+				int mult_flag = 0; //是否有曲线在此ms值上有多个值
 				for(int j =0;j<cv_id.Count;j++) //遍历所有曲线
 				{
 					var ser = chart1.Series[cv_id[j]];
+					int tmp_mult = 0; //此曲线上需要检测下一个值看是否是这个ms值
 					for (; mi[j] < ser.Points.Count; mi[j]++)
 					{
 						int cur_x_val = (int)(ser.Points[mi[j]].XValue);
 						if (cur_x_val > i) break; //若还没到，就过
-						if (cur_x_val == i)
+						if (cur_x_val == i) //就是现在要的这个值
 						{
+							if (tmp_mult > 0) //若已经取得了本ms的值，现在是想看看下一个值
+							{
+								//mi[j]--;
+								mult_flag = 1; //标志有曲线有多值
+								break;
+							}
 							s += string.Format("{0}", ser.Points[mi[j]].YValues[0]);
 							flag = 1;
-							break;
+							tmp_mult = 1; //需要看下一个点是否是本ms
+							continue;
 						}
 					}
 					s += ","; //每个曲线加一个逗号
 				}
-				if (flag== 0) continue;
+				if (flag== 0) continue; //当前ms数上没有值
+				if(mult_flag>0) //若此ms值上有多值，还得来一次
+				{
+					i--;
+				}
 				s=s.Substring(0, s.Length - 1);
 				sw.WriteLine(s);
 			}

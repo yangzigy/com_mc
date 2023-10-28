@@ -222,7 +222,7 @@ namespace com_mc
 				else //若没有接收完成
 				{
 				}
-				if (back_n != 0) //若有回溯任务
+				if (back_n > 0) //若有回溯任务
 				{
 					b = rec_buff[pback];
 					pback++; back_n--;

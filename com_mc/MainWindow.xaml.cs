@@ -226,7 +226,7 @@ namespace com_mc
 			bt_refresh_uart_Click(null, null);
 			if (Config.config.mv_w != 0) Width = Config.config.mv_w;
 			if (Config.config.mv_h != 0) Height = Config.config.mv_h;
-			//加入配置
+			//指令基类静态变量配置
 			CCmd_Button.bt_margin_len = Config.config.bt_margin;
 			CCmd_Button.ctrl_cols = Config.config.ctrl_cols;
 			CCmd_Button.cmds = commc.cmds;
@@ -272,7 +272,7 @@ namespace com_mc
 			s = s.Substring(0, s.Length - 1);
 			sw.WriteLine(s);
 			var mi = new int[cv_id.Count]; //各曲线的索引
-			for (i = (Int64)curv_x_min; i < curv_x_max; i++) //i为横坐标值，同一个ms值只采一次
+			for (i = (Int64)(curv_x_min-1); i < curv_x_max+1; i++) //i为横坐标值，同一个ms值只采一次
 			{
 				s = "";
 				int flag = 0; //是否有曲线输出了值

@@ -5,10 +5,10 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:com_mc"
 		mc:Ignorable="d" Loaded="Window_Loaded"
-		Title="Replay_Window" Height="300" Width="800" Closing="Window_Closing" FontSize="16">
+		Title="Replay_Window" Height="320" Width="800" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="26"></RowDefinition>
+			<RowDefinition Height="35"></RowDefinition>
 			<RowDefinition Height="2*"></RowDefinition>
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
@@ -16,12 +16,17 @@
 			<ColumnDefinition Width="1*"></ColumnDefinition>
 		</Grid.ColumnDefinitions>
 		<Menu Grid.Row="0" Grid.ColumnSpan="2">
-			<MenuItem FontSize="16" Header="导出">
+			<MenuItem FontSize="16" Header="导出数据" BorderBrush="Black">
 				<MenuItem FontSize="16" Name="bt_export_cmlog" Click="bt_export_Click" Tag="cmlog" Header="导出为cmlog"></MenuItem>
 				<MenuItem FontSize="16" Name="bt_export_org" Click="bt_export_Click" Tag="org" Header="导出原始数据"></MenuItem>
 				<MenuItem FontSize="16" Name="bt_export_timetext" Click="bt_export_Click" Tag="timetext" Header="导出带时间戳文本"></MenuItem>
 				<MenuItem FontSize="16" Name="bt_export_csv" Click="bt_export_Click" Tag="csv" Header="导出变量csv"></MenuItem>
 			</MenuItem>
+			<Label FontSize="16">输出到数据源：</Label>
+			<ComboBox Height="28" Width="80" Name="cb_datasrc" FontSize="16" VerticalAlignment="Center" VerticalContentAlignment="Center"></ComboBox>
+			<Button Click="bt_refresh_uart_Click" Name="bt_refresh_uart" FontSize="16" Content="刷新串口"></Button>
+			<Button Name="bt_open_datasrc" Click="btnConnCom_Click" FontSize="16" Content="打开端口"></Button>
+			<CheckBox Name="cb_output_main" IsChecked="True">同时输出到主界面</CheckBox>
 		</Menu>
 		<Grid Grid.Row="1" Grid.Column="0" Grid.RowSpan="2">
 			<Grid.RowDefinitions>

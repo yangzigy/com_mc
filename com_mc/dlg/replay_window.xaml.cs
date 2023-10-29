@@ -30,8 +30,13 @@ namespace com_mc
 		public uint tick = 0;
 		public ImageBrush resume_bkimg = new ImageBrush(); //恢复图标
 		public ImageBrush suspend_bkimg = new ImageBrush(); //暂停图标
+
+		//将当前选中的数据导出成csv时使用：
 		public Dictionary<string, CRpl_Para_Info> para_info_dict = new Dictionary<string, CRpl_Para_Info>(); //所有测量量的显示
-		
+
+		public DataSrc cur_ds = null; //当前数据源
+		public bool is_output_main = true; //是否对主界面输出
+
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
 			resume_bkimg.ImageSource = new BitmapImage(new Uri("pack://application:,,,/pic/3.PNG"));
@@ -42,11 +47,20 @@ namespace com_mc
 		public void new_file_loaded() //新的文件加载
 		{
 			Title="relay: "+ rplobj.rpl_filename;
+			rplobj.close_cb = () => 
+			{ //关数据源
+				bt_open_datasrc.Content = "打开端口";
+				if (cur_ds != null) cur_ds.close();
+				//其他清理动作
+				Visibility = Visibility.Hidden; //关界面
+			};
 			//首先将界面失能，等用到的时候使能
 			bt_update_vir.IsEnabled = false;
 			bt_export_cmlog.IsEnabled= false;
 			bt_export_org.IsEnabled= false;
 			bt_export_timetext.IsEnabled= false;
+			bt_refresh_uart.IsEnabled= false;
+			bt_open_datasrc.IsEnabled= false;
 			if (rplobj.line_ms_list.Count <= 0) return;
 			tb_replay_st.Text = rplobj.replay_st.ToString();
 			tb_replay_end.Text = rplobj.replay_end.ToString();
@@ -65,6 +79,10 @@ namespace com_mc
 			{
 				bt_update_vir.IsEnabled= true;
 			}
+			bt_refresh_uart.IsEnabled = true;
+			bt_open_datasrc.IsEnabled = true;
+			//加载数据源
+			bt_refresh_uart_Click(null, null);
 		}
 		private void bt_replay_cmd_Click(object sender, RoutedEventArgs e) //回放指令
 		{
@@ -137,6 +155,8 @@ namespace com_mc
 					}
 					tb_org_text.Text = s;
 				}
+				//查询是否需要输出到主界面
+				is_output_main = (bool)cb_output_main.IsChecked;
 			}
 			//查看变速设置
 			string sp = cb_speed.Text;
@@ -349,6 +369,57 @@ namespace com_mc
 		{
 			int d = e.Delta;
 			sl_cur_row.Value -= Math.Round(d/100.0); //如不取整会导致上下振
+		}
+		public Dictionary<string, DataSrc> ds_tab = new Dictionary<string, DataSrc>(); //字符与数据源的对应关系
+		private void bt_refresh_uart_Click(object sender, RoutedEventArgs e) //建立数据源的名称列表
+		{
+			List<string> dsrclist = new List<string>();
+			foreach (var item in DataSrc.dslist)
+			{
+				var l = item.get_names();
+				foreach (var it in l)
+				{
+					if (it == "回放" || it == "文件") continue;
+					ds_tab[it] = item; //此名称索引到同一个数据源，例如COM1、COM2都索引到uart数据源
+					dsrclist.Add(it);
+				}
+			}
+			cb_datasrc.ItemsSource = dsrclist;
+			cb_datasrc.SelectedIndex = 0;
+		}
+		public DataSrc.RX_CB org_replay_rx_cb = null; //上次的回放接收回调函数
+		private void btnConnCom_Click(object sender, RoutedEventArgs e)
+		{
+			var btn = sender as Button;
+			try
+			{
+				if (btn.Content.ToString() == "打开端口")
+				{
+					string ds_name = cb_datasrc.Text;
+					cur_ds = ds_tab[ds_name];
+					cur_ds.open(ds_name); //打开数据源
+					//将数据源的接收函数换成临时的
+					org_replay_rx_cb = rplobj.rx_event; //记录之前的接收函数
+					rplobj.rx_event = (byte[] b) => //回放一帧的数据
+					{
+						cur_ds.send_data(b);
+						if(is_output_main) org_replay_rx_cb(b); //调用之前的
+					};
+
+					Title = Config.config.title_str + ":" + cb_datasrc.Text;
+					btn.Content = "关闭端口";
+				}
+				else
+				{
+					btn.Content = "打开端口";
+					if (org_replay_rx_cb != null) rplobj.rx_event = org_replay_rx_cb; //恢复之前的回调
+					if (cur_ds != null) cur_ds.close();
+				}
+			}
+			catch (Exception ee)
+			{
+				MessageBox.Show("message: " + ee.Message);
+			}
 		}
 	}
 	public class CRpl_Para_Info //回放对话框中测量量参数信息，包括选择控件和输出缓存

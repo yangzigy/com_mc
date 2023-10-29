@@ -187,7 +187,7 @@ namespace cslib
 		}
 		public void try_to_play()
 		{
-			try
+			try //让回放帧的错误不影响回放流程
 			{
 				while (replay_line < replay_end)
 				{

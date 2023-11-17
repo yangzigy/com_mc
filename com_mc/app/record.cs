@@ -207,12 +207,12 @@ namespace cslib
 		{
 			if (is_bin) //若是二进制
 			{
-				rx_event(bin_lines[replay_line]);
+				rx_event(bin_lines[replay_line]); //调用数据源的回调函数
 			}
 			else //若是文本行
 			{
 				var b = Encoding.UTF8.GetBytes(data_lines[replay_line]);
-				rx_event(b);
+				rx_event(b); //调用数据源的回调函数
 			}
 		}
 		public void set_replay_pos(int ind) //设置回放位置

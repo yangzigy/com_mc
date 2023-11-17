@@ -26,7 +26,7 @@ namespace com_mc
 		{
 			InitializeComponent();
 		}
-		public DataSrc_replay rplobj = null; //回放数据源
+		public DataSrc_replay rplobj = null; //回放数据源，依赖主窗口初始化
 		public uint tick = 0;
 		public ImageBrush resume_bkimg = new ImageBrush(); //恢复图标
 		public ImageBrush suspend_bkimg = new ImageBrush(); //暂停图标
@@ -36,6 +36,7 @@ namespace com_mc
 
 		public DataSrc cur_ds = null; //当前数据源
 		public bool is_output_main = true; //是否对主界面输出
+		public DataSrc.RX_CB org_replay_rx_cb = null; //上次的回放接收回调函数
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
@@ -51,9 +52,20 @@ namespace com_mc
 			{ //关数据源
 				bt_open_datasrc.Content = "打开端口";
 				if (cur_ds != null) cur_ds.close();
+				if(org_replay_rx_cb!=null) //若记录过之前的回调
+				{
+					rplobj.rx_event = org_replay_rx_cb; //恢复之前的回调
+					org_replay_rx_cb = null;
+				}
+				MainWindow.mw.is_replay_ms = false;
 				//其他清理动作
 				Visibility = Visibility.Hidden; //关界面
 			};
+			if(rplobj.rx_event != replay_rx_event) //若回调不是自己
+			{
+				org_replay_rx_cb = rplobj.rx_event;
+				rplobj.rx_event = replay_rx_event;
+			}
 			//首先将界面失能，等用到的时候使能
 			bt_update_vir.IsEnabled = false;
 			bt_export_cmlog.IsEnabled= false;
@@ -81,8 +93,22 @@ namespace com_mc
 			}
 			bt_refresh_uart.IsEnabled = true;
 			bt_open_datasrc.IsEnabled = true;
-			//加载数据源
+			//加载数据源列表（输出数据源）
 			bt_refresh_uart_Click(null, null);
+		}
+		public void replay_rx_event(byte[] b) //回放接收的特殊回调函数
+		{
+			//设置x轴(如果是按回放时间戳，从回放对象中取得)
+			if (MainWindow.mw.is_replay_ms)
+			{
+				MainWindow.mw.st_ms = 0;
+				MainWindow.mw.ticks0 = rplobj.line_ms_list[rplobj.replay_line];
+			}
+			//调用之前的回调函数
+			if (org_replay_rx_cb!=null)
+			{
+				org_replay_rx_cb(b);
+			}
 		}
 		private void bt_replay_cmd_Click(object sender, RoutedEventArgs e) //回放指令
 		{
@@ -157,6 +183,15 @@ namespace com_mc
 				}
 				//查询是否需要输出到主界面
 				is_output_main = (bool)cb_output_main.IsChecked;
+				if((bool)cb_x_ms.IsChecked) //若是按回放时间戳
+				{
+					MainWindow.mw.is_replay_ms = true;
+				}
+				else if(MainWindow.mw.is_replay_ms == true) //如果是从回放跳变到正常
+				{
+					MainWindow.mw.is_replay_ms = false;
+					MainWindow.mw.is_first = 1; //需要重新设置曲线，否则点差距过大会导致控件故障
+				}
 			}
 			//查看变速设置
 			string sp = cb_speed.Text;
@@ -387,7 +422,6 @@ namespace com_mc
 			cb_datasrc.ItemsSource = dsrclist;
 			cb_datasrc.SelectedIndex = 0;
 		}
-		public DataSrc.RX_CB org_replay_rx_cb = null; //上次的回放接收回调函数
 		private void btnConnCom_Click(object sender, RoutedEventArgs e)
 		{
 			var btn = sender as Button;

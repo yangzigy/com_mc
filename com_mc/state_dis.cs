@@ -36,6 +36,8 @@ namespace com_mc
 		public Dictionary<string, Series> series_map=new Dictionary<string, Series>();
 		public Dictionary<string, CheckBox> checkb_map = new Dictionary<string, CheckBox>();
 		public long st_ms= DateTime.UtcNow.Ticks/10000; //曲线起始ms
+		public long ticks0 = DateTime.UtcNow.Ticks / 10000; //每次收到数据时更新，每个包一个ms值（作为各数据源对x轴设置的接口）
+		public bool is_replay_ms = false; //是否使用回放时间戳
 		public long x_tick=0; //x轴数值
 		public string x_axis_id=""; //x轴的索引变量名，空则使用时间
 		public int is_first =1;
@@ -142,7 +144,7 @@ namespace com_mc
 							}
 							else //没有索引列，就用时间ms数作为x轴
 							{
-								tmpserial.Points.AddXY(ticks0 - st_ms, d);
+								tmpserial.Points.AddXY(ticks0 - st_ms, d); //x轴点差距过大，控件会报错
 							}
 							if (tmpserial.Points.Count >= dd.dis_data_len)
 							{
@@ -301,9 +303,9 @@ namespace com_mc
 		public void rx_fun(byte[] buf) //从数据源接收回调函数
 		{
 			rx_Byte_1_s += buf.Length;
-			commc.pro_obj.rx_fun(buf); //给帧同步对象
+			commc.pro_obj.rx_fun(buf); //给帧同步对象，调用pro_inc，对每个frame_syn_pro调用rec_byte
 		}
-		public long ticks0 = DateTime.UtcNow.Ticks / 10000; //每次收到数据时更新，每个包一个ms值
+		//作为协议对象的回调
 		public void rx_pack(byte[] b, int off, int n, int rootid,bool is_inc) //帧同步对象回调：接收一包数据（二进制或文本）
 		{
 			var p = commc.mc_prot.text_root;
@@ -313,7 +315,10 @@ namespace com_mc
 			{
 				try
 				{
-					ticks0 = DateTime.UtcNow.Ticks / 10000;//给传感变量刷新
+					if(is_replay_ms ==false) //若不是回放时间戳，就给一个时间戳
+					{
+						ticks0 = DateTime.UtcNow.Ticks / 10000;//给传感变量刷新
+					}
 					if (rootid == 0) //若是文本的
 					{
 						if (p == null) return;
@@ -403,7 +408,7 @@ namespace com_mc
 			{
 				seri.Value.Points.Clear();
 			}
-			st_ms = DateTime.UtcNow.Ticks / 10000;
+			if(is_replay_ms==false) st_ms = DateTime.UtcNow.Ticks / 10000; //若是正常时间戳模式
 			x_tick=0;
 		}
 	}

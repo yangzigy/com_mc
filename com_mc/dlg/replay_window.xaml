@@ -5,7 +5,7 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:com_mc"
 		mc:Ignorable="d" Loaded="Window_Loaded"
-		Title="Replay_Window" Height="320" Width="800" Closing="Window_Closing" FontSize="16">
+		Title="Replay_Window" Height="320" Width="850" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="35"></RowDefinition>
@@ -26,7 +26,8 @@
 			<ComboBox Height="28" Width="80" Name="cb_datasrc" FontSize="16" VerticalAlignment="Center" VerticalContentAlignment="Center"></ComboBox>
 			<Button Click="bt_refresh_uart_Click" Name="bt_refresh_uart" FontSize="16" Content="刷新串口"></Button>
 			<Button Name="bt_open_datasrc" Click="btnConnCom_Click" FontSize="16" Content="打开端口"></Button>
-			<CheckBox Name="cb_output_main" IsChecked="True">同时输出到主界面</CheckBox>
+			<CheckBox Name="cb_output_main" IsChecked="True">同时输出到界面</CheckBox>
+			<CheckBox Name="cb_x_ms" IsChecked="True">按记录时间戳</CheckBox>
 		</Menu>
 		<Grid Grid.Row="1" Grid.Column="0" Grid.RowSpan="2">
 			<Grid.RowDefinitions>

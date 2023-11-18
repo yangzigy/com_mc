@@ -24,7 +24,11 @@ namespace com_mc
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
 			ofd.Filter = "*.*|*.*";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+			{
+				MessageBox.Show("未选择文件");
+				return;
+			}
 			string fin = ofd.FileName;
 			string fout = Path.GetDirectoryName(ofd.FileName) + "/" +
 							Path.GetFileNameWithoutExtension(fin) + "_m"+
@@ -92,7 +96,11 @@ namespace com_mc
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
 			ofd.Filter = "*.*|*.*";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+			{
+				MessageBox.Show("未选择文件");
+				return;
+			}
 			string fin = ofd.FileName;
 			string fout = Path.GetDirectoryName(fin) + "/" +
 							Path.GetFileNameWithoutExtension(fin) + "_m";
@@ -268,12 +276,20 @@ namespace com_mc
 			var ofd = new System.Windows.Forms.OpenFileDialog();
 			ofd.Filter = "*.*|*.*";
 			ofd.Title = "选择第1个文件";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+			{
+				MessageBox.Show("未选择文件");
+				return;
+			}
 			string fin1 = ofd.FileName;
 			ofd = new System.Windows.Forms.OpenFileDialog();
 			ofd.Filter = "*.*|*.*";
 			ofd.Title = "选择第2个文件";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+			{
+				MessageBox.Show("未选择文件");
+				return;
+			}
 			string fin2 = ofd.FileName;
 			//输出文件
 			string fout = Path.GetDirectoryName(fin1) + "/" +
@@ -303,7 +319,11 @@ namespace com_mc
 			var ofd = new System.Windows.Forms.OpenFileDialog();
 			ofd.Filter = "*.cmlog|*.cmlog";
 			ofd.Multiselect= true;
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+			{
+				MessageBox.Show("未选择文件");
+				return;
+			}
 			string[] filelist = ofd.FileNames; //待合并的各个日志文件
 			if(filelist.Length <= 1 ) { return; } //如果只有一个文件，不工作
 			string fout = Path.GetDirectoryName(ofd.FileName) + "/" + "merge_out.cmlog";
@@ -388,7 +408,11 @@ namespace com_mc
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
 			ofd.Filter = "*.*|*.*";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+			{
+				MessageBox.Show("未选择文件");
+				return;
+			}
 			string fin = ofd.FileName;
 			string fout = Path.GetDirectoryName(fin) + "/" +
 							Path.GetFileNameWithoutExtension(fin) + "_m.cmlog";
@@ -462,7 +486,11 @@ namespace com_mc
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
 			ofd.Filter = "*.cmlog|*.cmlog";
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+			{
+				MessageBox.Show("未选择文件");
+				return;
+			}
 			string fin = ofd.FileName;
 			string fout = Path.GetDirectoryName(ofd.FileName) + "/" + Path.GetFileNameWithoutExtension(fin) + "_m.cmlog";
 

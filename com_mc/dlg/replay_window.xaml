@@ -5,7 +5,7 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:com_mc"
 		mc:Ignorable="d" Loaded="Window_Loaded"
-		Title="Replay_Window" Height="320" Width="850" Closing="Window_Closing" FontSize="16">
+		Title="Replay_Window" Height="320" Width="900" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="35"></RowDefinition>

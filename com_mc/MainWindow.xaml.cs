@@ -646,7 +646,10 @@ namespace com_mc
 				case "bin2text": //二进制原始数据转文本（二进制文件提取）
 					Log_Tools.fun_bin2text();
 					break;
-				case "file_merge": //文件合并
+				case "bin2cmlog": //定长帧转cmlog
+					Log_Tools.fun_bin2cmlog();
+					break;
+				case "file_merge": //任意2文件合并
 					Log_Tools.fun_file_merge();
 					break;
 				case "merge_cmlog": //cmlog文件合并

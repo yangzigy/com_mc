@@ -121,11 +121,11 @@ namespace com_mc
 			subgrid.ColumnDefinitions.Add(new ColumnDefinition());
 			cdlg.Height = 260;
 			//第一列：描述文本
-			Label lb_col = new Label();	lb_col.Content = "列数";
+			Label lb_col = new Label();	lb_col.Content = "列数(元素数)";
 			subgrid.Children.Add(lb_col);
 			Grid.SetRow(lb_col, 0); Grid.SetColumn(lb_col,0);
 
-			Label lb_type = new Label();	lb_type.Content = "类型";
+			Label lb_type = new Label();	lb_type.Content = "输入输出类型";
 			subgrid.Children.Add(lb_type);
 			Grid.SetRow(lb_type, 1); Grid.SetColumn(lb_type, 0);
 
@@ -141,11 +141,11 @@ namespace com_mc
 			subgrid.Children.Add(lb_row);
 			Grid.SetRow(lb_row, 4); Grid.SetColumn(lb_row, 0);
 			//第二列：输入数值
-			TextBox tb_col = new TextBox(); tb_col.Text = "8";
+			TextBox tb_col = new TextBox(); tb_col.Text = "8"; //列数
 			subgrid.Children.Add(tb_col);
 			Grid.SetRow(tb_col, 0); Grid.SetColumn(tb_col, 1);
 
-			ComboBox cb_type = new ComboBox(); cb_type.VerticalContentAlignment = VerticalAlignment.Center;
+			ComboBox cb_type = new ComboBox(); cb_type.VerticalContentAlignment = VerticalAlignment.Center; //输出类型
 			for (int i = 0; i < bin2text_type_tab.Length; i++)
 			{
 				cb_type.Items.Add(bin2text_type_tab[i]);
@@ -154,15 +154,15 @@ namespace com_mc
 			subgrid.Children.Add(cb_type);
 			Grid.SetRow(cb_type, 1); Grid.SetColumn(cb_type, 1);
 
-			TextBox tb_st = new TextBox(); tb_st.Text = "0";
+			TextBox tb_st = new TextBox(); tb_st.Text = "0"; //方阵起始偏移(B)
 			subgrid.Children.Add(tb_st);
 			Grid.SetRow(tb_st, 2); Grid.SetColumn(tb_st, 1);
 
-			TextBox tb_rowdis = new TextBox(); tb_rowdis.Text = "0";
+			TextBox tb_rowdis = new TextBox(); tb_rowdis.Text = "0"; //方阵宽/行间距(0为列宽)
 			subgrid.Children.Add(tb_rowdis);
 			Grid.SetRow(tb_rowdis, 3); Grid.SetColumn(tb_rowdis, 1);
 
-			TextBox tb_row = new TextBox(); tb_row.Text = "0";
+			TextBox tb_row = new TextBox(); tb_row.Text = "0"; //提取行数(0为至尾)
 			subgrid.Children.Add(tb_row);
 			Grid.SetRow(tb_row, 4); Grid.SetColumn(tb_row, 1);
 
@@ -268,6 +268,104 @@ namespace com_mc
 				}
 				sw.Close();
 			}
+		}
+
+#endregion
+#region 定长帧转cmlog
+		static public void fun_bin2cmlog() //定长帧转cmlog。如果需要从二进制文件中提取块，可以先用二进制文件提取功能
+		{
+			var ofd = new System.Windows.Forms.OpenFileDialog();
+			ofd.Filter = "*.*|*.*";
+			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+			{
+				MessageBox.Show("未选择文件");
+				return;
+			}
+			string fin = ofd.FileName;
+			string fout = Path.GetDirectoryName(fin) + "/" +
+							Path.GetFileNameWithoutExtension(fin) + ".cmlog";
+
+			Com_Dlg cdlg = new Com_Dlg(); //获取输入的对话框
+			cdlg.Width = 200;
+			Grid subgrid = new Grid(); //控件容器
+			cdlg.mgrid.Children.Add(subgrid);
+			Grid.SetColumn(subgrid, 0);
+			Grid.SetRow(subgrid, 0);
+			Grid.SetColumnSpan(subgrid, 2);
+			subgrid.RowDefinitions.Add(new RowDefinition());
+			subgrid.RowDefinitions.Add(new RowDefinition());
+			subgrid.RowDefinitions.Add(new RowDefinition());
+			subgrid.ColumnDefinitions.Add(new ColumnDefinition());
+			subgrid.ColumnDefinitions.Add(new ColumnDefinition());
+			cdlg.Height = 200;
+
+			//第一列：描述文本
+			Label lb_col = new Label(); lb_col.Content = "列宽(Byte)";
+			subgrid.Children.Add(lb_col);
+			Grid.SetRow(lb_col, 0); Grid.SetColumn(lb_col, 0);
+
+			Label lb_channel = new Label(); lb_channel.Content = "信道号";
+			subgrid.Children.Add(lb_channel);
+			Grid.SetRow(lb_channel, 1); Grid.SetColumn(lb_channel, 0);
+
+			Label lb_row_ms = new Label();	lb_row_ms.Content = "行间隔(ms)";
+			subgrid.Children.Add(lb_row_ms);
+			Grid.SetRow(lb_row_ms, 2); Grid.SetColumn(lb_row_ms,0);
+
+			//第二列：输入数值
+			TextBox tb_col = new TextBox(); tb_col.Text = "8"; //列数
+			subgrid.Children.Add(tb_col);
+			Grid.SetRow(tb_col, 0); Grid.SetColumn(tb_col, 1);
+
+			TextBox tb_channel = new TextBox(); tb_channel.Text = "1"; //信道号
+			subgrid.Children.Add(tb_channel);
+			Grid.SetRow(tb_channel, 1); Grid.SetColumn(tb_channel, 1);
+
+			TextBox tb_row_ms = new TextBox(); tb_row_ms.Text = "10"; //行间隔(ms)
+			subgrid.Children.Add(tb_row_ms);
+			Grid.SetRow(tb_row_ms, 2); Grid.SetColumn(tb_row_ms, 1);
+
+			//弹出对话框，输入
+			if (cdlg.ShowDialog() == false) return;
+
+			//打开输入文件
+			FileStream fs = new FileStream(fin, FileMode.Open, FileAccess.Read);
+			byte[] org_data = new byte[fs.Length];
+			fs.Read(org_data, 0, org_data.Length);
+			fs.Close();
+
+			//读取输入值
+			uint w = 0; //列宽Byte
+			int row_ms = 0; //行间隔(ms)
+			byte vir = 0;
+			if ((!uint.TryParse(tb_col.Text, out w)) || w == 0 || w> (65536 - 8) ||
+				(!int.TryParse(tb_row_ms.Text, out row_ms)) || row_ms<0 ||
+				(!byte.TryParse(tb_channel.Text, out vir)) || vir>16)
+			{
+				MessageBox.Show("参数错误");
+				return;
+			}
+			//写文件
+			FileStream fsout = new FileStream(fout, FileMode.Create, FileAccess.Write);
+			int ind = 0;
+			CMLOG_HEAD h=new CMLOG_HEAD(); //行中的头部
+			h.syn = 0xa0;
+			h.ms = 0;
+			byte[] b; //行中的数据
+			while (ind<org_data.Length)
+			{
+				int len_left=org_data.Length-ind;
+				int len=len_left>w?(int)w:len_left; //本帧写入长度
+				h.vir = vir; //
+				h.type_bin = true; //二进制
+				h.ms += row_ms;
+				h.len = (ushort)len;
+				var tb = Tool.StructToBytes(h);
+				fsout.Write(tb,0,tb.Length); //写头
+				fsout.Write(org_data,ind,len); //写数据
+				ind+=len;
+			}
+			fsout.Close();
 		}
 #endregion
 #region 文件合并

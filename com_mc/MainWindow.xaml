@@ -39,7 +39,8 @@
 			<MenuItem Header="工具">
 				<MenuItem Header="hex原始数据转二进制" Click="mi_log_tools_Click" Tag="hex2bin"></MenuItem>
 				<MenuItem Header="二进制文件提取" Click="mi_log_tools_Click" Tag="bin2text"></MenuItem>
-				<MenuItem Header="文件合并" Click="mi_log_tools_Click" Tag="file_merge"></MenuItem>
+				<MenuItem Header="定长帧转cmlog" Click="mi_log_tools_Click" Tag="bin2cmlog"></MenuItem>
+				<MenuItem Header="任意2文件合并" Click="mi_log_tools_Click" Tag="file_merge"></MenuItem>
 				<MenuItem Header="cmlog文件合并" Click="mi_log_tools_Click" Tag="merge_cmlog"></MenuItem>
 				<MenuItem Header="cmlog信道号修改" Click="mi_log_tools_Click" Tag="cmlog_vir"></MenuItem>
 				<MenuItem Header="cmlog修改基准时间戳" Click="mi_log_tools_Click" Tag="cmlog_time"></MenuItem>

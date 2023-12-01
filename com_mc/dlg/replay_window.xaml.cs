@@ -105,7 +105,7 @@ namespace com_mc
 				MainWindow.mw.ticks0 = rplobj.line_ms_list[rplobj.replay_line];
 			}
 			//调用之前的回调函数
-			if (org_replay_rx_cb!=null)
+			if (org_replay_rx_cb!=null && org_replay_rx_cb!= replay_rx_event)
 			{
 				org_replay_rx_cb(b);
 			}
@@ -185,7 +185,11 @@ namespace com_mc
 				is_output_main = (bool)cb_output_main.IsChecked;
 				if((bool)cb_x_ms.IsChecked) //若是按回放时间戳
 				{
-					MainWindow.mw.is_replay_ms = true;
+					if (DataSrc.cur_ds.name == "回放")
+					{
+						MainWindow.mw.is_replay_ms = true;
+					}
+					else MainWindow.mw.is_replay_ms = false; //如果不是回放数据源，这里无效
 				}
 				else if(MainWindow.mw.is_replay_ms == true) //如果是从回放跳变到正常
 				{
@@ -422,7 +426,7 @@ namespace com_mc
 			cb_datasrc.ItemsSource = dsrclist;
 			cb_datasrc.SelectedIndex = 0;
 		}
-		private void btnConnCom_Click(object sender, RoutedEventArgs e)
+		private void btnConnCom_Click(object sender, RoutedEventArgs e) //回放数据通过数据源发送出去的打开数据源函数
 		{
 			var btn = sender as Button;
 			try
@@ -433,11 +437,11 @@ namespace com_mc
 					cur_ds = ds_tab[ds_name];
 					cur_ds.open(ds_name); //打开数据源
 					//将数据源的接收函数换成临时的
-					org_replay_rx_cb = rplobj.rx_event; //记录之前的接收函数
+					//org_replay_rx_cb = rplobj.rx_event; //记录之前的接收函数
 					rplobj.rx_event = (byte[] b) => //回放一帧的数据
 					{
 						cur_ds.send_data(b);
-						if(is_output_main) org_replay_rx_cb(b); //调用之前的
+						if(is_output_main) replay_rx_event(b); //调用之前的
 					};
 
 					Title = Config.config.title_str + ":" + cb_datasrc.Text;
@@ -446,7 +450,7 @@ namespace com_mc
 				else
 				{
 					btn.Content = "打开端口";
-					if (org_replay_rx_cb != null) rplobj.rx_event = org_replay_rx_cb; //恢复之前的回调
+					//if (org_replay_rx_cb != null) rplobj.rx_event = org_replay_rx_cb; //恢复之前的回调
 					if (cur_ds != null) cur_ds.close();
 				}
 			}

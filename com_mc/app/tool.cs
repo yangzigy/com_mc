@@ -625,6 +625,7 @@ namespace cslib
 	{
 		public SerialPort uart = new SerialPort(); //串口
 		public int uart_b = 115200;
+		public Parity parity= Parity.None; //默认校验
 		public DataSrc_uart(RX_CB cb) : base(cb)
 		{
 			uart.DataReceived += (sender,e) =>
@@ -646,11 +647,25 @@ namespace cslib
 		{
 			base.fromDict(v);
 			if (v.ContainsKey("uart_b")) uart_b = (int)v["uart_b"];
+			try
+			{
+				string s = v["parity"] as string;
+				switch (s)
+				{
+					case "N": parity= Parity.None; break;
+					case "E": parity= Parity.Even; break; //偶校验
+					case "O": parity= Parity.Odd; break; //奇校验
+					case "M": parity= Parity.Mark; break; //保留为1
+					case "S": parity= Parity.Space; break; //保留为0
+				}
+			}
+			catch{}
 		}
 		public override void open(string s) //打开数据源，输入以什么名称打开的
 		{
 			uart.PortName = s;
 			uart.BaudRate = uart_b;
+			uart.Parity = parity;
 			uart.Open();
 		}
 		public override void close()

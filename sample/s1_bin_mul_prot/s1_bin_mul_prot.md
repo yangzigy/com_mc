@@ -1,6 +1,6 @@
 <link rel="stylesheet" type="text/css" href="../../doc/base.css">
 
-s1_bin_mul_prot 二进制多协议域案例
+s1_bin_mul_prot 二进制多协议域案例  （当前不可用）
 ======  
 ## 协议
 二进制数据包分为3种类型：  

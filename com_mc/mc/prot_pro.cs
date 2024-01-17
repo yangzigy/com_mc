@@ -15,17 +15,15 @@ namespace com_mc
 	{
 		public virtual void reset_state() //复位为待处理状态
 		{
-			//pro_ind = 0;
-			//foreach (var item in prot_list) //对下级进行递归
-			//{
-			//	var to = item as PD_Obj; //如果是一个协议组织对象
-			//	if (to != null) to.reset_state();
-			//}
+			reset_obj();
+		}
+		public void reset_obj() //复位为待处理状态，obj专用
+		{
 			int end_n = prot_list.Count;
 			//为了提高效率，只复位已经处理的部分。但子类不能这样处理。而且上次执行正确的话，必须全复位(在执行正确的处理时做)
 			if (this.GetType() == typeof(PD_Obj) && end_n > pro_ind)
 			{
-				end_n = pro_ind + 1; 
+				end_n = pro_ind + 1;
 			}
 			for (int i = 0; i < end_n; i++)
 			{
@@ -45,8 +43,8 @@ namespace com_mc
 				n -= off - pre_off; //增加了多少字节，总字节数相应减掉
 				pre_off = off;
 			}
-			//pro_ind = 0; //执行正确完成了
-			reset_state(); //执行正确完成了，还需要清内部的switch
+			//reset_state(); //执行正确完成了，还需要清内部的switch。但这样调用会导致调用了派生类的reset
+			reset_obj(); //执行正确完成了，还需要清内部的switch。
 			return 0;
 		}
 	}

@@ -185,7 +185,7 @@ namespace com_mc
 				is_output_main = (bool)cb_output_main.IsChecked;
 				if((bool)cb_x_ms.IsChecked) //若是按回放时间戳
 				{
-					if (DataSrc.cur_ds.name == "回放")
+					if (DataSrc.cur_ds!=null && DataSrc.cur_ds.name == "回放")
 					{
 						MainWindow.mw.is_replay_ms = true;
 					}

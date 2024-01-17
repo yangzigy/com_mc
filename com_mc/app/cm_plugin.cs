@@ -54,13 +54,13 @@ namespace com_mc
 			//……
 		}
 		public virtual void rx_fun(byte[] buf) //接收数据函数
-		{
-			//无插件，做帧同步（有二进制就不用文本）
+		{ //同时做二进制和文本的帧同步
+			//无插件，做帧同步
 			if (p_mcp.prot_root_list.Count > 0) //二进制帧同步对象的处理
 			{
 				p_mcp.pro_inc(buf,0,buf.Length);
 			}
-			else syn_line.frame_syn_pro(buf, 0, buf.Length); //文本处理
+			if(syn_line!=null) syn_line.frame_syn_pro(buf, 0, buf.Length); //文本处理
 			//有插件，可进行协议转换
 			//……
 		}

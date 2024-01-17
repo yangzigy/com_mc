@@ -150,6 +150,10 @@ namespace cslib
 			for (int i = 0; i < org_data.Length - 6;) //将内存中的数据添加到行列表
 			{
 				CMLOG_HEAD h = (CMLOG_HEAD)Tool.BytesToStruct(org_data, i, typeof(CMLOG_HEAD));
+				if(h.syn!=0xa0) //对于错乱的数据，通过找头，能解出一部分，也不保证正确
+				{
+					i++; continue;
+				}
 				int len = h.len; //len这个域是长度
 				int ms = h.ms;
 				if (!cmlog_vir_info[h.vir].is_sel) //若没选中，需要跳过

@@ -150,7 +150,7 @@ namespace com_mc
 		public byte[] rec_buff = new byte[1024 * 1024];
 		public int rec_p = 0;//偏移指示(输入数据的)
 		public int toff = 0; //偏移指示，处理数据的
-		public int ref_prot_root_id = 0; //关联的协议族根节点id，默认为0
+		public int ref_prot_root_id = 0; //关联的协议族根节点id，在初始化时被prot_ini.cs : MC_Prot : fromJson 赋值为根节点列表中的次序
 		public CM_Plugin_Interface.RX_BIN_CB rx_bin_cb = null;
 		public PD_Obj rootpd = null; //本协议族根实体的引用
 		public List<ParaValue> para_need_update = new List<ParaValue>(); //需要更新的参数列表

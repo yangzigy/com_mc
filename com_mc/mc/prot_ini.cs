@@ -229,17 +229,20 @@ namespace com_mc
 					para_dict[s] = ParaValue.factory(tv); //构建参数
 					para_dict_out[s] = ParaValue.factory(tv); //构建输出参数
 				}
-			//2、构造结构定义，只是缓存
-				struct_dict = v["struct_dict"] as JD; //记录结构定义
-				foreach (var item in struct_dict) //把name给到字典里
+			//2、构造结构定义，只是缓存(文本和二进制协议都有)
+				if (v.ContainsKey("struct_dict"))
 				{
-					var tv = item.Value as JD;
-					if(!tv.ContainsKey("name")) tv["name"] = item.Key;
-					prot_json_set_type(tv);
+					struct_dict = v["struct_dict"] as JD; //记录结构定义
+					foreach (var item in struct_dict) //把name给到字典里
+					{
+						var tv = item.Value as JD;
+						if (!tv.ContainsKey("name")) tv["name"] = item.Key;
+						prot_json_set_type(tv); //在json配置中为协议域设置省略的type
+					}
 				}
+			//3、二进制根节点初始化，递归建立所有实体。若没有说明没有二进制协议
 				if (v.ContainsKey("prot_roots"))
 				{
-				//3、根节点初始化，递归建立所有实体。
 					ArrayList li = v["prot_roots"] as ArrayList; //读取各协议族的根节点
 					foreach (var item in li) //对于每一个根
 					{

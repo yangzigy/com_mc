@@ -205,7 +205,7 @@ namespace com_mc
 		public Dictionary<string, ParaValue> para_dict = new Dictionary<string, ParaValue>(); //自己用的参数字典
 		public Dictionary<string, ParaValue> para_dict_out = new Dictionary<string, ParaValue>(); //输出的参数字典
 
-		public List<Sync_Prot> prot_root_list = new List<Sync_Prot>(); //协议族根节点列表，树形组织所有实体。直接用帧同步对象来做引用（在cmlog日志中id从1开始）
+		public List<Sync_Prot> prot_root_list = new List<Sync_Prot>(); //协议族根节点列表，树形组织所有结构对象。直接用帧同步对象来做引用（在cmlog日志中id从1开始）
 		public PD_LineSwitch text_root = null; //文本协议节点(默认在cmlog中的id=0)
 
 		public PD_Obj void_obj; //空的obj用于初始化时赋值

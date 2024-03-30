@@ -90,7 +90,7 @@ namespace com_mc
 				ds.update_dis = tn => { if (ds.update_times > 0) ds.update_times--; };
 				if (ds.is_dis == false) continue;
 				CheckBox cb = new CheckBox();
-				cb.Content = ds.name;
+				cb.Content = "_"+ds.name; //显示的时候，第一个下划线显示不出来，所以先加一个
 				cb.IsChecked = ds.is_cv;
 				//cb.Width = 150;
 				cb.Background = Brushes.LightCoral;
@@ -111,8 +111,8 @@ namespace com_mc
 						ChartType = SeriesChartType.FastLine,
 						//Color = System.Drawing.Color.Red,
 						Legend = "Legend1",
-						Name = ds.name,
-					};
+						Name = "_" + ds.name, //显示的时候，第一个下划线显示不出来，所以先加一个
+				};
 					chart1.Series.Add(tmpserial);
 					series_map[ds.name] = tmpserial;
 				}
@@ -160,7 +160,7 @@ namespace com_mc
 					{
 						//it.update_times--;
 						cb.Background = Brushes.LightGreen;
-						cb.Content = dd.name + ":" + dd.val.ToString();
+						cb.Content = "_" + dd.name + ":" + dd.val.ToString(); //显示的时候，第一个下划线显示不出来，所以先加一个
 					}
 					else cb.Background = Brushes.LightCoral;
 				});

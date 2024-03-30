@@ -249,7 +249,7 @@ namespace com_mc
 			{
 				CRpl_Para_Info info = new CRpl_Para_Info();
 				info.cb = new CheckBox();
-				info.cb.Content = item.Value.name;
+				info.cb.Content = "_" + item.Value.name; //显示的时候，第一个下划线显示不出来，所以先加一个
 				info.cb.Background = Brushes.LightCoral;
 				info.cb.Margin = new Thickness(2, 2, 2, 0);
 				para_info_dict[item.Key] = info;

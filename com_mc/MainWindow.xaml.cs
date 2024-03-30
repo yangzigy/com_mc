@@ -239,7 +239,7 @@ namespace com_mc
 		private void bt_load_config_Click(object sender, RoutedEventArgs e) //加载指定配置
 		{
 			var ofd = new System.Windows.Forms.OpenFileDialog();
-			ofd.Filter = "*.txt|*.txt";
+			ofd.Filter = "*.txt|*.txt|*.cfg|*.cfg";
 			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
 			ini_by_config(ofd.FileName);
 		}

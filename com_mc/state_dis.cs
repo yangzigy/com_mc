@@ -112,6 +112,7 @@ namespace com_mc
 						//Color = System.Drawing.Color.Red,
 						Legend = "Legend1",
 						Name = "_" + ds.name, //显示的时候，第一个下划线显示不出来，所以先加一个
+						Tag = ds.name, //使用曲线名称作为索引时，需要用不带下划线的
 				};
 					chart1.Series.Add(tmpserial);
 					series_map[ds.name] = tmpserial;

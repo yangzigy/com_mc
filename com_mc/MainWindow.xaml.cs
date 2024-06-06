@@ -265,7 +265,7 @@ namespace com_mc
 				if(chart1.Series[j].Points.Count>0) //若此曲线有点
 				{
 					cv_id.Add(j);
-					s += chart1.Series[j].Name + ",";
+					s += chart1.Series[j].Tag as string + ","; //注意曲线的名字需要用tag，name带下划线
 				}
 			}
 			if (cv_id.Count == 0) return;
@@ -333,7 +333,7 @@ namespace com_mc
 				cv_ind[i] = -1;
 				for (j = 0; j < chart1.Series.Count; j++)
 				{
-					if (chart1.Series[j].Name==tags[i]) //若是这个曲线
+					if (chart1.Series[j].Tag as string == tags[i]) //若是这个曲线， 注意曲线的名字需要用tag，name带下划线
 					{
 						cv_ind[i] = j;
 						break;
@@ -496,7 +496,7 @@ namespace com_mc
 		void set_legend(double x) //根据横坐标设置曲线图例值
 		{
 			foreach (var item in series_map) //遍历所有曲线
-			{
+			{ //此处应判断曲线是否被显示了，不显示的就不处理了
 				int i;
 				double d = double.NaN;
 				for (i = 0; i < item.Value.Points.Count; i++) //遍历本曲线的所有点
@@ -518,7 +518,7 @@ namespace com_mc
 						break;
 					}
 				}
-				var tm = commc.dset[item.Value.Name]; //测控数据对象
+				var tm = commc.dset[item.Value.Tag as string]; //测控数据对象， //注意曲线的名字需要用tag，name带下划线
 				item.Value.LegendText = tm.name + ":" +
 					(double.IsNaN(d) ? "null" : d.ToString(string.Format("F{0}", (tm.val as ParaValue_Val).point_n)));
 			}

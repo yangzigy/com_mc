@@ -244,9 +244,11 @@ namespace com_mc
 				if (v.ContainsKey("prot_roots"))
 				{
 					ArrayList li = v["prot_roots"] as ArrayList; //读取各协议族的根节点
+					if (struct_dict.Count == 0) throw new Exception("无struct_dict域");
 					foreach (var item in li) //对于每一个根
 					{
 						string s = item as string;
+						if (!struct_dict.ContainsKey(s)) throw new Exception("无 " + s + " 协议域");
 						PD_Obj obj = factory(struct_dict[s] as JD, void_obj) as PD_Obj; //根节点递归建立
 						if (obj == null) throw new Exception("根节点不是obj");
 						prot_root_list.Add(new Sync_Prot(obj)); //建立帧同步对象

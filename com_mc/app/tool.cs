@@ -214,12 +214,17 @@ namespace cslib
 			}
 			return ~dwCrc32;
 		}
-		static public byte check_sum(byte[] p, int n)
+		static public byte check_sum(byte[] p,int off, int n)
 		{
 			byte acc = 0;
 			int i;
-			for (i = 0; i < n; i++) acc += p[i];
+			n+=off;
+			for (i = off; i < n; i++) acc += p[i];
 			return acc;
+		}
+		static public byte check_sum(byte[] p, int n)
+		{
+			return check_sum(p,0,n);
 		}
 		public static UInt16 ChangeEnd16(UInt16 n)
 		{

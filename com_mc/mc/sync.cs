@@ -101,7 +101,7 @@ namespace com_mc
 			switch(check_type) //按校验类型进行校验
 			{
 				case CHECK_TYPE.sum:
-					byte sum=Tool.check_sum(b, len-1);
+					byte sum=Tool.check_sum(b, 0, len-1);
 					if (sum != b[len - 1]) return 1;
 					break;
 				case CHECK_TYPE.crc16:

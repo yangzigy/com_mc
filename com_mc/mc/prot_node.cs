@@ -198,8 +198,7 @@ namespace com_mc
 				case CheckMode.fix64: if (data.du64 != fix) return 2; break;
 				case CheckMode.sum8:
 					{
-						byte sum = 0;
-						for(int st=st_pos;st< pre_off;st++) sum += b[st];
+						byte sum = Tool.check_sum(b, st_pos, pre_off);
 						if (sum != data.du8) return 2;
 					}
 					break;

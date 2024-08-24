@@ -572,6 +572,10 @@ namespace com_mc
 			}
 			return s;
 		}
+		private void mi_test_prot_Click(object sender, RoutedEventArgs e) //测试协议
+		{
+
+		}
 	}
 
 	public class PEdit_Display //树形结构，内容不管

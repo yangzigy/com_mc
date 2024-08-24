@@ -100,7 +100,7 @@ namespace com_mc
 				{
 					len += tp.skip_n;
 				}
-				len += p.len;
+				len += p.len; //计算协议的总字节数
 			}
 			//更新输入结构
 			v["len"] = len;

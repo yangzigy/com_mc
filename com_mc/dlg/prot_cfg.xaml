@@ -24,6 +24,7 @@
 			<MenuItem Header="打开协议文件" Tag="file" Click="mi_open_Click"></MenuItem>
 			<MenuItem Header="写入当前协议" Click="mi_save_as_cur_Click" IsEnabled="false"></MenuItem>
 			<MenuItem Header="保存到文件" Click="mi_save_Click"></MenuItem>
+			<MenuItem Header="测试协议" Click="mi_test_prot_Click" IsEnabled="False"></MenuItem>
 		</Menu>
 		<Grid Grid.Row="1" Grid.Column="0" Grid.RowSpan="2">
 			<Grid.RowDefinitions>

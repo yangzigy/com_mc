@@ -37,6 +37,7 @@ namespace com_mc
 		public DataSrc cur_ds = null; //当前数据源
 		public bool is_output_main = true; //是否对主界面输出
 		public DataSrc.RX_CB org_replay_rx_cb = null; //上次的回放接收回调函数
+		public string cur_display_text = ""; //文本框中显示的当前数据
 
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
@@ -173,11 +174,13 @@ namespace com_mc
 					string s = "";
 					for (int i = st; i < end; i++)
 					{
+						string ts = string.Format("{0}:	{1}	{2}", i, rplobj.line_ms_list[i], rplobj.data_lines[i]);
 						if (i == rplobj.replay_line) //若是正要回放的行
 						{
 							s += "*";
+							cur_display_text = ts;
 						}
-						s += string.Format("{0}:	{1}	{2}", i, rplobj.line_ms_list[i], rplobj.data_lines[i]);
+						s += ts;
 					}
 					tb_org_text.Text = s;
 				}
@@ -297,7 +300,7 @@ namespace com_mc
 						//然后回放一行
 						byte[] tb = null;
 						if (rplobj.is_bin) tb = rplobj.bin_lines[i]; //若是二进制
-						else tb = Encoding.UTF8.GetBytes(rplobj.data_lines[i]);
+						else tb = Encoding.UTF8.GetBytes(rplobj.data_lines[i]); //若是文本
 						rplobj.rx_event(tb);
 						//查看所选的变量，看有哪些赋值了
 						bool has_data = false; //是否有值
@@ -458,6 +461,10 @@ namespace com_mc
 			{
 				MessageBox.Show("message: " + ee.Message);
 			}
+		}
+		private void bt_copy_cur_Click(object sender, RoutedEventArgs e) //复制当前帧
+		{
+			Clipboard.SetText(cur_display_text);
 		}
 	}
 	public class CRpl_Para_Info //回放对话框中测量量参数信息，包括选择控件和输出缓存

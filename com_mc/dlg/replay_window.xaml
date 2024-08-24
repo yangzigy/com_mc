@@ -127,6 +127,7 @@
 				<TextBox Name="tb_ms_search" Width="50" FontSize="16"></TextBox>
 				<Button FontSize="16" Click="bt_search_by_ms_Click">按ms查找</Button>
 				<Button FontSize="16" Click="bt_replay_cur_Click">回放当前帧</Button>
+				<Button FontSize="16" Click="bt_copy_cur_Click">复制当前帧</Button>
 			</StackPanel>
 			<TextBox Grid.Row="3" VerticalScrollBarVisibility="Disabled"  HorizontalScrollBarVisibility="Visible" Name="tb_org_text"
 					 HorizontalContentAlignment="Left" PreviewMouseWheel="tb_org_text_MouseWheel"></TextBox>

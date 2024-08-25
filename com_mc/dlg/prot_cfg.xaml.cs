@@ -37,7 +37,7 @@ namespace com_mc
 		//根节点的缓存
 		public List<string> rootlist = new List<string>();
 		//文本点的缓存
-		public List<string> tl_root = new List<string>(); //行结构的名称
+		public List<string> tl_root = new List<string>(); //行结构的名称，需要填结构的key名，而不是局部名
 
 		/////////////////////////////////////////////////////////////////////////////
 		//外部引用
@@ -62,7 +62,7 @@ namespace com_mc
 			//这个v复制的不彻底，需要用字符串倒一手，让他彻底复制
 			string sj = Tool.json_ser.Serialize(v); //这样取得的字符串带"
 			v = Tool.json_ser.Deserialize<JD>(sj); //
-			try //转换过程中，不完整的协议配置会在建立联系的时候异常，对于现实来说无所谓
+			try //转换过程中，不完整的协议配置会在建立联系的时候异常，对于显示来说无所谓
 			{
 			//1、初始化参数字典
 				para_dict.Clear();
@@ -75,25 +75,8 @@ namespace com_mc
 				}
 			//2、构造结构定义
 				struct_dict = v["struct_dict"] as JD;
-				//这里需要给每个顶层结构都实例化一下
-				MC_Prot tmcp = new MC_Prot();
-				//先构造一个空的obj
-				JD void_v = new JD();
-				void_v["type"] = "obj";
-				PD_Obj void_obj = MC_Prot.factory(void_v, null) as PD_Obj;
-				void_obj.p_mcp = tmcp; //主要就为了给这个赋值
-				tmcp.struct_dict = struct_dict;
-				foreach (var item in struct_dict) //把name给到字典里
-				{
-					var tv = item.Value as JD;
-					if (!tv.ContainsKey("name")) tv["name"] = item.Key;
-					MC_Prot.prot_json_set_type(tv);
-					try //根节点引用的顶层switch是必然报错的，因为引用路径带有相对结构
-					{
-						var obj = MC_Prot.factory(item.Value as JD, void_obj); //顶层节点初始化但不使用，就为了让他把配置json补齐
-					}
-					catch { }
-				}
+				//update_struct(struct_dict); //更新struct，先初始化为对象，再变json
+
 			//3、根节点初始化
 				rootlist.Clear();
 				if (v.ContainsKey("prot_roots"))
@@ -127,6 +110,30 @@ namespace com_mc
 			update_rootslist_display(); //刷新协议根节点列表
 			update_textswitch_display(); //刷新文本协议
 		}
+		public void update_struct(JD st) //更新struct，先初始化为对象，再变json
+		{
+			//这里需要给每个顶层结构都实例化一下
+			MC_Prot tmcp = new MC_Prot();
+			//先构造一个空的obj
+			JD void_v = new JD();
+			void_v["type"] = "obj";
+			PD_Obj void_obj = MC_Prot.factory(void_v, null) as PD_Obj;
+			void_obj.p_mcp = tmcp; //主要就为了给这个赋值
+			tmcp.struct_dict = st;
+			foreach (var item in st) //把name给到字典里
+			{
+				var tv = item.Value as JD;
+				if (!tv.ContainsKey("name")) tv["name"] = item.Key;
+				try //根节点引用的顶层switch是必然报错的，因为引用路径带有相对结构
+				{
+					var obj = MC_Prot.factory(item.Value as JD, void_obj); //顶层节点初始化但不使用，就为了让他把配置json补齐
+				}
+				catch(Exception e)
+				{
+					MessageBox.Show("更新协议结构："+e.Message);
+				}
+			}
+		}
 		public void update_paralist_display() //更新参数列表的显示
 		{
 			para_disobj.Clear();
@@ -144,22 +151,37 @@ namespace com_mc
 		}
 		public void update_protlist_display() //更新协议树的显示
 		{
-			//首先保存当前treeview中的折叠状态
-			List<string> expand_list=new List<string>();
-			foreach (PEdit_Display item in tv_prot.Items)
+			List<string> expand_list = new List<string>();
+			while (true)
 			{
-				TreeViewItem tvi = tv_prot.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
-				if (tvi!=null && tvi.IsExpanded == true) expand_list.Add(item.name);
-			}
-			//重新构造显示数据结构
-			prot_treeobj.Clear(); //专门用于显示的数据结构
-			foreach (var item in struct_dict) //对于每一个定义的顶层结构
-			{
-				PEdit_Display tl = new PEdit_Display();
-				var tv = item.Value as JD;
-				tv["name"] = item.Key;
-				tl.create_recu(tv, null);//为此节点加子节点
-				prot_treeobj.Add(tl);
+				update_struct(struct_dict); //更新结构字典
+				expand_list.Clear();
+				//首先保存当前treeview中的折叠状态
+				foreach (PEdit_Display item in tv_prot.Items)
+				{
+					TreeViewItem tvi = tv_prot.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
+					if (tvi != null && tvi.IsExpanded == true) expand_list.Add(item.name);
+				}
+				//重新构造显示数据结构
+				prot_treeobj.Clear(); //专门用于显示的数据结构
+				try
+				{
+					foreach (var item in struct_dict) //对于每一个定义的顶层结构
+					{
+						PEdit_Display tl = new PEdit_Display();
+						var tv = item.Value as JD;
+						tv["name"] = item.Key;
+
+						tl.create_recu(tv, null);//为此节点加子节点
+						prot_treeobj.Add(tl);
+					}
+				}
+				catch (Exception e) //增加节点的时候会发现有些节点错误，删了从来
+				{
+					MessageBox.Show(e.Message);
+					continue;
+				}
+				break;
 			}
 			//刷新显示
 			tv_prot.ItemsSource = null;
@@ -202,7 +224,7 @@ namespace com_mc
 				{ //在树形结构中找到这个结构的描述对象，并引用描述对象的属性对象，取得列数
 					tl.len = (from x in prot_treeobj 
 							  where x.name == item 
-							  select (x.pd_prop as PD_LineObj_PropDis).col_n).ElementAt(0).ToString();
+							  select (x.pd_prop as PD_LineObj_PropDis).col_n).ElementAt(0).ToString(); //文本协议用col_n作为长度
 				}
 				catch
 				{
@@ -578,7 +600,7 @@ namespace com_mc
 		}
 	}
 
-	public class PEdit_Display //树形结构，内容不管
+	public class PEdit_Display //树形结构，属性控件的内容不管
 	{
 		//显示的基本信息，是在树形结构中显示用的，不是属性显示用的
 		public string name { get; set; }
@@ -620,7 +642,11 @@ namespace com_mc
 						tv = Prot_Cfg_Window.struct_dict[s] as JD;
 						tp.create_recu(tv, this);
 					}
-					else continue;
+					else //这个协议域有问题，去掉
+					{
+						list.Remove(item);
+						throw new Exception("协议域引用错误");
+					}
 					sub.Add(tp);
 				}
 			}

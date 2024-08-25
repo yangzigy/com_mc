@@ -8,9 +8,11 @@ using System.IO;
 using System.Windows;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using System.Windows.Markup.Localizer;
+using cslib;
 
 namespace com_mc
 {
+	using JD = Dictionary<string, object>;
 	public class PD_LineObj : PD_Obj //文本行协议对象，不接受二进制输入
 	{
 		public string head = ""; //协议头，带着$
@@ -59,13 +61,22 @@ namespace com_mc
 		public string str_buf = ""; //输入行缓存
 		public PD_LineSwitch(Dictionary<string, object> v, ProtType t, PD_Obj pd) : base(v, t, pd)
 		{
+			//PD_Obj初始化的都不用
+			if (!v.ContainsKey("prot_list")) return;
+			ArrayList list = v["prot_list"] as ArrayList;
 			if (v.ContainsKey("encoding")) cur_encoding = Encoding.GetEncoding(v["encoding"] as string);
 			prot_dict.Clear();
-			for (int i = 0; i < prot_list.Count; i++) //对于每个协议名称，取得子协议的引用，提高引用效率
+			prot_list.Clear();
+			foreach (var item in list)
 			{
-				PD_LineObj p = prot_list[i] as PD_LineObj;
-				if (p == null) throw new Exception(prot_list[i].name + "应为PD_LineObj");
-				string s = p.head; //也可能是""
+				string s = item as string; //直接给了这个协议域的名称，需要是之前定义过的，在结构列表中找。
+				if (!p_mcp.struct_dict.ContainsKey(s)) throw new Exception("无顶层协议："+s);
+				var tv = p_mcp.struct_dict[s] as JD;
+				tv = Tool.jd_clone(tv) as JD;
+				PD_LineObj p=gennerate_sub(s, tv) as PD_LineObj; //递归生成子节点，s为名称
+				if (p == null) throw new Exception(s + "应为PD_LineObj");
+
+				s = p.head; //也可能是""
 				s += "-" + p.col_n.ToString(); //索引名为：$r-2，或者-7
 				prot_dict[s] = p;
 			}

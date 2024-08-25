@@ -92,7 +92,10 @@ namespace com_mc
 					tv.Remove("name");
 				}
 				//else //若是把子协议域直接写出来，则tv已经有东西了
-				if (tv.ContainsKey("name")) s = tv["name"] as string; //若有指定名称
+				if (tv.ContainsKey("name") && !(tv["name"] as string).StartsWith("_"))
+				{
+					s = tv["name"] as string; //若有指定名，且不是下划线开头的保留名，则使用指定名
+				}
 				else s = string.Format("_{0}", prot_list.Count); //_2的形式，生成默认成员名称
 				var p=gennerate_sub(s, tv); //递归生成子节点，s为名称
 				var tp = p as PD_Node;
@@ -120,6 +123,10 @@ namespace com_mc
 			int ind = path.IndexOf('/');
 			if (ind < 0)
 			{
+				if(father_Dom==null) //若是顶层
+				{
+					return null; //顶层不需要引用，这应该就是通用定义，等各数据结构引用的。
+				}
 				if (prot_dict.ContainsKey(path)) //若直接就是本级路径
 				{
 					return prot_dict[path];

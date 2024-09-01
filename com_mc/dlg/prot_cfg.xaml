@@ -12,6 +12,7 @@
 			<RowDefinition Height="30"></RowDefinition>
 			<RowDefinition Height="1*"></RowDefinition>
 			<RowDefinition Height="1*"></RowDefinition>
+			<RowDefinition Height="80"></RowDefinition>
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="2*"></ColumnDefinition>
@@ -24,7 +25,6 @@
 			<MenuItem Header="打开协议文件" Tag="file" Click="mi_open_Click"></MenuItem>
 			<MenuItem Header="写入当前协议" Click="mi_save_as_cur_Click" IsEnabled="false"></MenuItem>
 			<MenuItem Header="保存到文件" Click="mi_save_Click"></MenuItem>
-			<MenuItem Header="测试协议" Click="mi_test_prot_Click" IsEnabled="False"></MenuItem>
 		</Menu>
 		<Grid Grid.Row="1" Grid.Column="0" Grid.RowSpan="2">
 			<Grid.RowDefinitions>
@@ -112,7 +112,7 @@
 		</GroupBox>
 		<GroupBox  Grid.Row="1" Grid.Column="2" Grid.RowSpan="2">
 			<GroupBox.Header>
-				<TextBlock  Text ="协议配置" FontWeight="Bold"/>
+				<TextBlock  Text ="对象属性" FontWeight="Bold"/>
 			</GroupBox.Header>
 			<Grid Grid.Row="1" Grid.Column="3" Grid.RowSpan="2">
 				<Grid.RowDefinitions>
@@ -153,6 +153,20 @@
 						<DataGridTextColumn Header="长度" Width="50" Binding="{Binding len}" IsReadOnly="True"/>
 					</DataGrid.Columns>
 				</DataGrid>
+			</Grid>
+		</GroupBox>
+		<GroupBox Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4">
+			<GroupBox.Header>
+				<TextBlock  Text ="协议测试" FontWeight="Bold"/>
+			</GroupBox.Header>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="120"></ColumnDefinition>
+					<ColumnDefinition Width="2*"></ColumnDefinition>
+				</Grid.ColumnDefinitions>
+				<Button Grid.Row="0" Grid.Column="0" Height="40" Click="bt_prot_test_Click" IsEnabled="False">测试选中协议域</Button>
+				<TextBox Grid.Column="1" VerticalScrollBarVisibility="Visible"  HorizontalScrollBarVisibility="Auto"  Name="tb_prot_test_text"
+					 HorizontalContentAlignment="Left" VerticalContentAlignment="Top"></TextBox>
 			</Grid>
 		</GroupBox>
 	</Grid>

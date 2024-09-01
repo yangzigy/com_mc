@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
+using System.Security.Permissions;
 
 namespace cslib
 {
@@ -370,6 +371,130 @@ namespace cslib
 				return (T)(dict[s]);
 			}
 			return dft;
+		}
+		static public byte hexchar_2_byte(char c) //单个ASCII字符转hex byte
+		{
+			byte val = 0;
+			if (c >= 'a' && c <= 'f')
+			{
+				val = (byte)(c - 'a' + 10);
+			}
+			else if (c >= '0' && c <= '9')
+			{
+				val = (byte)(c - '0');
+			}
+			else throw new Exception(c+" not a hex char");
+			return val;
+		}
+		static public bool char_is_punctuation(char c) //判断一个字符是否是标点
+		{
+			bool r = false;
+			if (c >= ' ' && c <= '/') r=true;
+			else if (c >= ':' && c <= '@') r = true;
+			else if (c >= '[' && c <= '`') r = true;
+			else if (c >= '{') r = true;
+			return r;
+		}
+		//接受小端存储的0x/0b开头hex字符串，8bit，16bit，32bit或64bit一组
+		//例如：aa 01020x12 0x123456780b011000
+		static public byte[] hex_2_bytes(string s) //从hex字符串转bytes
+		{
+			List<byte> b = new List<byte>();
+			s = s.ToLower(); //都转换为小写字母来做
+			s=s.Replace("0x", " X"); //约定X为0x
+			s=s.Replace("0b", " B"); //约定B为0b 此时已经都是小写字母了，B可区别于b
+			int stat = 0; //0: 寻找一个字的起始, 1: 寻找单字节截止，2：寻找0x的数字，3：寻找0b的数字
+			int val_n = 0; //寻找值的字符数
+			UInt64 val=0; //临时值
+			for(int i = 0;i<s.Length;i++)
+			{
+				char c = s[i];
+				bool is_last = i==s.Length-1; //是否是最后一个字符
+				bool need_pro=false;
+				switch(stat) 
+				{
+					case 0: //0: 寻找一个字的起始
+						val_n = 0;
+						val = 0;
+						if (c == 'X') stat = 2;
+						else if (c == 'B') stat = 3;
+						else if (char_is_punctuation(c)) break;
+						else //提取第一个字符
+						{
+							try { val = hexchar_2_byte(c); }
+							catch (Exception e)
+							{
+								throw new Exception("hex string pos: " + i + ": " + e.Message);
+							}
+							stat = 1;
+						}
+						break;
+					case 1: //1: 寻找单字节截止
+						if (!char_is_punctuation(c)) //若不是标点或空白字符
+						{
+							try { val = val*16 + hexchar_2_byte(c); }
+							catch (Exception e)
+							{
+								throw new Exception("hex string pos: " + i + ": " + e.Message);
+							}
+						}
+						b.Add((byte)val); //对于单字节字符串，无论如何第二个字符都结束了
+						stat = 0;
+						break;
+					case 2: //2：寻找0x的数字
+						need_pro = false;
+						if (char_is_punctuation(c)) //若是空白字符
+						{
+							need_pro=true;
+						}
+						else //查看是否是数字
+						{
+							try { val = val * 16 + hexchar_2_byte(c); }
+							catch (Exception e)
+							{
+								throw new Exception("hex string pos: " + i + ": " + e.Message);
+							}
+							val_n++;
+							if (val_n>=16 || is_last) need_pro=true; //达到最大字符数或是最后一个字符
+						}
+						if(need_pro) //若需要处理
+						{
+							int n = (val_n > 8) ? 8 : ((val_n > 4) ? 4 : ((val_n > 2) ? 2 : 1)); //几个字节
+							for (int j = 0; j < n; j++)
+							{
+								b.Add((byte)(val & 0xff));
+								val >>= 8;
+							}
+							stat = 0;
+						}
+						break;
+					case 3: //3：寻找0b的数字
+						if (char_is_punctuation(c)) //若是空白字符或达到最大字符数或是最后一个字符
+						{
+							need_pro=true;
+						}
+						else //查看是否是数字
+						{
+							if(c=='0') val = val * 2;
+							else if(c== '1') val = val * 2 + 1;
+							else throw new Exception("hex string pos: " + i);
+							val_n++;
+							if (val_n>=64 || is_last) need_pro=true; //达到最大字符数或是最后一个字符
+						}
+						if (need_pro) //若需要处理
+						{
+							int n = (val_n > 32) ? 8 : ((val_n > 16) ? 4 : ((val_n > 8) ? 2 : 1)); //几个字节
+							for (int j = 0; j < n; j++)
+							{
+								b.Add((byte)(val & 0xff));
+								val >>= 8;
+							}
+							stat = 0;
+						}
+						break;
+				}
+			}
+			return b.ToArray();
 		}
 	}
 	public class LogFile //存储二进制数据的文件，根据配置创建文件路径，每隔固定时间重新建立文件

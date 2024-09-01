@@ -594,9 +594,17 @@ namespace com_mc
 			}
 			return s;
 		}
-		private void mi_test_prot_Click(object sender, RoutedEventArgs e) //测试协议
+		private void bt_prot_test_Click(object sender, RoutedEventArgs e) //测试协议
 		{
+			if (tv_prot.SelectedItem == null) return;
+			byte[] b = Tool.hex_2_bytes(tb_prot_test_text.Text); //取得要测试的数组
+			//取得选中的协议对象
+			var ped = tv_prot.SelectedItem as PEdit_Display;
+			pg_prot.SelectedObject = ped.pd_prop;
 
+			//var po = prot_root_list[rootid].rootpd;
+			//po.reset_state(); //复位为待处理状态
+			//po.pro(b, ref off, n); //调用对应协议族的根节点，跟增量是一个处理函数，只是一次给所有的数据
 		}
 	}
 

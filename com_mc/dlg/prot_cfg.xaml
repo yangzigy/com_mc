@@ -164,7 +164,7 @@
 					<ColumnDefinition Width="120"></ColumnDefinition>
 					<ColumnDefinition Width="2*"></ColumnDefinition>
 				</Grid.ColumnDefinitions>
-				<Button Grid.Row="0" Grid.Column="0" Height="40" Click="bt_prot_test_Click" IsEnabled="False">测试选中协议域</Button>
+				<Button Grid.Row="0" Grid.Column="0" Height="40" Click="bt_prot_test_Click" IsEnabled="True">测试选中协议域</Button>
 				<TextBox Grid.Column="1" VerticalScrollBarVisibility="Visible"  HorizontalScrollBarVisibility="Auto"  Name="tb_prot_test_text"
 					 HorizontalContentAlignment="Left" VerticalContentAlignment="Top"></TextBox>
 			</Grid>

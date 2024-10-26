@@ -37,7 +37,7 @@ namespace com_mc
 		//根节点的缓存
 		public List<string> rootlist = new List<string>();
 		//文本点的缓存
-		public List<string> tl_root = new List<string>(); //行结构的名称，需要填结构的key名，而不是局部名
+		public List<string> tl_root = new List<string>(); //行结构的名称，需要填结构的key名，而不是局部名。这东西应该就1个啊?
 
 		/////////////////////////////////////////////////////////////////////////////
 		//外部引用
@@ -596,15 +596,62 @@ namespace com_mc
 		}
 		private void bt_prot_test_Click(object sender, RoutedEventArgs e) //测试协议
 		{
-			if (tv_prot.SelectedItem == null) return;
+			//if (tv_prot.SelectedItem == null) return;
 			byte[] b = Tool.hex_2_bytes(tb_prot_test_text.Text); //取得要测试的数组
-			//取得选中的协议对象
-			var ped = tv_prot.SelectedItem as PEdit_Display;
-			pg_prot.SelectedObject = ped.pd_prop;
+			////取得选中的协议对象
+			//var ped = tv_prot.SelectedItem as PEdit_Display;
 
-			//var po = prot_root_list[rootid].rootpd;
-			//po.reset_state(); //复位为待处理状态
-			//po.pro(b, ref off, n); //调用对应协议族的根节点，跟增量是一个处理函数，只是一次给所有的数据
+			//由协议编辑界面上的协议配置，生成一个临时的协议对象系统
+			MC_Prot tmcp = new MC_Prot();
+			JD tmpjd = MC_Prot.toJson(para_dict, struct_dict, rootlist, tl_root);
+			tmcp.fromJson(tmpjd as JD);
+
+			//找到协议对象系统中的所选的这个协议对象：但是所有协议对象都以根出发，界面上没法判断从哪个根出发，所以还得遍历
+			string sout = "";
+			foreach (var item in tmcp.prot_root_list)
+			{
+				sout += string.Format("测试协议：{0}, 输入：{1} Byte\n",item.ToString(),b.Length);
+				int r = 0;
+				int toff = 0;
+				try //若用户处理异常，不影响帧同步
+				{
+					r = item.rootpd.pro(b, ref toff, b.Length - toff); //调用对应协议族的根节点
+				}
+				catch { r = 2; }
+				if (r == 2) //若接收不正确
+				{
+					sout += string.Format("	测试失败，off = {0}\n",toff);
+				}
+				if (r == 0) //若正确接收
+				{
+					tmcp.after_inc(item.ref_prot_root_id);
+					sout += string.Format("	测试成功\n");
+					foreach (var tp in item.para_need_update)
+					{
+						sout += string.Format("	{0}: {1}\n",tp.name,tp.ToString());
+					}
+				}
+				else //若没有接收完成
+				{
+					sout += string.Format("	测试失败，数据不完整\n");
+				}
+			}
+			//建立显示对话框
+			Com_Dlg text_dis_dlg = new Com_Dlg(); //
+			text_dis_dlg.Height = 600;
+			text_dis_dlg.Width = 600;
+			text_dis_dlg.Title = "协议测试结果";
+			TextBox tb = new TextBox();
+			tb.TextWrapping= TextWrapping.Wrap;
+			tb.AcceptsReturn = true;
+			tb.AcceptsTab = true;
+			tb.VerticalContentAlignment= VerticalAlignment.Top;
+			tb.HorizontalContentAlignment = HorizontalAlignment.Left;
+			tb.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+			tb.Text = sout;
+			Grid.SetColumnSpan(tb, 2);
+			text_dis_dlg.grid_main.Children.Add(tb);
+			text_dis_dlg.ShowDialog();
 		}
 	}
 

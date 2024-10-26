@@ -202,7 +202,7 @@ namespace cslib
 						replay_line++;
 					}
 					else break;
-					if (state == 3) break;//若是单帧播放
+					if (state != 2) break;//若是单帧播放，或者停止了
 				}
 			}
 			catch (Exception e) { }

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using System.Security.Permissions;
+using System.Net.NetworkInformation;
 
 namespace cslib
 {
@@ -621,6 +622,24 @@ namespace cslib
 		public ushort port { set; get; }
 		public string rmt_ip { set; get; }
 		public ushort rmt_port { get; set; } //对方的ip和端口
+		public static string[] get_local_ip() //取得本机IP地址列表（只要已经link的）
+		{
+			List<string> list = new List<string>();
+			foreach(var item in NetworkInterface.GetAllNetworkInterfaces())
+			{
+				if(item.OperationalStatus==OperationalStatus.Up) 
+				{
+					foreach (var ip in item.GetIPProperties().UnicastAddresses)
+					{
+						if(ip.Address.AddressFamily==AddressFamily.InterNetwork) 
+						{
+							list.Add(ip.Address.ToString());
+						}
+					}
+				}
+			}
+			return list.ToArray();
+		}
 	}
 	public abstract class DataSrc //数据源
 	{

@@ -202,6 +202,11 @@ namespace com_mc
 			{
 				var para = ref_para as ParaValue_Val;
 				para.data.ds32 = (int)v["loop_n"];
+				//PD_Obj只累加了list中的，对于loop，只有1遍，所以需要额外累加
+				//累加时，只考虑静态的情况，动态的现在也不能算。
+				len *= para.data.ds32;
+				//更新输入结构
+				v["len"] = len;
 			}
 		}
 	}

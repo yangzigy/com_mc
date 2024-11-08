@@ -5,8 +5,8 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:my="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
 		xmlns:local="clr-namespace:com_mc"
-		mc:Ignorable="d" Loaded="Window_Loaded" ResizeMode="NoResize"
-		Title="Prot_Cfg_Window" Height="700" Width="900" Closing="Window_Closing" FontSize="16">
+		mc:Ignorable="d" Loaded="Window_Loaded" MinHeight="700" MinWidth="900"
+		Title="Prot_Cfg_Window" Height="700" Width="1000" Closing="Window_Closing" FontSize="16">
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="30"></RowDefinition>
@@ -103,7 +103,8 @@
 							<StackPanel Orientation="Horizontal">
 								<TextBlock Text="{Binding name}"></TextBlock>
 								<TextBlock Text="{Binding type}" Margin="5,0,0,0" Background="LightGreen"></TextBlock>
-								<TextBlock Text="{Binding len, StringFormat={}: {0}B}"></TextBlock>
+								<TextBlock Text="{Binding refname, StringFormat={} {0}}"></TextBlock>
+								<TextBlock Text="{Binding len, StringFormat={}: {0}B}" Foreground="Red"></TextBlock>
 							</StackPanel>
 						</HierarchicalDataTemplate>
 					</TreeView.ItemTemplate>
@@ -161,10 +162,10 @@
 			</GroupBox.Header>
 			<Grid>
 				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="120"></ColumnDefinition>
+					<ColumnDefinition Width="100"></ColumnDefinition>
 					<ColumnDefinition Width="2*"></ColumnDefinition>
 				</Grid.ColumnDefinitions>
-				<Button Grid.Row="0" Grid.Column="0" Height="40" Click="bt_prot_test_Click" IsEnabled="True">测试选中协议域</Button>
+				<Button Grid.Row="0" Grid.Column="0" Height="40" Click="bt_prot_test_Click" IsEnabled="True">测试协议</Button>
 				<TextBox Grid.Column="1" VerticalScrollBarVisibility="Visible"  HorizontalScrollBarVisibility="Auto"  Name="tb_prot_test_text"
 					 HorizontalContentAlignment="Left" VerticalContentAlignment="Top"></TextBox>
 			</Grid>

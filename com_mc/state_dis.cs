@@ -420,16 +420,24 @@ namespace cslib
 	public class DataSrc_replay_filedlg : DataSrc_replay //带时间戳的日志回放,打开文件对话框包裹
 	{
 		public DataSrc_replay_filedlg(RX_CB cb) : base(cb) { }
+		public string open_direct_fn = ""; //不打开选择对话框，直接打开文件的文件名
 		public override void open(string s)
 		{
-			var ofd = new System.Windows.Forms.OpenFileDialog();
-			//ofd.Filter = "*.txt|*.txt|*.cmlog|*.cmlog";
-			ofd.Filter = Config.config.logfile_ext;
-			if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
-			string exs = Path.GetExtension(ofd.FileName).Trim();
+			string fn = open_direct_fn;
+			if(open_direct_fn=="") //需要打开对话框
+			{
+				var ofd = new System.Windows.Forms.OpenFileDialog();
+				//ofd.Filter = "*.txt|*.txt|*.cmlog|*.cmlog";
+				ofd.Filter = Config.config.logfile_ext;
+				if (ofd.ShowDialog() != System.Windows.Forms.DialogResult.OK) throw new Exception("未选择文件");
+				fn=ofd.FileName;
+			}
+			string exs = Path.GetExtension(fn).Trim();
 			if (exs == ".cmlog") is_bin = true;//若是二进制的
 			else is_bin = false;
-			base.open(ofd.FileName);
+			base.open(fn);
+
+			open_direct_fn = "";
 		}
 	}
 }

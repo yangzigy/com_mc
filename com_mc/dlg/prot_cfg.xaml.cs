@@ -173,6 +173,21 @@ namespace com_mc
 						tv["name"] = item.Key;
 
 						tl.create_recu(tv, null);//为此节点加子节点
+						//仅对第二层的节点给一个偏移位置
+						int off = 0;
+						for(int i=0;i<tl.sub.Count;i++) //对于第二层的每一个节点
+						{
+							string s = tl.sub[i].len; //取得本节点的len字符串
+							try
+							{
+								int len = int.Parse(s); //将字符串变成数字
+								s = string.Format("{0}/{1}", off, len); //格式化加入偏移
+								tl.sub[i].len = s;
+								off += len;
+							}
+							catch {  }
+						}
+						//加入总列表
 						prot_treeobj.Add(tl);
 					}
 				}
@@ -658,7 +673,8 @@ namespace com_mc
 	public class PEdit_Display //树形结构，属性控件的内容不管
 	{
 		//显示的基本信息，是在树形结构中显示用的，不是属性显示用的
-		public string name { get; set; }
+		public string name { get; set; } //协议域名
+		public string refname { get; set; } //本协议域引用的参数名
 		public string type { get; set; } //因为是复用的，可能是协议类型，也可能是参数类型
 		public string len { get; set; }
 		public List<PEdit_Display> sub { get; set; }=new List<PEdit_Display>(); //子节点
@@ -670,6 +686,11 @@ namespace com_mc
 			p_father = f;
 			type = v["type"] as string;
 			name = v["name"] as string;
+			if (v.ContainsKey("ref_name"))
+			{
+				refname = v["ref_name"] as string;
+			}
+			else refname = "";
 			int l = v.ContainsKey("len")?(int)v["len"]:0; //有些就是没有长度
 			len = l.ToString();
 			pd_prop = ProtDom_PropDis.factory(name, v);

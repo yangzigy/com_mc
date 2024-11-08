@@ -172,6 +172,33 @@ namespace com_mc
 					}
 				}, invokeobj);
 			}, this, 0, 100);
+			string[] args = Environment.GetCommandLineArgs(); //取得参数
+			if(args.Length == 2) //若是打开文件
+			{
+				try
+				{
+					FileInfo file= new FileInfo(args[1]);
+					if (file.Exists == true && file.Extension==".cmlog") 
+					{
+						//在列表中找到“回放”
+						var list = cb_datasrc.Items;
+						for (int i=0;i<list.Count;i++) 
+						{
+							if (list[i] as string =="回放")
+							{
+								cb_datasrc.SelectedIndex= i;
+								(rpl_win.rplobj as DataSrc_replay_filedlg).open_direct_fn = args[1];
+								btnConnCom_Click(bt_open_datasrc, null); //打开数据源
+								break;
+							}
+						}
+					}
+				}
+				catch (Exception ee)
+				{
+					MessageBox.Show("输入文件名错误");
+				}
+			}
 		}
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{

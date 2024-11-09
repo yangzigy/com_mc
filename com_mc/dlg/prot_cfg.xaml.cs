@@ -625,7 +625,7 @@ namespace com_mc
 			string sout = "";
 			foreach (var item in tmcp.prot_root_list)
 			{
-				sout += string.Format("测试协议：{0}, 输入：{1} Byte\n",item.ToString(),b.Length);
+				sout += string.Format("测试协议：{0}, 输入：{1} Byte\n",item.rootpd.name,b.Length);
 				int r = 0;
 				int toff = 0;
 				try //若用户处理异常，不影响帧同步
